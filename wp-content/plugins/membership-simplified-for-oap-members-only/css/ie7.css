@@ -1,0 +1,119 @@
+/**
+* function.css used for function.php
+**/
+@font-face {
+font-family: "Bebas";
+src: url("<?php echo plugins_url(); ?>/membership-simplified-for-oap-members-only/fonts/BEBAS.ttf") /* TTF file for CSS3 browsers */
+}
+p.imgurl
+{
+  width:40%;
+}
+.awdMetaImage p
+{
+ width:40%;
+}
+.width_input
+{
+ width:100%;
+ margin-top:4px;
+}
+#download_msg
+{
+color:#C13130;
+font-weight:bold;
+padding-bottom:10px;
+}
+#media_msg
+{
+color:#C13130;
+font-weight:bold;
+padding-bottom:10px;
+}
+.textarealabel
+{
+margin-bottom:7px;
+}
+#_oap_page_background_color
+{
+width:215px !important;
+float:left !important;
+}
+.modcoder_excolor_clrbox{ 
+ margin: 2px 0 0 7px !important;
+    }
+TD#page_background_color span{ padding:0 !important}
+#oaperrorordering A
+{
+	float: left;
+	width: 100%;
+	height: 40px;
+	text-decoration: none;
+	color: #000;
+}
+#oaperrorpaginate A
+{
+	float: left;
+	width: 100%;
+	height: 40px;
+	text-decoration: none;
+	color: #000;
+}
+#oaperrorordering A SPAN, #oaperrorpaginate A SPAN
+{
+	color: #FF0000 !important;
+}
+.widget-content #oaperrorordering
+{
+	display: none;
+}
+.widget-content #oaperrorpaginate
+{
+	display: none;
+}
+#my-overview-box
+{
+min-height:300px;
+}
+.oap-login-widget
+{
+	margin: 10px 10px 40px;
+	float: left;
+	width: 100%;
+}
+#oap-wp-submit
+{
+	float: right;
+	background-color: #000;
+	color: #FFF;
+	width: 80px;
+	height: 30px;
+	border: none;
+	cursor: pointer;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	k-html-radius: 5px;
+}
+#wp-logout-submit
+{
+	float: right;
+	background-color: #000;
+	color: #FFF;
+	width: 80px;
+	height: 30px;
+	border: none;
+	cursor: pointer;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	k-html-radius: 5px;
+}
+td#temp_override_height label{ width:100% !important;}
+label.sec_2{ float:left; width:97%;*width:95%;}
+label.sec_l{ float:left; width:100%;}
+label.sec_l strong{ float:left; width:auto;}
+label.sec_l a{ float:right; width:auto;}
+.width_input.reset{ width:100% !important;*width:97% !important; }
+span.inner_st{ float:right; width:auto;}
+span.inner_st strong{ float:none !important;}

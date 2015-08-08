@@ -1,0 +1,1369 @@
+@font-face
+{
+	font-family: League;
+	src: url('../fonts/league_gothic-webfont.eot');
+	src: url('../fonts/league_gothic-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/league_gothic-webfont.woff') format('woff'), url('../fonts/league_gothic-webfont.ttf') format('truetype'), url('../fonts/league_gothic-webfont.svg#LeagueGothicRegular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+.msimplified-template.video-comments
+{
+	display: block;
+	width: 80%;
+	margin: 0 auto;
+}
+.ms-videocomments-video
+{
+	display: block;
+	margin: 50px auto;
+	box-shadow: 0px 0px 10px  #d3d3d3;
+	-webkit-box-shadow: 0px 0px 10px #d3d3d3;
+	-moz-box-shadow: 0px 0px 10px #d3d3d3;
+}
+.ms-videocomments-video iframe
+{
+	margin-bottom: 0px!important;
+}
+.ms-videocomments-comments
+{
+	display: block;
+	margin: 0 auto;
+	margin-bottom: 50px;
+}
+.ms-headline-text h2
+{
+	margin-bottom: 4px!important;
+}
+.ms-headline-text
+{
+	display: block;
+	margin: 50px auto 0;
+	text-align: center;
+}
+.ms-videocomments-comments #comments
+{
+	width: 100%;
+	max-width: 100%;
+	display: inline-block;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+.ms-videocomments-comments .comment-respond
+{
+	margin-top: 25px;
+}
+.ms-videocomments-comments article
+{
+	margin-bottom: 50px;
+}
+.ms-videocomments-comments li > ul, 
+.ms-videocomments-comments li > ol
+{
+	margin-left: 50px;
+}
+.ms-headline-text .oap-infobox-fullvideo
+{
+	float: none!important;
+}
+.ms-headline-text p
+{
+	margin-bottom: 3px;
+}
+.ms-videocomments-video .flowplayer
+{
+	background-color: black;
+}
+A
+{
+	text-decoration: none !important;
+	font-weight: 100;
+}
+p{word-wrap:break-word;} 
+UL.sub-menu
+{
+	display: none;
+}
+LI:hover UL.sub-menu
+{
+	display: block;
+}
+#mycarousel LI A
+{
+	float: none !important;
+}
+DIV.dlitem_text
+{
+	text-align: left;
+	padding-top: 8px;
+	line-height: inherit;
+	display: table !important;
+}
+#oap-content-text .ui-tabs-nav LI,
+#oap_content_media .ui-tabs-nav LI
+{
+	list-style: none;
+}
+#mycarousel LI
+{
+	padding-bottom: 6px !important;
+	float: left !important;
+}
+DIV.downloadcontainer
+{
+	width: 100%;
+}
+#content LI
+{
+	line-height: 1.5 !important;
+}
+.oap-htmlcontent
+{
+	float: left;
+	width: 100%;
+}
+DIV.oapseperator
+{
+	border-bottom: 1px dotted #000000;
+	margin-bottom: 20px !important;
+	margin-top: 10px !important;
+}
+.lessonwritten H2.lessontitle
+{
+	text-transform: uppercase;
+}
+DIV.posttitlez
+{
+	width: 100% !important;
+	float: left !important;
+	display: block !important;
+	margin-bottom: 4px !important;
+	line-height: 1;
+}
+.oapbox2 H2
+{
+	font-size: 14pt !important;
+	line-height: 1;
+	font-weight: 100;
+	margin-bottom: 3px;
+	min-height: 20px;
+}
+.oapDownloadList H2
+{
+	float: left;
+	padding-top: 5px;
+	width: 50%;
+	font-size: 14pt;
+	text-transform: none;
+	line-height: 1;
+	margin-top: 20px;
+	min-height: 20px;
+}
+#headerbox
+{
+	margin: 0 auto;
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+/*
+width: 100%;
+float:left;
+margin-left:8px;
+margin-bottom:10px;*/
+}
+#headerbox .hleft .leftwhite
+{
+	float: left;
+	background-color: transparent;
+	border: 0px dotted #000000;
+	width: 100% !important;
+}
+DIV.scrollbar
+{
+	background-image: none !important;
+}
+.scrollbutton
+{
+	display: inline-block;
+	width: 100%;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	text-align: center;
+	padding: 10px;
+	border: 1px solid lightgrey;
+	cursor: pointer;
+}
+DIV.icon_pos
+{
+	float: left;
+	width: 35px;
+}
+#headerbox .hleft1 .leftwhite1
+{
+	height: 254px;
+	float: left;
+	margin: 13px;
+	background-color: #FFF;
+	padding: 10px;
+}
+#headerbox .hleft .leftwhite H2
+{
+	display: block;
+	float: left;
+	width: 100%;
+	margin: 6px 0 0 0px;
+	text-align: left;
+	min-height: 20px;
+}
+#headerbox .hleft1 .leftwhite1 H2
+{
+	float: left;
+	font-size: 20px;
+	text-transform: uppercase;
+	color: #1F5E8B !important;
+	font-family: League;
+	min-height: 20px;
+}
+#headerbox .hleft .leftwhite P
+{
+	float: left;
+	padding: 0 0 5px 0px !important;
+	text-align: left;
+	line-height: inherit;
+	
+	
+}
+.oap-top-text P
+{
+	word-wrap:break-word;
+}
+#scroll
+{
+	width: 100%;
+	float: left;
+	word-wrap:break-word;
+}
+#scroll .sleft
+{
+	float: left;
+	line-height: 21px;
+	max-height: 90px;
+	font-weight: bold;
+	width: 100%;
+}
+#headerbox .hright
+{
+	margin: 0 1.25%;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+#headerbox .hright IMG
+{
+/*margin-left: 10px;*/
+}
+.oapoverviewtitle SPAN
+{
+	font-family: League !important;
+}
+/*main start here*/
+#oap-content
+{
+	float: left;
+	margin: 0 auto;
+	width: 100%;
+	margin-right: 10px !important;
+	padding: 0px 10px 30px;
+	display: inline !important;
+}
+H2 A.oapposttitle
+{
+	font-family: inherit;
+	font-size: 18px;
+	font-weight: 100;
+	line-height: 1;
+}
+#oapsidebar .track
+{
+	background-image: none !important;
+}
+#oap-main
+{
+	width: 100%;
+	float: left;
+	margin-top: 25px;
+}
+#oap-main .retweet
+{
+	float: right;
+	position: relative;
+}
+#oap-main .retweet IMG
+{
+	padding: 0 0 0 10px;
+}
+#oap-main H2
+{
+	float: left;
+	font-size: 20px;
+	
+	width: 500px;
+	margin-top: 0px !important;
+	margin-bottom: 0px;
+	min-height: 20px;
+}
+.oaptitlediv H2
+{
+	float: left;
+	width: 205px !important;
+}
+#oap-main H3
+{
+	float: left;
+	font-size: 15px;
+	color: #1F5E8B;
+	width: 667px;
+}
+#oap-main SPAN
+{
+	width: 25%;
+	font-family: "arial helvetica sans-serif";
+	vertical-align: baseline;
+}
+#oap-main STRONG
+{
+	width: 534px;
+	float: left;
+	padding-bottom: 30px;
+}
+#oap-main P
+{
+	width: 100%;
+	float: left;
+	padding: 0 0 0px 0px;
+}
+#oap-main P.txt
+{
+	width: 100%;
+	float: left;
+	padding: 5px 0 10px 0px;
+}
+#oap-main H4
+{
+	float: left;
+	width: 20%;
+	font-size: 17pt;
+	margin-top: 0px;
+	min-height: 20px;
+}
+.oaplessonnumber
+{
+	float: left;
+	width: 35%;
+	font-family: Arial;
+	padding: 15px 0 15px 0px;
+}
+#oaplessoncount
+{
+	width: auto;
+	margin: 0 0 0 5px;
+}
+.oappaginate
+{
+	font-family: Arial;
+	float: right;
+	margin: 15px 0 0;
+}
+.oap-post
+{
+	float: left;
+	width: 65%;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin: 30px 0 0 0px;
+	display: inline-block;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+.bottom_section
+{
+	margin-top: 25px;
+	display: inline-block;
+	background-image: url('../images/seperator.png');
+	background-repeat: no-repeat;
+	float:left;
+	width: 100%!important;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+.oap-post-title SPAN
+{
+	color: #000000 !important;
+	float: left;
+	font-size: 14px;
+	font-family: arial !important;
+	text-transform: none;
+}
+.oap-post-title SPAN
+{
+	margin-top: 6px;
+}
+#oapsidebar
+{
+	width: 100%;
+	margin: 20px 0px;
+	float: left;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+.bottom_section #oapsidebar
+{
+	width: 35%;
+	padding: 10px;
+}
+#oapsidebar .viewport 
+{ 
+	width: 100%;
+	display: inline-block;
+}
+#oapsidebar .reg-sidebar-widget.viewport:hover
+{ 
+	overflow-y: scroll;
+}
+#oapsidebar:before
+{
+}
+.scrollbar
+{
+	/*[empty]background:;*/
+}
+.widget_widget_categories_oap
+{
+	display: inline-block;
+}
+#oapsidebar UL
+{
+	width: 100%;
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+#oapsidebar UL LI
+{
+	width: 100%;
+	float: left;
+	display: inline-block;
+	list-style: none !important;
+	background-image: none !important;
+	margin-left: 0px !important;
+	padding-left: 0px !important;
+	padding-bottom: 30px;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+#oapsidebar UL LI SPAN
+{
+	width: 103px;
+	height: 104px;
+	float: left;
+	background-image: url(images/pic-bg.png);
+	background-repeat: no-repeat;
+}
+#oapsidebar UL LI SPAN IMG
+{
+	padding: 7px 0 0 6px;
+	height: 91px;
+	width: 91px;
+}
+#oapsidebar UL LI .box H2
+{
+	width: 100%;
+	float: left;
+	font-size: 20px !important;
+	text-transform: none !important;
+	line-height: 1;
+	min-height: 20px;
+	display: inline-block;
+}
+#oapsidebar UL LI .box LABEL
+{
+	width: 194px;
+	float: left;
+	color: #000000 !important;
+	line-height: 20px;
+	font-size: 11pt;
+}
+H6.typetitle
+{
+	width: 100%;
+	float: left;
+	display: inline-block;
+	margin-bottom: 4px !important;
+	margin-top: 4px !important;
+	font-size: 16px;
+	line-height: 16px;
+	font-weight: 100;
+}
+.oapmenutitle LABEL
+{
+	font-family: serif;
+}
+#oapsidebar UL LI .box P
+{
+	width: 100%;
+	display: inline-block;
+	line-height: inherit;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+#scroll .sleft A
+{
+	float: left;
+	text-decoration: none;
+	padding: 7px 0 0 0px;
+	display: block;
+}
+#scroll .sright
+{
+	width: 46px;
+	float: left;
+}
+#scroll .sright .next
+{
+	width: 20px;
+	float: right;
+	position: relative;
+}
+#scroll .sright .prev
+{
+	width: 20px;
+	float: right;
+	position: relative;
+	top: 42px;
+	left: 20px;
+}
+.sleft UL LI
+{
+	float: left;
+	width: 100%;
+/*padding: 5px 0 5px 0px;*/
+	list-style: none;
+}
+H1.oap-heading
+{
+	font-size: 18pt;
+}
+.oap-top-text P
+{
+	margin-bottom: 10px;
+}
+.oapLessonName
+{
+	float: left;
+}
+.oapLessonNumber
+{
+	float: left;
+	margin-top: 6px;
+	margin-bottom: 4px;
+}
+.oapLessonLength
+{
+	text-align: center;
+}
+.oapLessonText
+{
+	float: left;
+	text-align: left;
+	width: 207px;
+	padding: 0 0 0 2px;
+}
+.oap-picture
+{
+	width: 207px;
+	height: 207px;
+}
+#pic
+{
+	width: 100%;
+	float: left;
+	padding-top: 20px;
+	text-align: center;
+}
+#pic UL
+{
+	padding: 0px;
+/*margin: 0 auto;*/
+	list-style: none;
+	text-align: center;
+}
+#pic UL LI
+{
+	float: left;
+	list-style: none;
+	margin: 0 20px 10px 15px;
+	background-repeat: no-repeat;
+	background-position: top;
+	text-align: center;
+	max-height: 500px;
+	overflow: hidden;
+}
+#pic UL LI .txt
+{
+	width: 207px;
+	text-align: center;
+	font-size: 13px;
+	line-height: 16px;
+	padding-top: 16px;
+}
+#pic UL LI .txt STRONG
+{
+	width: 235px;
+	line-height: 24px;
+	padding: 0px;
+}
+#pic UL LI .txt LABEL
+{
+	font-size: 14px;
+	width: 216px !important;
+	color: #000;
+	padding: 0px;
+	float: left;
+	text-align: center;
+}
+#pic UL LI .txt SPAN
+{
+	color: #666;
+	float: left;
+	width: 207px;
+}
+#pic UL LI IMG
+{
+	height: 207px;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+#slide
+{
+	width: 100%;
+	float: left;
+	padding-top: 20px;
+}
+#slide UL
+{
+	width: 100%;
+	float: left;
+	padding: 0px;
+	margin: 0px;
+	list-style: none;
+}
+LI.overviewlistitems
+{
+	width: 100%;
+	float: left;
+	list-style: none;
+	padding-bottom: 40px;
+	display: block;
+}
+.oap-smallimage IMG
+{
+	float: left;
+	height: 90px;
+	width: 90px;
+}
+DIV.oap-smallimage
+{
+	width: 20%;
+	float: left;
+	display: inline-block;
+}
+.oap-smallimage-sidebar
+{
+	display: inline-block;
+	float: left;
+	height: auto;
+	width: 35%;
+	min-width: 100px;
+	max-width: 120px!important;
+	margin-right: 5%;
+	margin-bottom: 10px;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+.oap-smallimage-sidebar IMG
+{
+	max-width: 120px!important;
+	width: 100%;
+}
+#oapsidebar .oapmenutitle
+{
+	display: inline-block;
+	width: 58%;
+	min-width: 120px;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+#oap_theme_wrapper .site:before
+{
+	background-color: transparent!important;
+	position: relative;
+}
+@media screen and (max-width: 420px) 
+{
+	#oapsidebar .oapmenutitle
+	{
+		width: 100%;
+	}
+	.oap-smallimage-sidebar
+	{
+		width: 100%;
+	}
+	.bottom_section #oapsidebar
+	{
+		width: 100%;
+	}
+}
+DIV.mainbox
+{
+	float: left;
+	width: 80%;
+	display: inline-block !important;
+}
+DIV.overviewtext
+{
+	font-family: inherit !important;
+	margin-top: 0px;
+	font-size: inherit;
+/*line-height: 1 !important;*/
+	float: left !important;
+}
+H6.mpctitle
+{
+	margin-top: 0px !important;
+	float: left;
+	margin-bottom: 0px !important;
+	padding-bottom: 4px !important;
+	font-size: 16px;
+	line-height: 16px !important;
+	font-weight: 100;
+}
+DIV.mpctitle
+{
+	width: 100% !important;
+	float: left !important;
+	display: block !important;
+	margin-bottom: 4px !important;
+}
+.lessonwritten H6.mpctitle
+{
+	width: 100%;
+	float: left;
+	font-size: 14pt;
+	line-height: 1.3;
+}
+DIV.lessonnumber
+{
+	width: 100% !important;
+	display: inline-block;
+	margin-bottom: 3px !important;
+	margin-top: 0px !important;
+}
+#slide UL LI .mainbox LABEL
+{
+	width: 100%;
+	float: left;
+	color: #666;
+	margin: 0 0 5px 0px;
+}
+#slide UL LI .mainbox P
+{
+	width: 100%;
+	float: left;
+	color: #000;
+	text-align: left;
+}
+#slide UL LI .mainbox H2
+{
+	width: auto;
+	float: left;
+	font-size: 14px;
+	font-weight: bold;
+	text-transform: none;
+	color: #808080;
+	margin: 0 0 5px 0px;
+}
+.overviewtitles H2
+{
+	line-height: 1 !important;
+	padding-bottom: 4px !important;
+	margin-bottom: 0px !important;
+	min-height: 20px;
+}
+DIV.overviewtitles
+{
+	width: 100%;
+	display: inline-block;
+	margin-bottom: 3px !important;
+	margin-top: 0px !important;
+}
+DIV.overviewlistitems
+{
+	width: 100% !important;
+}
+#slide UL LI .mainbox H2 B
+{
+	color: #666;
+	font-weight: normal;
+	font-style: italic;
+	min-height: 20px;
+}
+.mainbox SPAN
+{
+	float: left;
+	color: #808080;
+}
+/*.oap-top-text
+{
+float: left;
+max-height:300px;
+overflow-y: auto;
+overflow-x: hidden;
+width:auto;
+}*/
+.oap-htmlcontent
+{
+	float: left;
+}
+.oap-social-icons
+{
+	height: auto !important;
+	margin: 10px 10px 10px 0px !important;
+	display: inline-block;
+	width: 100%;
+}
+#blank-sidebar
+{
+	float: right;
+	padding: 10px 5px;
+	color: #FFFFFF;
+	width: 300px;
+}
+.oapcontent
+{
+	float: left;
+	width: 100%!important;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+.oapcontent P
+{
+	width: 100%;
+	line-height: inherit;
+}
+.oapcontent .social4i
+{
+	display: none !important;
+}
+.oapcontent .social4in
+{
+	display: none !important;
+}
+.hrclass
+{
+	color: #FFF;
+	background-color: #000;
+/*height: 5px;
+border-bottom: 1px dotted #000 !important;*/
+	margin: -20px 0 20px 0px !important;
+	float: left;
+	width: 98%;
+}
+.oapDownloadListing
+{
+	float: left;
+	width: 100%;
+	padding: 5px 0 5px 0px;
+}
+.oapDownloadListing A
+{
+	float: left;
+	padding: 10px 0 0px 0px;
+}
+/*
+* WP-Paginate - WordPress Pagination Function
+* Revision: $Id: wp-paginate.css 286636 2010-09-08 00:11:23Z emartin24 $
+* Copyright (c) 2010 Eric Martin http://www.ericmmartin.com/projects/wp-paginate/
+ */
+.wp-paginate
+{
+	padding: 0;
+	margin: 0;
+	float: right;
+}
+#scrollbar1
+{
+	float: left;
+	width: 100% !important;
+}
+.wp-paginate LI
+{
+	display: inline;
+	list-style: none;
+}
+.wp-paginate A
+{
+/*background: #DDD;
+border: 1px solid #CCC;*/
+	color: #666;
+	margin-right: 4px;
+	padding: 3px 6px;
+	text-align: center;
+	text-decoration: none;
+}
+.wp-paginate A:hover, .wp-paginate A:active
+{
+	background: #CCC;
+	color: #888;
+}
+.wp-paginate .title
+{
+	color: #555;
+	margin-right: 4px;
+}
+.wp-paginate .gap
+{
+	color: #999;
+	margin-right: 4px;
+}
+.wp-paginate .current
+{
+	color: #000;
+/*background: #5F87AE;
+border: 1px solid #89ADCF;*/
+	margin-right: 4px;
+	padding: 3px 6px;
+}
+.oapDownloadList
+{
+	float: left;
+	width: 100%;
+	padding: 10px 0 10px 0px;
+}
+.oapInfoBox
+{
+	float: left;
+	width: 100%;
+}
+.oapInfoBox P
+{
+	float: left;
+	width: 100%;
+}
+DIV.oapbox2 P
+{
+	margin-bottom: 15px;
+}
+DIV.oapbox1 P
+{
+	margin-bottom: 15px !important;
+}
+#oapsearch
+{
+	float: right;
+}
+.uiGrid .vTop
+{
+	display: none !important;
+}
+/*
+.single-oaplesson{
+width:940px;
+margin:0 auto;
+}
+*/
+#sidebar
+{
+/*padding-left: 0px !important;*/
+}
+#loginform INPUT
+{
+	display: inline-block !important;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	width: 100%;
+	padding: 7px;
+	margin-bottom: 5px;
+}
+#loginform #oap-wp-submit:hover
+{
+	color: #000000;
+	border: 1px solid #A6A5A5;
+	-webkit-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	-moz-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	box-shadow: 0px 0px 2px #9F9F9F;
+}
+INPUT#wp-logout-submit
+{
+	float: left;
+	background: rgb(255, 255, 255);
+/*Old browsers*/
+	background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(221,221,221,1) 100%);
+/*FF3.6+*/
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(221,221,221,1)));
+/*Chrome,Safari4+*/
+	background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Chrome10+,Safari5.1+*/
+	background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Opera 11.10+*/
+	background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*IE10+*/
+	background: linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*W3C*/
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 );
+/*IE6-9*/
+	width: auto;
+	padding: 7px 15px;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	color: #686868!important;
+	border: 1px solid #C9C9C9;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-left: 0px !important;
+}
+#loginform #wp-logout-submit:hover
+{
+	color: #000000;
+	border: 1px solid #A6A5A5;
+	-webkit-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	-moz-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	box-shadow: 0px 0px 2px #9F9F9F;
+}
+.oapbox1 H2
+{
+	font-size: 14pt !important;
+	line-height: 1;
+	font-weight: 100;
+	margin-bottom: 3px;
+	margin-top: 10px;
+	min-height: 20px;
+}
+.single-oaplesson #oap-content
+{
+/*background-color:#FFF;*/
+	width: 100%;
+	margin: 0 auto;
+/*margin-left:2.5%;*/
+}
+P.writtenby
+{
+}
+DIV.writtenby
+{
+	margin-bottom: 15px;
+}
+/**** Webly theme Fix**/
+#footer-widgets
+{
+	float: left;
+}
+/*=Oap Sales Page Main Div
+--------------------------------------------------------------*/
+#sales-page
+{
+	width: 80%;
+	margin: 0 auto;
+}
+/*=Oap Sales Pages Menu
+--------------------------------------------------------------*/
+#oapaccess
+{
+	background: #000;
+	display: block;
+	float: left;
+	margin: 0 auto;
+	width: 940px;
+}
+#oapaccess .menu-header, DIV.menu
+{
+	font-size: 13px;
+	margin-left: 12px;
+	width: 928px;
+}
+DIV.menu-membership-container .menu
+{
+	margin-left: 10px !important;
+	padding-left: 10px !important;
+	margin-right: 0px !important;
+	padding-right: 0px !important;
+	width: 100% !important;
+	display: inline-block !important;
+}
+#oapaccess .menu-header UL, DIV.menu UL
+{
+	list-style: none;
+	margin: 0;
+}
+#oapaccess .menu-header LI, DIV.menu LI
+{
+	float: left;
+	position: relative;
+}
+#oapaccess A
+{
+	color: #AAA;
+	display: block;
+	line-height: 38px;
+	padding: 0 10px;
+	text-decoration: none;
+}
+#oapaccess UL UL
+{
+	box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+	-webkit-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+	display: none;
+	position: absolute;
+	top: 38px;
+	left: 0;
+	float: left;
+	width: 180px;
+	z-index: 99999;
+}
+#oapaccess UL UL LI
+{
+	min-width: 180px;
+}
+#oapaccess UL UL UL
+{
+	left: 100%;
+	top: 0;
+}
+#oapaccess UL UL A
+{
+	background: #333;
+	line-height: 1em;
+	padding: 10px;
+	width: 160px;
+	height: auto;
+}
+#oapaccess LI:hover > A, #oapaccess UL UL :hover > A
+{
+	background: #333;
+	color: #FFF;
+}
+#oapaccess UL LI:hover > UL
+{
+	display: block;
+}
+#oapaccess UL LI.current_page_item > A, #oapaccess UL LI.current-menu-ancestor > A, #oapaccess UL LI.current-menu-item > A, #oapaccess UL LI.current-menu-parent > A
+{
+	color: #FFF;
+}
+* HTML #oapaccess UL LI.current_page_item A, * HTML #oapaccess UL LI.current-menu-ancestor A, * HTML #oapaccess UL LI.current-menu-item A, * HTML #oapaccess UL LI.current-menu-parent A, * HTML #oapaccess UL LI A:hover
+{
+	color: #FFF;
+}
+DIV.txt
+{
+	padding-top: 15px;
+}
+#container-5
+{
+	display: inline-block;
+	width: 100%;
+	border: none;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+#container-5 iframe
+{
+	margin-bottom: -5px!important;
+}
+#container-5 .ui-tabs-panel
+{
+	padding: 0px!important;
+}
+#container-5 UL.tabs-nav
+{
+	display: inline-block;
+	width: 100%;
+}
+#container-5 .ui-tabs-nav
+{
+	background-image: none!important;
+	background-color: #f3f3f3;
+	border: none!important;
+	padding: 0px!important;
+}
+#container-5 .ui-tabs-nav li
+{
+	border-bottom: 1px solid #d3d3d3!important;
+	border-radius: 0px!important;
+	font-size: 11pt;
+	margin-right: 2px;
+	outline: 0px!important;
+	background-image: none;
+	background-color: #fff;
+}
+#container-5 .ui-tabs-active a
+{
+	background-color: #000;
+	color: #fff;
+	background-image: none;
+}
+#container-5 .ui-tabs-nav li a
+{
+	outline: 0px!important;
+}
+#container-5 .ui-state-focus
+{
+	outline: 0px!important;
+}
+#container-5 A
+{
+/*width: 100% !important;*/
+	overflow: hidden;
+}
+H4.lesson_number
+{
+	font-size: 16px;
+	font-style: italic;
+	line-height: 1 !important;
+	margin-bottom: 0 !important;
+	margin-top: 0 !important;
+	padding: 4px 0 !important;
+	min-height: 20px;
+}
+#oap-top-text
+{
+	height: 360px;
+	padding-top: 0px !important;
+}
+#oap-top-text .viewport
+{
+	width: 100% !important;
+	display: inline-block;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+#oap-content-text
+{
+	padding-left: 10px;
+	padding-right: 10px;
+	display: table;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	width:100%!important;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+#oap_content_media
+{
+	padding-top: 20px;
+	padding-left: 10px;
+	padding-right: 10px;
+	display: inline-block;
+	margin-top: 30px !important;
+	margin-bottom: 30px !important;
+	width:100%!important;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+}
+.novideo_div
+{
+background-color:#000000;color:#ffffff;padding:18px;text-align:center;position:relative;vertical-align:middle;font-size:28px;font-weight:bold;
+}
+.ui-tabs li
+{
+	list-style: none!important;
+}
+.downloadcontainer li
+{
+	list-style: none!important;
+	margin-left: 0!important;
+}
+#maincontent ul.ui-tabs-nav
+{
+	margin-left: 0px;
+}
+#oapsidebar h2
+{
+	margin-top: 0px;
+	margin-bottom: 3px;
+}
+#oapsidebar h6
+{
+	margin-top: 1px;
+	margin-bottom: 5px;
+}
+.posttitle_title h1
+{
+	margin-bottom: 4px;
+}
+.post_title
+{
+	margin-bottom: 10px;
+}
+.text-template .post_title
+{
+	margin: 0;
+	padding: 0;
+}
+.text-template .posttitle_title h1
+{
+	margin-top: 0;
+}
+
+@media all and (max-width: 500px)
+{
+	#oap-top-text
+	{
+		height: 100%;
+	}
+	#headerbox .hleft
+	{
+		width: 100%!important;
+		margin: 0!important;
+		padding: 1.25%;
+	}
+	#headerbox .hright
+	{
+		width: 100%!important;
+		margin: 0!important;
+		padding: 1.25%;
+	}
+	.oap-post
+	{
+		width: 100%!important;
+		margin: 0!important;
+		padding: 1.25%;
+	}
+	.bottom_section #oapsidebar
+	{
+		width: 100%!important;
+		margin: 0!important;
+		padding: 1.25%;
+	}
+}

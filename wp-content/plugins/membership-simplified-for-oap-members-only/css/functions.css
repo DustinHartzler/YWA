@@ -1,0 +1,316 @@
+/**
+* function.css used for function.php
+**/
+@font-face
+{
+	font-family: Bebas;
+	src: url("<?php echo plugins_url(); ?>/membership-simplified-for-oap-members-only/fonts/BEBAS.ttf");
+}
+@font-face
+{
+	font-family: League;
+	src: url('../fonts/league_gothic-webfont.eot');
+	src: url('../fonts/league_gothic-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/league_gothic-webfont.woff') format('woff'), url('../fonts/league_gothic-webfont.ttf') format('truetype'), url('../fonts/league_gothic-webfont.svg#LeagueGothicRegular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+P.imgurl
+{
+	width: 40%;
+}
+.awdMetaImage P
+{
+	width: 40%;
+}
+.width_input
+{
+	width: 100%;
+	margin-top: 4px;
+}
+#download_msg
+{
+	color: #C13130;
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+#media_msg
+{
+	color: #C13130;
+	font-weight: bold;
+	padding-bottom: 10px;
+}
+.textarealabel
+{
+	margin-bottom: 7px;
+	float: left;
+	width: 100%;
+}
+#_oap_page_background_color
+{
+	width: 90% !important;
+	float: left !important;
+}
+#page_background_color .modcoder_excolor_clrbox
+{
+	margin: 2px 0 0 7px !important;
+	position: absolute !important;
+	right: 0 !important;
+	top: 1px !important;
+	height: 20px !important;
+}
+#_oap_outer_page_background_color
+{
+	width: 90% !important;
+	float: left !important;
+}
+#outer_page_background_color .modcoder_excolor_clrbox
+{
+	margin: 2px 0 0 7px !important;
+	position: absolute !important;
+	right: 0 !important;
+	top: 1px !important;
+	height: 20px !important;
+}
+.modcoder_excolor_clrbox
+{
+	margin: 2px 0 0 7px !important;
+}
+TD#page_background_color SPAN
+{
+	padding: 0 !important;
+	width: 100% !important;
+	position: relative !important;
+}
+TD#outer_page_background_color SPAN
+{
+	padding: 0 !important;
+	width: 100% !important;
+	position: relative !important;
+}
+#oaperrorordering A
+{
+	float: left;
+	width: 100%;
+	height: 40px;
+	text-decoration: none;
+	color: #000;
+}
+#oaperrorpaginate A
+{
+	float: left;
+	width: 100%;
+	height: 40px;
+	text-decoration: none;
+	color: #000;
+}
+#oaperrorordering A SPAN, #oaperrorpaginate A SPAN
+{
+	color: #FF0000 !important;
+}
+.widget-content #oaperrorordering
+{
+	display: none;
+}
+.widget-content #oaperrorpaginate
+{
+	display: none;
+}
+.oap-login-widget
+{
+	display:inline-block;
+	padding: 10px 0px!important;
+	width: 100%;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+H3.title
+{
+	display: block;
+	width: 100%;
+}
+#oap-wp-submit
+{
+	float: left;
+	background: rgb(255, 255, 255);
+/*Old browsers*/
+	background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(221,221,221,1) 100%);
+/*FF3.6+*/
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(221,221,221,1)));
+/*Chrome,Safari4+*/
+	background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Chrome10+,Safari5.1+*/
+	background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Opera 11.10+*/
+	background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*IE10+*/
+	background: linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*W3C*/
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 );
+/*IE6-9*/
+	width: auto;
+	padding: 7px 15px;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	color: #686868;
+	border: 1px solid #C9C9C9;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-left: 0px !important;
+}
+#oap-wp-submit:hover
+{
+	background-color: #ECECEC;
+	-webkit-transition: background .5s ease-in-out;
+	-moz-transition: background .5s ease-in-out;
+	-o-transition: background .5s ease-in-out;
+	transition: background .5s ease-in-out;
+	color: #000000;
+	border: 1px solid #A6A5A5;
+	-webkit-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	-moz-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	box-shadow: 0px 0px 2px #9F9F9F;
+}
+#wp-logout-submit:hover
+{
+	background-color: #ECECEC;
+	-webkit-transition: background .5s ease-in-out;
+	-moz-transition: background .5s ease-in-out;
+	-o-transition: background .5s ease-in-out;
+	transition: background .5s ease-in-out;
+	color: #000000;
+	border: 1px solid #A6A5A5;
+	-webkit-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	-moz-box-shadow: 0px 0px 2px 0px #9F9F9F;
+	box-shadow: 0px 0px 2px #9F9F9F;
+}
+#wp-logout-submit
+{
+	float: left;
+	background: rgb(255, 255, 255);
+/*Old browsers*/
+	background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(221,221,221,1) 100%);
+/*FF3.6+*/
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(221,221,221,1)));
+/*Chrome,Safari4+*/
+	background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Chrome10+,Safari5.1+*/
+	background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*Opera 11.10+*/
+	background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*IE10+*/
+	background: linear-gradient(top, rgba(255,255,255,1) 0%,rgba(221,221,221,1) 100%);
+/*W3C*/
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 );
+/*IE6-9*/
+	width: auto;
+	padding: 7px 15px;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	color: #686868;
+	border: 1px solid #C9C9C9;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	margin-left: 0px !important;
+}
+TD#temp_override_height LABEL
+{
+	width: 100% !important;
+}
+LABEL.sec_2
+{
+	float: left;
+	width: 97%;
+	=width: 95%;
+}
+LABEL.sec_l
+{
+	float: left;
+	width: 100%;
+}
+LABEL.sec_l STRONG
+{
+	float: left;
+	width: auto;
+}
+LABEL.sec_l A
+{
+	float: right;
+	width: auto;
+}
+.width_input.reset
+{
+	width: 100% !important;
+	=width: 97% !important;
+}
+SPAN.inner_st
+{
+	float: right;
+	width: auto;
+}
+SPAN.inner_st STRONG
+{
+	float: none !important;
+}
+UL.ui-sortable
+{
+	float: left;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+.c_lft
+{
+	float: left;
+	width: auto;
+}
+.c_rt
+{
+	float: right;
+	width: auto;
+}
+#btm_col
+{
+	width: 150px;
+}
+#btm_col2
+{
+	width: 220px;
+}
+.inn_table
+{
+	float: left;
+	width: 100%;
+}
+.oap_overview_text
+{
+	width: 65%;
+	position: relative;
+	display: inline-block !important;
+	margin-bottom: 15px;
+}
+.oap_lesson_number
+{
+	width: 65%;
+	position: relative;
+	display: inline-block !important;
+	margin-bottom: 15px;
+}
+.menu_item_desc
+{
+	margin-top: 28px;
+}
+.menu_item_desc INPUT, TEXTAREA
+{
+	width: 99%;
+}

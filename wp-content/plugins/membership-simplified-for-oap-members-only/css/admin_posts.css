@@ -1,0 +1,607 @@
+/*CSS Document*/
+DIV.help_wrap
+{
+	border: 1px solid #DFDFDF;
+	padding: 40px;
+	margin-right: 20px !important;
+	background: white;
+}
+#main_template_setting INPUT
+{
+	color: #FFF !important;
+	text-shadow: 1px 1px 1px #000;
+}
+DIV.help_steps
+{
+	clear: both;
+	display: inline-block;
+}
+DIV.seperator
+{
+	display: block;
+	margin-top: 45px;
+	margin-bottom: 45px;
+	text-align: center;
+}
+DIV.help_bottom
+{
+	width: 100%;
+}
+DIV.toolsandresources
+{
+	width: 60%;
+	float: left;
+	margin-right: 5%;
+	margin-bottom: 40px;
+	display: inline-block;
+}
+DIV#slider
+{
+	height: auto !important;
+	width: 650px !important;
+}
+DIV.help_categories
+{
+	width: 100%;
+	clear: both;
+	display: inline-block;
+}
+DIV.middle_category
+{
+	width: 30%;
+	float: left;
+	margin-right: 5%;
+}
+DIV.left_category
+{
+	width: 30%;
+	float: left;
+	margin-right: 5%;
+}
+LI.category_li A
+{
+	font-size: 11pt;
+	text-decoration: none;
+	color: #6699FF;
+}
+LI.category_li A:hover
+{
+	color: #84C146;
+	-webkit-transition: color .5s ease-in-out;
+	-moz-transition: color .5s ease-in-out;
+	-o-transition: color .5s ease-in-out;
+	transition: color .5s ease-in-out;
+}
+LI.category_li
+{
+	margin-bottom: 20px;
+}
+DIV.stepbystep
+{
+	margin-bottom: 45px;
+	display: block;
+}
+DIV.numbers A
+{
+	background-color: #6699FF;
+	color: #FFFFFF;
+	text-decoration: none;
+	float: left;
+	font-family: league;
+	padding: 31px 28px 27px;
+	margin-right: 40px;
+	font-size: 40.4pt;
+	-webkit-border-radius: 16px;
+	-moz-border-radius: 16px;
+	border-radius: 16px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	display: block;
+	width: auto;
+}
+DIV.numbers A:hover
+{
+	-webkit-transition: background .5s ease-in-out;
+	-moz-transition: background .5s ease-in-out;
+	-o-transition: background .5s ease-in-out;
+	transition: background .5s ease-in-out;
+	background-color: #84C146;
+	color: #FFFFFF;
+}
+H3.sub_head
+{
+	font-family: league;
+	font-weight: 100;
+	font-size: 20pt;
+}
+DIV.documentation
+{
+	display: inline-block;
+	width: 35%;
+}
+LI.doc_li
+{
+	font-size: 13pt;
+	margin-bottom: 24px;
+}
+LI.doc_li A:hover
+{
+	color: #84C146;
+	-webkit-transition: color .5s ease-in-out;
+	-moz-transition: color .5s ease-in-out;
+	-o-transition: color .5s ease-in-out;
+	transition: color .5s ease-in-out;
+}
+LI.doc_li A
+{
+	color: #6699FF;
+}
+DIV.right_category
+{
+	width: 30%;
+	float: left;
+}
+H3.help_subhead
+{
+	font-family: league;
+	font-weight: 100;
+	font-size: 20pt;
+}
+DIV.help_intro
+{
+	display: inline-block;
+}
+DIV.intro_right
+{
+	display: inline-block;
+	width: 480px;
+}
+SPAN.help_text
+{
+	font-size: 13pt;
+	line-height: 16.5pt;
+	color: #5E5E5E;
+	font-weight: 500;
+}
+SPAN.intro_text
+{
+	font-size: 14.5pt;
+	line-height: 17.5pt;
+	color: #5E5E5E;
+	font-weight: 300;
+	float: left !important;
+}
+SPAN.intro_text A
+{
+	color: #508AFD;
+}
+SPAN.intro_text A:hover
+{
+	color: #84C146;
+	-webkit-transition: color .5s ease-in-out;
+	-moz-transition: color .5s ease-in-out;
+	-o-transition: color .5s ease-in-out;
+	transition: color .5s ease-in-out;
+}
+H1.intro_header
+{
+	font-family: League;
+	font-size: 30pt;
+	font-weight: 100;
+	line-height: 30pt;
+	margin-bottom: 20px;
+	margin-top: 0px;
+}
+DIV.intro_left
+{
+	float: left;
+	margin-right: 30px;
+	display: table;
+	padding-left: 0;
+	padding-top: 0;
+	width: 720px;
+}
+.league
+{
+	font-family: League;
+}
+.heading
+{
+	font-size: 25pt;
+}
+H2.league.heading
+{
+	padding-top: 18px;
+	font-weight: 100;
+	border-bottom: 1px solid #DFDFDF;
+	padding-bottom: 30px;
+}
+DIV.overviewdesc
+{
+	display: table;
+	width: 307px;
+}
+H2.overviewdes
+{
+	font-family: League;
+	font-size: 30px !important;
+}
+@font-face
+{
+	font-family: Bebas;
+	src: url("<?php echo plugins_url(); ?>/membership-simplified-for-oap-members-only/fonts/BEBAS.ttf");
+}
+@font-face
+{
+	font-family: League;
+	src: url('../fonts/league_gothic-webfont.eot');
+	src: url('../fonts/league_gothic-webfont.eot?#iefix') format('embedded-opentype'), url('../fonts/league_gothic-webfont.woff') format('woff'), url('../fonts/league_gothic-webfont.ttf') format('truetype'), url('../fonts/league_gothic-webfont.svg#LeagueGothicRegular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+.dladd_outer
+{
+	background: #FFFFFF;
+	border: 1px solid lightgrey;
+	float: left;
+	width: 100%;
+	padding: 15px;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	margin-right: 40px;
+}
+.dladd_outer  tr,
+.dladd_outer  td
+{
+	width: 100%;
+	display: inline-block;
+}
+.infoboxdiv TD
+{
+}
+TABLE.ibtctable2
+{
+	width: 100%;
+}
+TABLE.ibtctable1
+{
+	width: 100%;
+}
+TH.tableheader
+{
+	float: left;
+	font: 30px League;
+	margin-top: 20px;
+	margin-bottom: 10px;
+	width: auto;
+}
+.jtipboxes
+{
+	position: relative;
+	left: 25px;
+	bottom: 20px;
+}
+#oapmp TD
+{
+	padding-left: 5px;
+}
+#oapmp TD LABEL
+{
+	padding-left: 5px;
+}
+#oapmp INPUT
+{
+	font-weight: bold;
+}
+#oapmp TH SPAN
+{
+	padding-left: 15px;
+	font-size: 16px;
+	font-weight: bold;
+	float: left;
+}
+#onoffhtml
+{
+	float: right;
+	cursor: pointer;
+}
+#mainmediadiv
+{
+	float: left;
+}
+.mainmediath
+{
+	width: 230px;
+	float: right;
+	padding: 0 30px 0 0px;
+	cursor: pointer;
+}
+.downloadth
+{
+	padding: 0 30px 0 0px;
+	cursor: pointer;
+}
+.infoboxth
+{
+	padding: 0 30px 0 0px;
+	cursor: pointer;
+}
+#contentLeft
+{
+	width: auto;
+/*height: 74px; 31jan-2012*/
+}
+LI.sortlisting
+{
+	background-color: #FFFFFF;
+	color: #000000;
+	cursor: move;
+	border: 1px solid lightgrey;
+	-webkit-border-radius: 3px;
+	padding: 6px;
+	width: 97%;
+	margin-bottom: 5px;
+	float: left;
+}
+.deletesorting
+{
+	float: right;
+	padding: 5px 3px 0px;
+	cursor: pointer;
+	margin-top: 0px;
+	background-repeat: no-repeat;
+}
+TD.dltablert
+{
+	margin-left: 20px;
+}
+.tooltip
+{
+	display: none;
+	background: transparent url(../images/black_arrow.png);
+	font-size: 12px;
+	height: 70px;
+	width: 160px;
+	padding: 25px;
+	color: #FFF;
+}
+DIV.seperatorr
+{
+	margin-top: 30px;
+	border-bottom: 1px dashed #000000;
+	margin-bottom: 30px;
+	/*[empty]width:;*/
+}
+DIV.awdMetaImage
+{
+	min-height: 70px;
+	display: inline-block;
+	float: left;
+	width: 30%;
+	margin-right: 5%;
+	overflow: hidden;
+	margin-bottom: 30px;
+	min-width: 160px;
+}
+@media screen
+{
+	TD.tabledata.left
+	{
+		padding-right: 4%;
+	}
+}
+TD.tabledata2
+{
+	float: left;
+	width: 100%;
+	padding-bottom: 5px;
+}
+INPUT.uploadfield
+{
+	float: left;
+}
+TD.uploadfield
+{
+	float: right;
+	width: 100%;
+	margin-left: 6px;
+}
+TD.tabledata
+{
+	width: 30%;
+	margin-bottom: 10px;
+	float: left;
+	display: inline-block;
+	margin-top: 10px;
+	padding-left: 0px !important;
+	margin-left: 0px !important;
+	min-width: 200px;
+}
+TD.tabledata.center
+{
+	padding-right: 4%;
+}
+TD.tabledata_category
+{
+	padding-right: 10px;
+	width: 45%;
+	float: left;
+}
+TD.mmvideobl
+{
+	margin-top: 25px;
+}
+TD.mmvideo
+{
+	width: 98%;
+	padding-top: 10px;
+	margin-top: 10px;
+}
+INPUT.mminput
+{
+	width: 100%;
+}
+SELECT.mmselection
+{
+	width: 98% !important;
+	float: left;
+	margin-left: 0px !important;
+}
+TD.mmselect
+{
+	float: right;
+	width: 320px;
+}
+TD.mmselectv
+{
+	float: left;
+	width: 345px;
+}
+TD.mmimage
+{
+	width: 90%;
+	padding-top: 5px;
+	margin-top: 10px;
+}
+TD.mmright
+{
+	width: 100%;
+}
+.awdMetaBox
+{
+	display: block;
+}
+INPUT.mmright
+{
+	width: 100%;
+}
+TD.dloadsright
+{
+	width: 100%;
+}
+TD.ibtext
+{
+	width: 100%;
+}
+TD.dloadsleft
+{
+	width: 100%;
+}
+TD.dladditemtext
+{
+	text-align: left;
+}
+INPUT.dladditem
+{
+	background-color: #7DB4FA;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	border: 1px solid #7DB4FA;
+	color: #fff;
+	font-family: League;
+	font-size: 25px;
+	padding: 20px 20px;
+	float: left;
+	width: 100%;
+	box-sizing: border-box;
+	border: none!important;
+	outline: none!important;
+	cursor: pointer;
+	text-shadow: 1px 0px 2px grey;
+}
+INPUT.dladditem:hover
+{
+	background-color: #94B95A;
+	-webkit-transition: background .25s ease-in-out;
+	-moz-transition: background .25s ease-in-out;
+	-o-transition: background .25s ease-in-out;
+	transition: background .25s ease-in-out;
+	border: 1px solid #94B95A;
+}
+SELECT.dlselection
+{
+	float: right;
+/*margin-left: 6px;*/
+	width: 100%;
+}
+TEXTAREA.ibtextarea
+{
+	width: 100%;
+	min-height: 100px;
+}
+SELECT.selectionwithload
+{
+	float: left;
+	width: 75%;
+}
+INPUT.selectionwithload
+{
+	float: right;
+	width: 20%;
+}
+SELECT.selection
+{
+	min-width: 100%;
+	margin-top: 4px;
+}
+IMG.oaptooltip
+{
+	float: right;
+}
+IMG.oaptooltip.ibtc
+{
+	margin-left: 8px;
+	vertical-align: middle;
+}
+INPUT.ibtextinput
+{
+	width: 100%;
+	=width: 95%;
+	float: left;
+}
+#oap_lesson_videos
+{
+	=width: 95%;
+}
+/*.tabledata dloadsleft*/
+#INVALID-RULE
+{
+	width: 70% !important;
+}
+#preffered_template
+{
+/*width: 100%;*/
+}
+#content_type
+{
+	width: 100%;
+}
+#oap_select
+{
+	width: 100%;
+}
+/*ul.ui-sortable{*position:relative;*left:-40px;}*/
+.block_in_lft
+{
+	width: auto;
+	float: left;
+	padding: 7px;
+}
+.fixed .column-posts
+{
+	width: 15% !important;
+}
+.sectionTitle
+{
+	font-family: League !important;
+	font-size: 30px !important;
+	font-weight: 100 !important;
+}
+.sectionSubTitle
+{
+	font-family: League !important;
+	font-size: 20px !important;
+	font-weight: 100 !important;
+}

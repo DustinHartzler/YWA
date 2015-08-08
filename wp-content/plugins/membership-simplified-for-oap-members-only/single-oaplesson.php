@@ -1,0 +1,1 @@
+<?php get_header(); ?><?php oapMediaOrText();?><?php get_footer(); ?>

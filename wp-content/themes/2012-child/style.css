@@ -1,0 +1,57 @@
+/*
+Theme Name: 2012_child
+Theme URI: the-theme's-homepage
+Description: a-brief-description
+Author: Dustin Hartzler
+Author URI: http://YourWebsiteEngineer.com
+Template: twentytwelve
+Version: 1.0
+.
+General comments/License Statement if any.
+.
+*/
+@import url(../twentytwelve/style.css);
+
+p {
+     margin-bottom: 1.4em;
+}
+
+.video {
+	margin-bottom: 1.4em;
+}
+
+.widget img{
+	box-shadow:rgba(0, 0, 0, 0) 0 1px 4px;
+}
+
+.widget-area .widget h3 {
+	margin-bottom:0.4em;
+}
+
+.homework{
+	background-color: #67A12E;
+	border: 1px solid #000;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+.homework h1 {
+	color: #fff;
+	font-size: 18px;
+	padding-bottom:4px;
+}
+
+.homework p, .homework a {
+	color: #fff;
+}
+
+.archive {
+	font-size: 20px;
+	border-bottom: 1px solid #39B9FF;
+	text-transform: uppercase;
+	color: #39B9FF;
+}
+
+.site-title{
+	//background-image:url('ywse.png');
+}
