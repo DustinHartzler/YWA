@@ -531,9 +531,13 @@ img#gfield_input_datepicker_icon {
     padding-bottom:10px;
 }
 
-.gfield label.hidden_sub_label {
-    display:none;
-}
+.gfield label.screen-reader-text, .gfield label.hidden_sub_label {
+ 	clip: rect(1px, 1px, 1px, 1px);
+ 	position: absolute !important;
+ 	height: 1px;
+ 	width: 1px;
+ 	overflow: hidden;
+ }
 
 .gfield .copy_values_option_container {
     padding-bottom: 10px;
@@ -3088,6 +3092,19 @@ div.gf_entry_detail_pagination ul li.gf_entry_pagination a {
 	margin: 0;
 }
 
+div.gf_entry_wrap #poststuff .inside {
+    margin-top: 12px;
+}
+
+div.gf_entry_wrap #poststuff .inside .message,
+div.gf_entry_wrap #poststuff .inside .updated {
+    margin: -12px -12px 12px -12px;
+}
+
+#notifications_container .message {
+    margin: -2px -15px 0 -15px;
+}
+
 /* entry paging ----------------------------------------------------*/
 
 a.gf_entry_prev_link.gf_entry_pagination_link.gf_entry_pagination_link_inactive,
@@ -3682,6 +3699,7 @@ table.gforms_form_settings th {
 	padding: 8px 0;
 }
 
+
 .show_advanced_settings_container {
 	border-top: 1px solid #EEE;
 	padding: 5px;
@@ -4176,9 +4194,6 @@ li.gfield.gpage label.gfield_label {
 	overflow: hidden;
 	white-space: nowrap;
 }
-.message {
-	margin: 15px 0 0 !important;
-}
 .gform-filter-operator {
 	width: 100px;
 }
@@ -4268,13 +4283,7 @@ span.ginput_right input.medium,
     margin-right: 8px;
 }
 
-.gaddon-section .settings-field-map-table thead tr th {
-    border-bottom: 1px solid #ccc !important;
-}
 
-.gaddon-section .settings-field-map-table tbody tr td {
-    border-bottom: 1px dotted #eee !important;
-}
 
 /* resize the sub-settings tables for more verbose inputs ----------------------------------------------------*/
 
@@ -4443,3 +4452,21 @@ div.wrap.gf_browser_chrome .gfield_checkbox li input {
 .gfield_settings_input_choices_container {
 	max-height: 222px
 }
+
+/* Installation Wizard Styles */
+
+#gform_installation_progress li {
+    display: inline-block;
+    padding: 10px 25px 10px 0;
+}
+
+.gform_installation_progress_current_step,
+.gform_installation_progress_step_wrap p,
+.gform_installation_progress_step_complete{
+    color: black;
+}
+
+.gform_installation_progress_step_pending{
+    color: silver;
+}
+

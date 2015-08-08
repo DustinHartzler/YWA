@@ -239,15 +239,32 @@ html>body .entry ul, .gform_wrapper ul { text-indent: 0 }
 .gform_wrapper .left_label li.hidden_label input, .gform_wrapper .right_label li.hidden_label input { margin-left: 3.7% }
 .gform_wrapper .left_label li.gfield .gfield_password_strength, .gform_wrapper .right_label li.gfield .gfield_password_strength { margin-left: 30% }
 body .gform_wrapper label.gfield_label + div.ginput_container { margin-top: .375em }
-.gform_wrapper .hidden_label .gfield_label { display: none !important }
+
+.gform_wrapper .hidden_label .gfield_label {
+	clip: rect(1px, 1px, 1px, 1px);
+	position: absolute !important;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+}
+
 .gfield.right_label, .gfield.left_label { padding-top: 10px }
 .gform_wrapper li.hidden_label input { margin-top: .75em }
-.gform_wrapper label.hidden_sub_label { display: none }
+
 .gform_wrapper .field_sublabel_hidden_label .ginput_complex.ginput_container input[type=text], .gform_wrapper .field_sublabel_hidden_label .ginput_complex.ginput_container select { margin-bottom: .75em }
 .gform_wrapper .left_label ul.gfield_checkbox, .gform_wrapper .right_label ul.gfield_checkbox, .gform_wrapper .left_label ul.gfield_radio, .gform_wrapper .right_label ul.gfield_radio {
     margin-left: 30% !important;
     overflow: hidden;
 }
+
+.gform_wrapper label.screen-reader-text, .gform_wrapper label.hidden_sub_label {
+ 	clip: rect(1px, 1px, 1px, 1px);
+ 	position: absolute !important;
+ 	height: 1px;
+ 	width: 1px;
+ 	overflow: hidden;
+ }
+
 .gform_wrapper .top_label input.small, .gform_wrapper .top_label select.small { width: 25% }
 .gform_wrapper .top_label input.medium, .gform_wrapper .top_label select.medium { width: 47.5% }
 .gform_wrapper .top_label input.large, .gform_wrapper .top_label select.large, .gform_wrapper .hidden_label input.large, .gform_wrapper .hidden_label select.large { width: 97.5% }
@@ -1171,7 +1188,7 @@ body .gform_wrapper div.gform_body ul.gform_fields li.gfield.gfield_html dl dd {
 .gform_wrapper .chosen-rtl.chosen-container-single .chosen-single div b { background-position: 6px 2px }
 .gform_wrapper .chosen-rtl.chosen-container-single.chosen-with-drop .chosen-single div b { background-position: -12px 2px }
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min-resolution: 144dpi) {
-    .gform_wrapper .chosen-rtl .chosen-search input[type="text"], .gform_wrapper .chosen-container-single .chosen-single abbr, .gform_wrapper .chosen-container-single .chosen-single div b, .gform_wrapper .chosen-container-single .chosen-search input[type="text"], .gform_wrapper .chosen-container-multi .chosen-choices .search-choice .search-choice-close, .gform_wrapper .chosen-container .chosen-results-scroll-down span, .gform_wrapper .chosen-container .chosen-results-scroll-up span {
+    .gform_wrapper .chosen-rtl .chosen-search input[type="text"], .gform_wrapper .chosen-container-single .chosen-single abbr, .gform_wrapper .chosen-container-single .chosen-single div b, .gform_wrapper .chosen-container-multi .chosen-choices .search-choice .search-choice-close, .gform_wrapper .chosen-container .chosen-results-scroll-down span, .gform_wrapper .chosen-container .chosen-results-scroll-up span {
         background-image: url('../images/chosen-sprite-2x.png') !important;
         background-position: 0 0;
         background-size: 52px 37px !important;
@@ -1287,7 +1304,7 @@ body .gform_wrapper div.gform_body ul.gform_fields li.gfield.gfield_html dl dd {
 }
 .gform_wrapper .copy_values_option_container .copy_values_enabled { width: auto }
 .gform_wrapper li.field_sublabel_above .ginput_complex input[type=text] { margin-bottom: 1px }
-.form_saved_message {
+.gform_wrapper .form_saved_message{
     margin: 1em 0 1em 0;
     width: 100%;
     font-size: 1em;
@@ -1299,7 +1316,11 @@ body .gform_wrapper div.gform_body ul.gform_fields li.gfield.gfield_html dl dd {
     -moz-border-radius: 2px;
     border-radius: 2px;
 }
-.form_saved_message span:first-child {
+.gform_wrapper .form_saved_message form{
+    text-align: center;
+}
+
+.gform_wrapper .form_saved_message span:first-child {
     display: block;
     padding: 2.5em 1em 2.5em 1em;
 }
