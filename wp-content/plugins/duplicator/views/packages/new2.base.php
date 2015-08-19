@@ -1,5 +1,6 @@
 <?php
 	require_once (DUPLICATOR_PLUGIN_PATH . 'classes/package.php');
+	require_once (DUPLICATOR_PLUGIN_PATH . 'classes/utility.php');
 	global $wp_version;
 	$Package = new DUP_Package();
 	$Package->SaveActive($_POST);
@@ -8,6 +9,8 @@
 	$package_mysqldump	= DUP_Settings::Get('package_mysqldump');
 	$mysqlDumpPath = DUP_Database::GetMySqlDumpPath();
 	$build_mode = ($mysqlDumpPath && $package_mysqldump) ? 'mysqldump (fast)' : 'PHP (slow)';
+    
+    $zip_check = DUP_Util::GetZipPath();
 ?>
 
 <style>
@@ -43,6 +46,11 @@
 	div#data-arc-size1 {display: inline-block; float:right; font-size:11px; margin-right: 15px; font-style: italic}
 	div#data-arc-names-data, div#data-arc-big-data
 		{word-wrap: break-word;font-size:10px; border:1px dashed silver; padding:5px; display: none}
+		
+	div#dup-scan-warning-continue {display:none; text-align: center; padding: 0 0 15px 0}
+	div#dup-scan-warning-continue div.msg1 label{font-size:16px; color:maroon}
+	div#dup-scan-warning-continue div.msg2 {padding:2px}
+	div#dup-scan-warning-continue div.msg2 label {font-size:11px !important}
 	
 	/*Footer*/
 	div.dup-button-footer {text-align:center; margin:0}
@@ -88,7 +96,6 @@ TOOL BAR: STEPS -->
 		<div style="text-align:center">
 			<div class="dup-hdr-success"><i class="fa fa-check-square-o fa-lg"></i> <?php DUP_Util::_e('Scan Complete'); ?></div>
 			<div id="dup-msg-success-subtitle">
-				<?php DUP_Util::_e("Scan checks are not required to pass, however they could cause issues on some systems."); ?><br/>
 				<?php DUP_Util::_e("Process Time:"); ?> <span id="data-rpt-scantime"></span>
 			</div>
 		</div><br/>
@@ -146,6 +153,15 @@ TOOL BAR: STEPS -->
 					echo '<br/><br/>';
 					DUP_Util::_e('Note: Timeouts can also be set at the web server layer, so if the PHP max timeout passes and you still see a build interrupt messages, then your web server could be killing the process.   If you are limited on processing time, consider using the database or file filters to shrink the size of your overall package.   However use caution as excluding the wrong resources can cause your install to not work properly.');
 					echo "&nbsp;<i><a href='http://www.php.net/manual/en/info.configuration.php#ini.max-execution-time' target='_blank'>[" .DUP_Util::__('details')  . "]</a></i>";
+                    
+                    if ($zip_check != null) {
+                            echo '<br/><br/>';
+                            echo '<span style="font-weight:bold">';
+                            DUP_Util::_e('Get faster builds with Duplicator Pro.');
+                            echo '</span>';
+                            echo "&nbsp;<i><a href='http://snapcreek.com/duplicator?free-max-execution-time-warn' target='_blank'>[" . DUP_Util::__('details') . "]</a></i>";
+                    }
+                    
 					echo '</small>';
 					
 					//MYSQLI
@@ -224,9 +240,18 @@ TOOL BAR: STEPS -->
 						<b><?php DUP_Util::_e('Directory Count');?>:</b> <span id="data-arc-dirs"></span> 
 						<small>
 						<?php 
-							printf(DUP_Util::__('Total size represents all files minus any filters that have been setup.  The current thresholds that trigger warnings are %1$s for the entire site and %2$s for large files.'), 
+							printf(DUP_Util::__('Total size represents all files minus any filters that have been setup.  The current thresholds that triggers a warning is %1$s for the total size.  Some budget hosts limit the amount of time a PHP/Web request process can run.  When working with larger sites this can cause timeout issues. Consider using a file filter in step 1 to shrink and filter the overall size of your package.'), 
 									DUP_Util::ByteSize(DUPLICATOR_SCAN_SITE), 
 									DUP_Util::ByteSize(DUPLICATOR_SCAN_WARNFILESIZE));
+																					
+							if ($zip_check != null) {
+                                echo '<br/><br/>';
+								echo '<span style="font-weight:bold">';
+                                DUP_Util::_e('Package support up to 2GB available in Duplicator Pro.');
+                                echo '</span>';
+								echo "&nbsp;<i><a href='http://snapcreek.com/duplicator?free-size-warn' target='_blank'>[" . DUP_Util::__('details') . "]</a></i>";
+							}
+
 						?>
 						</small>
 					</div>
@@ -272,10 +297,14 @@ TOOL BAR: STEPS -->
 				<?php if ($Package->Archive->FilterOn) : ?>
 					<div>
 						<div class='dup-scan-title'>
-							<a><?php DUP_Util::_e('View Filters');?></a> 
+							<a style='font-weight: normal'><?php DUP_Util::_e('Archive Details');?></a> 
 						</div>
-						<div class='dup-scan-info  dup-info-box'>							
-							<b>[<?php DUP_Util::_e('Directories');?>]</b><br/>
+						<div class='dup-scan-info  dup-info-box'>	
+							<b>[<?php DUP_Util::_e('Root Directory');?>]</b><br/>
+							<?php echo DUPLICATOR_WPROOTPATH;?>
+							<br/><br/>
+							
+							<b>[<?php DUP_Util::_e('Excluded Directories');?>]</b><br/>
 							<?php
 								if (strlen( $Package->Archive->FilterDirs)) {
 									echo str_replace(";", "<br/>", $Package->Archive->FilterDirs); 
@@ -285,7 +314,7 @@ TOOL BAR: STEPS -->
 							?>
 							<br/>
 							
-							<b>[<?php DUP_Util::_e('File Extensions');?>]</b><br/>
+							<b>[<?php DUP_Util::_e('Excluded File Extensions');?>]</b><br/>
 							<?php
 								if (strlen( $Package->Archive->FilterExts)) {
 									echo $Package->Archive->FilterExts; 
@@ -294,7 +323,7 @@ TOOL BAR: STEPS -->
 								}
 							?>	
 													<small>
-							<?php DUP_Util::_e('The lists above are the directories and file extension that will be excluded from the archive.'); ?>
+							<?php DUP_Util::_e('The root directory above is where Duplicator will start archiving files.  The excluded directories and file extension will be skipped during the archive process.'); ?>
 						</small><br/>
 						</div>
 
@@ -365,8 +394,26 @@ TOOL BAR: STEPS -->
 			</div><!-- end .dup-panel -->
 		</div><!-- end .dup-panel-panel -->
 		
+		<!-- WARNING CONTINUE -->
+		<div id="dup-scan-warning-continue">
+			<div class="msg1">
+				<input type="checkbox" id="dup-scan-warning-continue-checkbox" onclick="Duplicator.Pack.WarningContinue(this)"/>
+				<label for="dup-scan-warning-continue-checkbox"><?php DUP_Util::_e('A warning status was detected, are you sure you want to continue?');?></label>
+			</div>
+			<div class="msg2">
+				<label for="dup-scan-warning-continue-checkbox">
+					<?php 
+						DUP_Util::_e("Scan checks are not required to pass, however they could cause issues on some systems."); 
+						echo '<br/>';
+						DUP_Util::_e("Please review the details for each warning by clicking on the detail link."); 
+					?>
+				</label>
+			</div>
+		</div>
 		
 	</div>
+	
+	
 
 	<!--  ERROR MESSAGE -->
 	<div id="dup-msg-error" style="display:none">
@@ -394,8 +441,7 @@ TOOL BAR: STEPS -->
 <script type="text/javascript">
 jQuery(document).ready(function($) {
 		
-	/*	========================--
-	*	METHOD: Performs Ajax post to create check system  */
+	/*	Performs Ajax post to create check system  */
 	Duplicator.Pack.Scan = function() {
 		var data = {action : 'duplicator_package_scan'}
 
@@ -428,6 +474,13 @@ jQuery(document).ready(function($) {
 		Duplicator.Pack.Scan();
 	}
 	
+	Duplicator.Pack.WarningContinue = function(checkbox) {
+		($(checkbox).is(':checked')) 
+			?	$('#dup-build-button').prop('disabled',false).addClass('button-primary')
+			:	$('#dup-build-button').prop('disabled',true).removeClass('button-primary');
+
+	}
+	
 	Duplicator.Pack.LoadScanStatus = function(status) {
 		var result;
 		switch (status) {
@@ -441,8 +494,7 @@ jQuery(document).ready(function($) {
 		return result;
 	}
 	
-	/*	========================--
-	*	METHOD:    */
+	/*	Load Scan Data   */
 	Duplicator.Pack.LoadScanData = function(data) {
 		
 		var errMsg = "unable to read";
@@ -506,6 +558,8 @@ jQuery(document).ready(function($) {
 		$('#data-arc-files').text(data.ARC.FileCount || errMsg);
 		$('#data-arc-dirs').text(data.ARC.DirCount || errMsg);
 		
+		
+		
 		//Name Checks
 		html = '';
 		//Dirs
@@ -535,6 +589,16 @@ jQuery(document).ready(function($) {
 		}
 		$('#data-arc-big-data').html(html);
 		$('#dup-msg-success').show();
+		
+		//Waring Check
+		var warnCount = data.RPT.Warnings || 0;
+		if (warnCount > 0) {
+			$('#dup-scan-warning-continue').show();
+			$('#dup-build-button').prop("disabled",true).removeClass('button-primary');
+		} else {
+			$('#dup-scan-warning-continue').hide();
+			$('#dup-build-button').prop("disabled",false).addClass('button-primary');
+		}
 		
 	}
 	
