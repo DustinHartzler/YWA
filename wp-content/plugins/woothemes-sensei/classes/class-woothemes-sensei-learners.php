@@ -49,7 +49,7 @@ class WooThemes_Sensei_Learners {
 
 		// Admin functions
 		if ( is_admin() ) {
-			add_action( 'admin_menu', array( $this, 'learners_admin_menu' ), 10);
+			add_action( 'admin_menu', array( $this, 'learners_admin_menu' ), 30);
 			add_action( 'learners_wrapper_container', array( $this, 'wrapper_container'  ) );
 			if ( isset( $_GET['page'] ) && ( $_GET['page'] == $this->page_slug ) ) {
 				add_action( 'admin_print_scripts', array( $this, 'enqueue_scripts' ) );
@@ -98,16 +98,19 @@ class WooThemes_Sensei_Learners {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		// Load Learners JS
-		wp_enqueue_script( 'sensei-learners-general', $woothemes_sensei->plugin_url . 'assets/js/learners-general' . $suffix . '.js', array( 'jquery' ), '1.6.0' );
+		wp_enqueue_script( 'sensei-learners-general',
+                            $woothemes_sensei->plugin_url . 'assets/js/learners-general' . $suffix . '.js',
+                            array('jquery','sensei-lesson-chosen','sensei-chosen-ajax' ), $woothemes_sensei->version, true );
 
 		$data = array(
 			'remove_generic_confirm' => __( 'Are you sure you want to remove this user?', 'woothemes-sensei' ),
 			'remove_from_lesson_confirm' => __( 'Are you sure you want to remove the user from this lesson?', 'woothemes-sensei' ),
 			'remove_from_course_confirm' => __( 'Are you sure you want to remove the user from this course?', 'woothemes-sensei' ),
 			'remove_user_from_post_nonce' => wp_create_nonce( 'remove_user_from_post_nonce' ),
+            'search_users_nonce' => wp_create_nonce( 'search-users' )
 		);
 
-		wp_localize_script( 'sensei-learners-general', 'woo_localized_data', $data );
+		wp_localize_script( 'sensei-learners-general', 'woo_learners_general_data', $data );
 
 	} // End enqueue_scripts()
 
@@ -235,11 +238,11 @@ class WooThemes_Sensei_Learners {
 	 * @return void
 	 */
 	public function learners_default_nav() {
-		$title = sprintf( '<a href="%s">%s</a>', add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ), esc_html( $this->name ) );
+		$title = sprintf( '<a href="%s">%s</a>', esc_url( add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ) ), esc_html( $this->name ) );
 		if ( isset( $_GET['course_id'] ) ) { 
 			$course_id = intval( $_GET['course_id'] );
 			$url = add_query_arg( array( 'page' => $this->page_slug, 'course_id' => $course_id, 'view' => 'learners' ), admin_url( 'admin.php' ) );
-			$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, get_the_title( $course_id ) ); 
+			$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
 		}
 		if ( isset( $_GET['lesson_id'] ) ) { 
 			$lesson_id = intval( $_GET['lesson_id'] );
@@ -261,7 +264,7 @@ class WooThemes_Sensei_Learners {
 
 		$redirect_url = apply_filters( 'sensei_ajax_redirect_url', add_query_arg( array( 'page' => $this->page_slug, 'course_cat' => $course_cat ), admin_url( 'admin.php' ) ) );
 
-		echo $redirect_url;
+		echo esc_url_raw( $redirect_url );
 		die();
 	}
 
@@ -314,6 +317,7 @@ class WooThemes_Sensei_Learners {
 	}
 
 	public function json_search_users() {
+        global $woothemes_sensei;
 
 		check_ajax_referer( 'search-users', 'security' );
 
@@ -331,14 +335,26 @@ class WooThemes_Sensei_Learners {
 			'fields'         => 'all',
 			'orderby'        => 'display_name',
 			'search'         => '*' . $term . '*',
-			'search_columns' => array( 'ID', 'user_login', 'user_email', 'user_nicename' )
+			'search_columns' => array( 'ID', 'user_login', 'user_email', 'user_nicename','user_firstname','user_lastname' )
 		), $term ) );
 
 		$users = $users_query->get_results();
 
 		if ( $users ) {
 			foreach ( $users as $user ) {
-				$found_users[ $user->ID ] = $user->display_name . ' (#' . $user->ID . ' &ndash; ' . sanitize_email( $user->user_email ) . ')';
+                $full_name = $woothemes_sensei->learners->get_learner_full_name( $user->ID );
+
+                if( trim($user->display_name ) == trim( $full_name ) ){
+
+                    $name = $full_name;
+
+                }else{
+
+                    $name = $full_name . ' ['. $user->display_name .']';
+
+                }
+
+                $found_users[ $user->ID ] = $name  . ' (#' . $user->ID . ' &ndash; ' . sanitize_email( $user->user_email ) . ')';
 			}
 		}
 
@@ -358,7 +374,6 @@ class WooThemes_Sensei_Learners {
 		$post_type = $_POST['add_post_type'];
 		$user_id = absint( $_POST['add_user_id'] );
 		$course_id = absint( $_POST['add_course_id'] );
-		$lesson_id = absint( $_POST['add_lesson_id'] );
 
 		switch( $post_type ) {
 			case 'course':
@@ -368,10 +383,10 @@ class WooThemes_Sensei_Learners {
 				// Complete each lesson if course is set to be completed
 				if( isset( $_POST['add_complete_course'] ) && 'yes' == $_POST['add_complete_course'] ) {
 
-					$lesson_ids = WooThemes_Sensei_Course::course_lessons( $course_id, 'any', 'ids' );
+					$lesson_ids = Sensei()->course->course_lessons( $course_id, 'any', 'ids' );
 
-					foreach( $lesson_ids as $lesson_id ) {
-						WooThemes_Sensei_Utils::sensei_start_lesson( $lesson_id, $user_id, true );
+					foreach( $lesson_ids as $id ) {
+						WooThemes_Sensei_Utils::sensei_start_lesson( $id, $user_id, true );
 					}
 
 					// Updates the Course status and it's meta data
@@ -383,7 +398,7 @@ class WooThemes_Sensei_Learners {
 			break;
 
 			case 'lesson':
-
+                $lesson_id = absint( $_POST['add_lesson_id'] );
 				$complete = false;
 				if( isset( $_POST['add_complete_lesson'] ) && 'yes' == $_POST['add_complete_lesson'] ) {
 					$complete = true;
@@ -418,7 +433,7 @@ class WooThemes_Sensei_Learners {
 
 		$redirect_url = apply_filters( 'sensei_learners_add_learner_redirect_url', add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
 
-		wp_safe_redirect( $redirect_url );
+		wp_safe_redirect( esc_url_raw( $redirect_url ) );
 		exit;
 	}
 
@@ -442,5 +457,49 @@ class WooThemes_Sensei_Learners {
 			<?php
 		}
 	}
+
+    /**
+     * Return the full name and surname or the display name of the user.
+     *
+     * The user must have both name and surname otherwise display name will be returned.
+     *
+     * @since 1.8.0
+     *
+     * @param int $user_id | bool false for an invalid $user_id
+     *
+     * @return string $full_name
+     */
+    public function get_learner_full_name( $user_id ){
+
+        $full_name = '';
+
+        if( empty( $user_id ) || ! ( 0 < intval( $user_id ) )
+            || !( get_userdata( $user_id ) ) ){
+            return false;
+        }
+
+        // get the user details
+        $user = get_user_by( 'id', $user_id );
+
+        if( ! empty( $user->first_name  ) && ! empty( $user->last_name  )  ){
+
+            $full_name = trim( $user->first_name   ) . ' ' . trim( $user->last_name  );
+
+        }else{
+
+            $full_name =  $user->display_name;
+
+        }
+
+        /**
+         * Filter the user full name from the get_learner_full_name function.
+         *
+         * @since 1.8.0
+         * @param $full_name
+         * @param $user_id
+         */
+        return apply_filters( 'sensei_learner_full_name' , $full_name , $user_id );
+
+    } // end get_learner_full_name
 
 } // End Class

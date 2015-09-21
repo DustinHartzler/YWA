@@ -197,9 +197,6 @@ class WooThemes_Sensei_Frontend {
 			wp_register_script( $this->token . '-user-dashboard', esc_url( $woothemes_sensei->plugin_url . 'assets/js/user-dashboard' . $suffix . '.js' ), array( 'jquery-ui-tabs' ), '1.5.2', true );
 			wp_enqueue_script( $this->token . '-user-dashboard' );
 
-			// Load the general script
-			wp_enqueue_script( 'sensei-general-frontend', $woothemes_sensei->plugin_url . 'assets/js/general-frontend' . $suffix . '.js', array( 'jquery' ), '1.6.0' );
-
 			// Allow additional scripts to be loaded
 			do_action( 'sensei_additional_scripts' );
 
@@ -254,7 +251,7 @@ class WooThemes_Sensei_Frontend {
 
 		// Get default slug-name.php
 		if ( ! $template && $name && file_exists( $woothemes_sensei->plugin_path() . "/templates/{$slug}-{$name}.php" ) )
-			$template = $woothemes_sensei->plugin_path() . "/templates/{$slug}-{$name}.php";
+			$template = $woothemes_sensei->plugin_path() . "templates/{$slug}-{$name}.php";
 
 		// If template file doesn't exist, look in yourtheme/slug.php and yourtheme/sensei/slug.php
 		if ( !$template )
@@ -304,7 +301,7 @@ class WooThemes_Sensei_Frontend {
 		global $woothemes_sensei;
 
 		if ( ! $template_path ) $template_path = $woothemes_sensei->template_url;
-		if ( ! $default_path ) $default_path = $woothemes_sensei->plugin_path() . '/templates/';
+		if ( ! $default_path ) $default_path = $woothemes_sensei->plugin_path() . 'templates/';
 
 		// Look within passed path within the theme - this is priority
 		$template = locate_template(
@@ -392,7 +389,6 @@ class WooThemes_Sensei_Frontend {
 	 * @access public
 	 * @param object $item
 	 * @return object $item
-     * todo: refactor the navigation so that the #name doesn't affect how it works. Reason for this is when a user change the menu itme link it will no longer work.
 	 */
 	public function sensei_setup_nav_menu_item( $item ) {
 		global $pagenow, $wp_rewrite, $woothemes_sensei;
@@ -423,6 +419,13 @@ class WooThemes_Sensei_Frontend {
 
 				case '#senseimymessages':
 					$item->url = $my_messages_url;
+                    // if no archive link exist for sensei_message
+                    // set it back to the place holder
+                    if( ! $item->url ){
+
+                        $item->url = '#senseimymessages';
+
+                    }
 					break;
 
 				case '#senseilearnerprofile':
@@ -487,16 +490,23 @@ class WooThemes_Sensei_Frontend {
 
 		foreach( $sorted_menu_items as $k=>$item ) {
 
-			// Remove the My Messages link for logged out users or if Private Messages are disabled.
-			if( get_post_type_archive_link( 'sensei_message' ) == $item->url ) {
+			// Remove the My Messages link for logged out users or if Private Messages are disabled
+			if( ! get_post_type_archive_link( 'sensei_message' )
+                && '#senseimymessages' == $item->url ) {
+
 				if ( !is_user_logged_in() || ( isset( $woothemes_sensei->settings->settings['messages_disable'] ) && $woothemes_sensei->settings->settings['messages_disable'] ) ) {
+
 					unset( $sorted_menu_items[$k] );
+
 				}
 			}
 			// Remove the My Profile link for logged out users.
 			if( $woothemes_sensei->learner_profiles->get_permalink() == $item->url ) {
+
 				if ( !is_user_logged_in() || ! ( isset( $woothemes_sensei->settings->settings[ 'learner_profile_enable' ] ) && $woothemes_sensei->settings->settings[ 'learner_profile_enable' ] ) ) {
+
 					unset( $sorted_menu_items[$k] );
+
 				}
 			}
 		}
@@ -522,20 +532,40 @@ class WooThemes_Sensei_Frontend {
 		global $post;
 
 		if( is_singular( 'sensei_message' ) ) {
-			$content_post_id = get_post_meta( $post->ID, '_post', true );
+
+            $content_post_id = get_post_meta( $post->ID, '_post', true );
 			if( $content_post_id ) {
 				$title = sprintf( __( 'Re: %1$s', 'woothemes-sensei' ), '<a href="' . get_permalink( $content_post_id ) . '">' . get_the_title( $content_post_id ) . '</a>' );
 			} else {
 				$title = get_the_title( $post->ID );
 			}
+
 		} elseif( is_singular('quiz') ){
 
             $title = get_the_title() . ' ' . __( 'Quiz', 'woothemes-sensei' );
 
         }else {
-			$title = get_the_title();
+
+            $title = get_the_title();
+
 		}
-		?><header><h1><?php echo $title; ?></h1></header><?php
+		?>
+        <header>
+            <h1>
+                <?php
+                /**
+                 * Filter Sensei single title
+                 *
+                 * @since 1.8.0
+                 * @param string $title
+                 * @param string $template
+                 * @param string $post_type
+                 */
+                echo apply_filters( 'sensei_single_title', $title, $post->post_type );
+                ?>
+            </h1>
+        </header>
+    <?php
 	} // End sensei_single_title()
 
 	/**
@@ -1047,8 +1077,8 @@ class WooThemes_Sensei_Frontend {
         	</p>
         	<p class="course-excerpt"><?php echo apply_filters( 'get_the_excerpt', $post->post_excerpt ); ?></p>
         	<?php if ( 0 < $free_lesson_count ) {
-                $free_lessons = sprintf( __( 'You can access %d of this course\'s lessons for free', 'woothemes_sensei' ), $free_lesson_count ); ?>
-                <p class="sensei-free-lessons"><a href="<?php echo get_permalink( $post_id ); ?>"><?php _e( 'Preview this course', 'woothemes_sensei' ) ?></a> - <?php echo $free_lessons; ?></p>
+                $free_lessons = sprintf( __( 'You can access %d of this course\'s lessons for free', 'woothemes-sensei' ), $free_lesson_count ); ?>
+                <p class="sensei-free-lessons"><a href="<?php echo get_permalink( $post_id ); ?>"><?php _e( 'Preview this course', 'woothemes-sensei' ) ?></a> - <?php echo $free_lessons; ?></p>
             <?php } ?>
 		</section><?php
 	} // End sensei_course_archive_meta()
@@ -1205,7 +1235,13 @@ class WooThemes_Sensei_Frontend {
 		$lesson_prerequisite = (int) get_post_meta( $lesson_id, '_lesson_prerequisite', true );
 		$show_actions = true;
         $user_lesson_status = WooThemes_Sensei_Utils::user_lesson_status( $lesson_id, $current_user->ID );
-        $user_quiz_grade = get_comment_meta( $user_lesson_status->comment_ID, 'grade', true );
+
+        //setup quiz grade
+        $user_quiz_grade = '';
+        if( ! empty( $user_lesson_status  ) ){
+            $user_quiz_grade = get_comment_meta( $user_lesson_status->comment_ID, 'grade', true );
+        }
+
 
 		if( intval( $lesson_prerequisite ) > 0 ) {
 			// If the user hasn't completed the prereq then hide the current actions
@@ -1358,11 +1394,42 @@ class WooThemes_Sensei_Frontend {
 		    	$wc_post_id = absint( get_post_meta( $post->ID, '_course_woocommerce_product', true ) );
 		    	// Check for woocommerce
 		    	if ( WooThemes_Sensei_Utils::sensei_is_woocommerce_activated() && ( 0 < intval( $wc_post_id ) ) ) {
-		    		sensei_wc_add_to_cart($post->ID);
+
+                    sensei_wc_add_to_cart($post->ID);
+
 		    	} else {
-		    		// User needs to register
-		    		wp_register( '<div class="status register">', '</div>' );
+
+                    if( get_option( 'users_can_register') ) {
+
+                        global $woothemes_sensei;
+                        $my_courses_page_id = '';
+
+                        $settings = $woothemes_sensei->settings->get_settings();
+                        if( isset( $settings[ 'my_course_page' ] )
+                            && 0 < intval( $settings[ 'my_course_page' ] ) ){
+
+                            $my_courses_page_id = $settings[ 'my_course_page' ];
+
+                        }
+
+                        // show a link to the my_courses page or the WordPress register page if
+                        // not my courses page was set in the settings
+                        if( !empty( $my_courses_page_id ) && $my_courses_page_id ){
+
+                            $my_courses_url = get_permalink( $my_courses_page_id  );
+                            $register_link = '<a href="'.$my_courses_url. '">' . __('Register', 'woothemes-sensei') .'</a>';
+                            echo '<div class="status register">' . $register_link . '</div>' ;
+
+                        } else{
+
+                            wp_register( '<div class="status register">', '</div>' );
+
+                        }
+
+                    } // end if user can register
+
 		    	} // End If Statement
+
 		    } // End If Statement ?>
 
 		</section><?php
@@ -1383,15 +1450,25 @@ class WooThemes_Sensei_Frontend {
 		} // End If Statement
 	} // End sensei_course_meta_video()
 
-	public function sensei_woocommerce_in_cart_message() {
+    /**
+     * This function shows the WooCommerce cart notice if the user has
+     * added the current course to cart. It does not show if the user is already taking
+     * the course.
+     *
+     * @since 1.0.2
+     * @return void;
+     */
+    public function sensei_woocommerce_in_cart_message() {
 		global $post, $woocommerce;
 
 		$wc_post_id = absint( get_post_meta( $post->ID, '_course_woocommerce_product', true ) );
+        $user_course_status_id = WooThemes_Sensei_Utils::user_started_course($post->ID , get_current_user_id() );
+		if ( 0 < intval( $wc_post_id ) && ! $user_course_status_id ) {
 
-		if ( 0 < intval( $wc_post_id ) ) {
 			if ( sensei_check_if_product_is_in_cart( $wc_post_id ) ) {
 				echo '<div class="sensei-message info">' . sprintf(  __('You have already added this Course to your cart. Please %1$s to access the course.', 'woothemes-sensei') . '</div>', '<a class="cart-complete" href="' . $woocommerce->cart->get_checkout_url() . '" title="' . __('complete the purchase', 'woothemes-sensei') . '">' . __('complete the purchase', 'woothemes-sensei') . '</a>' );
 			} // End If Statement
+
 		} // End If Statement
 
 	} // End sensei_woocommerce_in_cart_message()
@@ -1687,10 +1764,32 @@ class WooThemes_Sensei_Frontend {
 
 				$items = $order->get_items();
 				foreach( $items as $item ) {
-					if( $item['product_id'] == $course_product_id ) {
-						WooThemes_Sensei_Utils::user_start_course( $user_id, $course_id );
-						return;
-					}
+                    $product = wc_get_product( $item['product_id'] );
+
+                    // handle product bundles
+                    if( $product->is_type('bundle') ){
+
+                        $bundled_product = new WC_Product_Bundle( $product->id );
+                        $bundled_items = $bundled_product->get_bundled_items();
+
+                        foreach( $bundled_items as $item ){
+
+                            if( $item->product_id == $course_product_id ) {
+                                WooThemes_Sensei_Utils::user_start_course( $user_id, $course_id );
+                                return;
+                            }
+
+                        }
+
+                    } else {
+
+                    // handle regular products
+                        if( $item['product_id'] == $course_product_id ) {
+                            WooThemes_Sensei_Utils::user_start_course( $user_id, $course_id );
+                            return;
+                        }
+
+                    }
 				}
 			}
 
@@ -1722,10 +1821,12 @@ class WooThemes_Sensei_Frontend {
 
 		//if not posted from the sensei login form let
 		// WordPress or any other party handle the failed request
+	    if( ! isset( $_REQUEST['form'] ) || 'sensei-login' != $_REQUEST['form']  ){
 
-	    if( !isset( $_REQUEST['form'] ) &&  'sensei-login' != $_REQUEST['form'] ){
 	    	return ;
+
 	    }
+
 
     	// Get the reffering page, where did the post submission come from?
     	$referrer = add_query_arg('login', false, $_SERVER['HTTP_REFERER']);
@@ -1733,7 +1834,7 @@ class WooThemes_Sensei_Frontend {
    		 // if there's a valid referrer, and it's not the default log-in screen
 	    if(!empty($referrer) && !strstr($referrer,'wp-login') && !strstr($referrer,'wp-admin')){
 	        // let's append some information (login=failed) to the URL for the theme to use
-	        wp_redirect( add_query_arg('login', 'failed', $referrer) );
+	        wp_redirect( esc_url_raw( add_query_arg('login', 'failed',  $referrer) ) );
 	    	exit;
     	}
 	}// End sensei_login_fail_redirect_to_front_end_login
@@ -1772,9 +1873,11 @@ class WooThemes_Sensei_Frontend {
 
 		    		// validate the user object
 		    		if( !$user ){
+
 		    			// the email doesnt exist
-		    			wp_redirect( add_query_arg('login', 'failed', $referrer) );
+                        wp_redirect( esc_url_raw( add_query_arg('login', 'failed', $referrer) ) );
 		        		exit;
+
 		    		}
 
 		    		//assigne the username to the creds array for further processing
@@ -1795,10 +1898,8 @@ class WooThemes_Sensei_Frontend {
 				$user = wp_signon( $creds, false );
 
 				if ( is_wp_error($user) ){ // on login failure
-
-					wp_redirect( add_query_arg('login', 'failed', $referrer) );
-		        	exit;
-
+                    wp_redirect( esc_url_raw( add_query_arg('login', 'failed', $referrer) ) );
+                    exit;
 				}else{ // on login success
 
 					/**
@@ -1811,14 +1912,14 @@ class WooThemes_Sensei_Frontend {
 
 					$success_redirect_url = apply_filters('sesei_login_success_redirect_url', remove_query_arg( 'login', $referrer ) );
 
-					wp_redirect( $success_redirect_url );
+					wp_redirect( esc_url_raw( $success_redirect_url ) );
 		        	exit;
 
 				}	// end is_wp_error($user)
 
 		    }else{ // if username or password is empty
 
-		    	wp_redirect( add_query_arg('login', 'emptyfields', $referrer) );
+                wp_redirect( esc_url_raw( add_query_arg('login', 'emptyfields', $referrer) ) );
 		        exit;
 
 		    } // end if username $_REQUEST['log']  and password $_REQUEST['pwd'] is empty
@@ -1906,7 +2007,7 @@ class WooThemes_Sensei_Frontend {
 		// register user
 		$user_id = wp_create_user( $new_user_name, $new_user_password, $new_user_email );
 		if ( ! $user_id || is_wp_error( $user_id ) ) {
-			$woothemes_sensei->notices->add_notice( sprintf( __( '<strong>ERROR</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ), get_option( 'admin_email' ) ), 'alert');
+			$woothemes_sensei->notices->add_notice( sprintf( __( '<strong>ERROR</strong>: Couldn\'t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ), get_option( 'admin_email' ) ), 'alert');
 		}
 
 		// notify the user
@@ -1954,4 +2055,5 @@ class WooThemes_Sensei_Frontend {
 			$woothemes_sensei->notices->add_notice( $message, 'alert');
 
 	}// end login_message_process
+
 } // End Class

@@ -50,7 +50,7 @@ class WooThemes_Sensei_Category_Courses_Widget extends WP_Widget {
 		$control_ops = array( 'width' => 250, 'height' => 350, 'id_base' => $this->woo_widget_idbase );
 
 		/* Create the widget. */
-		$this->WP_Widget( $this->woo_widget_idbase, $this->woo_widget_title, $widget_ops, $control_ops );
+		parent::__construct( $this->woo_widget_idbase, $this->woo_widget_title, $widget_ops, $control_ops );
 	} // End __construct()
 
 	/**
@@ -163,7 +163,7 @@ class WooThemes_Sensei_Category_Courses_Widget extends WP_Widget {
 
 		$posts_array = array();
 		$post_args = array(	'post_type' 		=> 'course',
-							'numberposts' 		=> intval( $instance[ 'limit' ] ),
+							'posts_per_page' 		=> intval( $instance[ 'limit' ] ),
 							'orderby'         	=> 'menu_order date',
     						'order'           	=> 'ASC',
     						'post_status'       => 'publish',

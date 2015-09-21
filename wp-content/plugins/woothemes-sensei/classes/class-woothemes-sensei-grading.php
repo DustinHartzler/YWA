@@ -58,7 +58,7 @@ class WooThemes_Sensei_Grading {
 
 		// Admin functions
 		if ( is_admin() ) {
-			add_action( 'admin_menu', array( $this, 'grading_admin_menu' ), 10);
+			add_action( 'admin_menu', array( $this, 'grading_admin_menu' ), 20);
 			add_action( 'grading_wrapper_container', array( $this, 'wrapper_container'  ) );
 			if ( isset( $_GET['page'] ) && ( $_GET['page'] == $this->page_slug ) ) {
 				add_action( 'admin_print_scripts', array( $this, 'enqueue_scripts' ) );
@@ -296,12 +296,12 @@ class WooThemes_Sensei_Grading {
 	public function grading_default_nav() {
 		global $woothemes_sensei, $wp_version;
 
-		$title = sprintf( '<a href="%s">%s</a>', add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ), esc_html( $this->name ) );
+		$title = sprintf( '<a href="%s">%s</a>', esc_url(add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ) ), esc_html( $this->name ) );
 		if ( isset( $_GET['course_id'] ) ) { 
 			$course_id = intval( $_GET['course_id'] );
 			if ( version_compare($wp_version, '4.1', '>=') ) {
 				$url = add_query_arg( array( 'page' => $this->page_slug, 'course_id' => $course_id ), admin_url( 'admin.php' ) );
-				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, get_the_title( $course_id ) );
+				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
 			}
 			else {
 				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;%s</span>', get_the_title( $course_id ) ); 
@@ -312,8 +312,10 @@ class WooThemes_Sensei_Grading {
 			$title .= '&nbsp;&nbsp;<span class="lesson-title">&gt;&nbsp;&nbsp;' . get_the_title( intval( $lesson_id ) ) . '</span>'; 
 		}
 		if ( isset( $_GET['user_id'] ) && 0 < intval( $_GET['user_id'] ) ) {
-			$user_data = get_userdata( intval( $_GET['user_id'] ) );
-			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_data->display_name . '</span>'; 
+
+            $user_name = $woothemes_sensei->learners->get_learner_full_name( $_GET['user_id'] );
+			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_name . '</span>';
+
 		} // End If Statement
 		?>
 			<h2><?php echo apply_filters( 'sensei_grading_nav_title', $title ); ?></h2>
@@ -335,17 +337,19 @@ class WooThemes_Sensei_Grading {
 			$course_id = get_post_meta( $lesson_id, '_lesson_course', true );
 			if ( version_compare($wp_version, '4.1', '>=') ) {
 				$url = add_query_arg( array( 'page' => $this->page_slug, 'course_id' => $course_id ), admin_url( 'admin.php' ) );
-				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, get_the_title( $course_id ) );
+				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
 			}
 			else {
 				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;%s</span>', get_the_title( $course_id ) ); 
 			}
 			$url = add_query_arg( array( 'page' => $this->page_slug, 'lesson_id' => $lesson_id ), admin_url( 'admin.php' ) );
-			$title .= sprintf( '&nbsp;&nbsp;<span class="lesson-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, get_the_title( $lesson_id ) ); 
+			$title .= sprintf( '&nbsp;&nbsp;<span class="lesson-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $lesson_id ) );
 		}
 		if ( isset( $_GET['user'] ) && 0 < intval( $_GET['user'] ) ) {
-			$user_data = get_userdata( intval( $_GET['user'] ) );
-			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_data->display_name . '</span>'; 
+
+            $user_name = $woothemes_sensei->learners->get_learner_full_name( $_GET['user'] );
+			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_name . '</span>';
+
 		} // End If Statement
 		?>
 			<h2><?php echo apply_filters( 'sensei_grading_nav_title', $title ); ?></h2>
@@ -392,6 +396,16 @@ class WooThemes_Sensei_Grading {
 	public function count_statuses( $args = array() ) {
 		global $woothemes_sensei, $wpdb;
 
+        /**
+         * Filter fires inside Sensei_Grading::count_statuses
+         *
+         * Alter the the post_in array to determine which posts the
+         * comment query should be limited to.
+         * @since 1.8.0
+         * @param array $args
+         */
+        $args = apply_filters( 'sensei_count_statuses_args', $args );
+
 		if ( 'course' == $args['type'] ) {
 			$type = 'sensei_course_status';
 		}
@@ -401,8 +415,9 @@ class WooThemes_Sensei_Grading {
 		$cache_key = 'sensei-' . $args['type'] . '-statuses';
 
 		$query = "SELECT comment_approved, COUNT( * ) AS total FROM {$wpdb->comments} WHERE comment_type = %s ";
-		// Restrict to specific posts
-		if ( isset( $args['post__in'] ) && is_array( $args['post__in'] ) ) {
+
+        // Restrict to specific posts
+		if ( isset( $args['post__in'] ) && !empty( $args['post__in'] ) && is_array( $args['post__in'] ) ) {
 			$query .= ' AND comment_post_ID IN (' . implode( ',', array_map( 'absint', $args['post__in'] ) ) . ')';
 		}
 		elseif ( !empty( $args['post_id'] ) ) {
@@ -466,7 +481,7 @@ class WooThemes_Sensei_Grading {
 		$html = '';
 
 		$course_args = array(   'post_type'         => 'course',
-								'numberposts'       => -1,
+								'posts_per_page'       => -1,
 								'orderby'           => 'title',
 								'order'             => 'ASC',
 								'post_status'       => 'any',
@@ -513,7 +528,7 @@ class WooThemes_Sensei_Grading {
 		if ( 0 < intval( $course_id ) ) {
 
 			$lesson_args = array( 'post_type'       => 'lesson',
-								'numberposts'       => -1,
+								'posts_per_page'       => -1,
 								'orderby'           => 'title',
 								'order'             => 'ASC',
 								'meta_key'          => '_lesson_course',
@@ -567,6 +582,7 @@ class WooThemes_Sensei_Grading {
         $count = 0;
         $quiz_grade_total = $_POST['quiz_grade_total'];
         $all_question_grades = array();
+        $all_answers_feedback = array();
 
         foreach( $questions as $question ) {
 
@@ -590,18 +606,22 @@ class WooThemes_Sensei_Grading {
 
             } // endif
 
-            // WP slashes all incoming data regardless of Magic Quotes setting (see wp_magic_quotes()), but
-            // as an answer note is not direct post_content it won't have slashes removed, so we need to do it
-            $answer_notes = wp_unslash( $_POST[ 'question_' . $question_id . '_notes' ] );
-            if( ! $answer_notes || $answer_notes == '' ) {
-                $answer_notes = '';
+            // Question answer feedback / notes
+            $question_feedback = '';
+            if( isset( $_POST[ 'questions_feedback' ][ $question_id ] ) ){
+
+                $question_feedback = wp_unslash( $_POST[ 'questions_feedback' ][ $question_id ] );
+
             }
-            WooThemes_Sensei_Utils::sensei_add_answer_notes( $question_id, $user_id, $answer_notes );
+            $all_answers_feedback[ $question_id ] = $question_feedback;
 
         } // end for each $questions
 
         //store all question grades on the lesson status
         $woothemes_sensei->quiz->set_user_grades( $all_question_grades, $quiz_lesson_id , $user_id );
+
+        //store the feedback from grading
+        $woothemes_sensei->quiz->save_user_answers_feedback( $all_answers_feedback, $quiz_lesson_id , $user_id );
 
         // $_POST['all_questions_graded'] is set when all questions have been graded
         // in the class sensei grading user quiz -> display()
@@ -664,7 +684,7 @@ class WooThemes_Sensei_Grading {
 
         }
 
-        wp_safe_redirect( $load_url );
+        wp_safe_redirect( esc_url_raw( $load_url ) );
         exit;
 
     } // end admin_process_grading_submission
@@ -681,7 +701,7 @@ class WooThemes_Sensei_Grading {
 
 		$redirect_url = '';
 		if ( 0 < $lesson_id && 0 < $course_id ) {
-			$redirect_url = apply_filters( 'sensei_ajax_redirect_url', add_query_arg( array( 'page' => $this->page_slug, 'lesson_id' => $lesson_id, 'course_id' => $course_id, 'view' => $grading_view ), admin_url( 'admin.php' ) ) );
+			$redirect_url = esc_url_raw( apply_filters( 'sensei_ajax_redirect_url', add_query_arg( array( 'page' => $this->page_slug, 'lesson_id' => $lesson_id, 'course_id' => $course_id, 'view' => $grading_view ), admin_url( 'admin.php' ) ) ) );
 		} // End If Statement
 
 		echo $redirect_url;

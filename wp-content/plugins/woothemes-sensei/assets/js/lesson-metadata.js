@@ -592,7 +592,6 @@ jQuery(document).ready( function($) {
 	 * @since 1.0.0
 	 * @access public
 	 */
-
 	// Hide the add course panel
 	jQuery( '#lesson-course-details' ).addClass( 'hidden' );
 	// Display on click
@@ -1438,11 +1437,5 @@ jQuery(document).ready( function($) {
 			jQuery( this ).chosen();
 		} // End If Statement
 	});
-
-	/***************************************************************************************************
-	 * 6 - Single Quiz Edit Screen.
-	 ***************************************************************************************************/
-
-	if( jQuery( '.post-type-question #post-body-content').exists() ) { jQuery( '.post-type-question #post-body-content').remove(); }
 
 });

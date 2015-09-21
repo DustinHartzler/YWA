@@ -30,6 +30,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * - set_user_grades()
  * - get_user_grades()
  * - get_user_question_grade()
+ * - save_user_answers_feedback()
+ * - get_user_answers_feedback()
+ * - get_user_question_feedback()
  */
  class WooThemes_Sensei_Quiz {
 	public $token;
@@ -44,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 	 */
 	public function __construct ( $file = __FILE__ ) {
 		$this->file = $file;
-		$this->meta_fields = array( 'quiz_passmark', 'quiz_lesson', 'quiz_type', 'quiz_grade_type' );
+		$this->meta_fields = array( 'quiz_passmark', 'quiz_lesson', 'quiz_type', 'quiz_grade_type', 'pass_required','enable_quiz_reset' );
 		add_action( 'save_post', array( $this, 'update_author' ));
 
 		// listen to the reset button click
@@ -138,7 +141,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
      * user_save_quiz_answers_listener
      *
      * This function hooks into the quiz page and accepts the answer form save post.
-     *
+     * @since 1.7.3
      * @return bool $saved;
      */
     public function user_save_quiz_answers_listener(){
@@ -200,18 +203,14 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 		$prepared_answers = self::prepare_form_submitted_answers( $quiz_answers , $files );
 
 		// save the user data
-        $answers_saved = WooThemes_Sensei_Utils::add_user_data( $lesson_id, 'quiz_answers' , $prepared_answers, $user_id ) ;
+        $answers_saved = WooThemes_Sensei_Utils::add_user_data( 'quiz_answers', $lesson_id, $prepared_answers, $user_id ) ;
 
 		// were the answers saved correctly?
 		if( intval( $answers_saved ) > 0){
 
-            // questions asked stored because the quiz can show different questions for each learner
-            $questions_asked_string = implode( ',', array_keys( $quiz_answers ) );
-            update_comment_meta( $activity_logged, 'questions_asked', $questions_asked_string );
-
             // save transient to make retrieval faster
             $transient_key = 'sensei_answers_'.$user_id.'_'.$lesson_id;
-            set_site_transient( $transient_key, $prepared_answers, 30 * DAY_IN_SECONDS );
+            set_transient( $transient_key, $prepared_answers, 10 * DAY_IN_SECONDS );
 
             // update the message showed to user
             $woothemes_sensei->frontend->messages = '<div class="sensei-message note">' . apply_filters( 'sensei_quiz_saved_text', __( 'Quiz Saved Successfully.', 'woothemes-sensei' ) ) . '</div>';
@@ -247,7 +246,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
         // save some time and get the transient cached data
         $transient_key = 'sensei_answers_'.$user_id.'_'.$lesson_id;
-        $transient_cached_answers = get_site_transient( $transient_key );
+        $transient_cached_answers = get_transient( $transient_key );
 
         // return the transient or get the values get the values from the comment meta
         if( !empty( $transient_cached_answers  ) && false != $transient_cached_answers ){
@@ -256,7 +255,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
         }else{
 
-            $encoded_user_answers = WooThemes_Sensei_Utils::get_user_data( $lesson_id, 'quiz_answers' , $user_id );
+            $encoded_user_answers = WooThemes_Sensei_Utils::get_user_data( 'quiz_answers', $lesson_id  , $user_id );
 
         } // end if transient check
 
@@ -265,7 +264,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 		}
 
         //set the transient with the new valid data for faster retrieval in future
-        set_site_transient( $transient_key,  $encoded_user_answers);
+        set_transient( $transient_key,  $encoded_user_answers, 10 * DAY_IN_SECONDS);
 
 		// decode an unserialize all answers
 		foreach( $encoded_user_answers as $question_id => $encoded_answer ) {
@@ -303,7 +302,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         $this->reset_user_lesson_data( $lesson_id, get_current_user_id() );
 
 		//this function should only run once
-		remove_action( 'template_redirect', array( $this, 'reset_button_click_response'  ) );
+		remove_action( 'template_redirect', array( $this, 'reset_button_click_listener'  ) );
 
 	} // end reset_button_click_listener
 
@@ -388,6 +387,10 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         } // End If Statement
 
         $reset_allowed = get_post_meta( $post->ID, '_enable_quiz_reset', true );
+        //backwards compatibility
+        if( 'on' == $reset_allowed ) {
+            $reset_allowed = 1;
+        }
 
         // Build frontend data object
         $this->data->user_quiz_grade = $user_quiz_grade;
@@ -438,7 +441,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
             // compress the answer for saving
 			if( 'multi-line' == $question_type ) {
-                $answer = nl2br( $answer );
+                $answer = esc_html( $answer );
             }elseif( 'file-upload' == $question_type  ){
                 $file_key = 'file_upload_' . $question_id;
                 if( isset( $files[ $file_key ] ) ) {
@@ -494,12 +497,15 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         // reset the transients
         $answers_transient_key = 'sensei_answers_'.$user_id.'_'.$lesson_id;
         $grades_transient_key = 'quiz_grades_'.$user_id.'_'.$lesson_id;
-        delete_site_transient( $answers_transient_key );
-        delete_site_transient( $grades_transient_key );
+        $answers_feedback_transient_key = 'sensei_answers_feedback_'.$user_id.'_'.$lesson_id;
+        delete_transient( $answers_transient_key );
+        delete_transient( $grades_transient_key );
+        delete_transient( $answers_feedback_transient_key );
 
-        // reset the quiz answers
-        $deleted_answers = WooThemes_Sensei_Utils::delete_user_data( $lesson_id,'quiz_answers', $user_id );
-        $deleted_grades = WooThemes_Sensei_Utils::delete_user_data( $lesson_id,'quiz_grades', $user_id );
+        // reset the quiz answers and feedback notes
+        $deleted_answers = WooThemes_Sensei_Utils::delete_user_data( 'quiz_answers', $lesson_id, $user_id );
+        $deleted_grades = WooThemes_Sensei_Utils::delete_user_data( 'quiz_grades', $lesson_id, $user_id );
+        $deleted_user_feedback = WooThemes_Sensei_Utils::delete_user_data( 'quiz_answers_feedback', $lesson_id, $user_id );
 
         // Delete quiz answers, this auto deletes the corresponding meta data, such as the question/answer grade
         WooThemes_Sensei_Utils::sensei_delete_quiz_answers( $quiz_id, $user_id );
@@ -750,7 +756,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
          $success = false;
 
          // save that data for the user on the lesson comment meta
-         $comment_meta_id = WooThemes_Sensei_Utils::add_user_data( $lesson_id, 'quiz_grades', $quiz_grades, $user_id   );
+         $comment_meta_id = WooThemes_Sensei_Utils::add_user_data( 'quiz_grades', $lesson_id, $quiz_grades, $user_id   );
 
          // were the grades save successfully ?
          if( intval( $comment_meta_id ) > 0 ) {
@@ -758,7 +764,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
              $success = true;
              // save transient
              $transient_key = 'quiz_grades_'. $user_id . '_' . $lesson_id;
-             set_site_transient( $transient_key, $quiz_grades, 30 * DAY_IN_SECONDS );
+             set_transient( $transient_key, $quiz_grades, 10 * DAY_IN_SECONDS );
          }
 
          return $success;
@@ -793,16 +799,15 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
          // save some time and get the transient cached data
          $transient_key = 'quiz_grades_'. $user_id . '_' . $lesson_id;
-         $user_grades = get_site_transient( $transient_key );
+         $user_grades = get_transient( $transient_key );
 
          // get the data if nothing was stored in the transient
          if( empty( $user_grades  ) || false != $user_grades ){
 
-             $user_grades = WooThemes_Sensei_Utils::get_user_data( $lesson_id, 'quiz_grades' , $user_id );
+             $user_grades = WooThemes_Sensei_Utils::get_user_data( 'quiz_grades', $lesson_id, $user_id );
 
              //set the transient with the new valid data for faster retrieval in future
-             set_site_transient( $transient_key,  $user_grades);
-
+             set_transient( $transient_key,  $user_grades, 10 * DAY_IN_SECONDS );
 
          } // end if transient check
 
@@ -866,5 +871,186 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
          return $all_user_grades[ $question_id ];
 
      }// end get_user_question_grade
+
+     /**
+      * Save the user's answers feedback
+      *
+      * For this function you must supply all three parameters. If will return false one is left out.
+      * The data will be saved on the lesson ID supplied.
+      *
+      * @since 1.7.5
+      * @access public
+      *
+      * @param array $answers_feedback{
+      *  $type int $question_id
+      *  $type string $question_feedback
+      * }
+      * @param int $lesson_id
+      * @param int $user_id
+      *
+      * @return false or int $feedback_saved
+      */
+    public function save_user_answers_feedback( $answers_feedback, $lesson_id , $user_id = 0 ){
+
+        // make sure the parameters are valid before continuing
+        if( empty( $lesson_id ) || empty( $user_id )
+            || 'lesson' != get_post_type( $lesson_id )
+            ||!get_userdata( $user_id )
+            || !is_array( $answers_feedback ) ){
+
+            return false;
+
+        }
+
+        global $woothemes_sensei;
+        // check if the lesson is started before saving, if not start the lesson for the user
+        if ( !( 0 < intval( WooThemes_Sensei_Utils::user_started_lesson( $lesson_id, $user_id) ) ) ) {
+            WooThemes_Sensei_Utils::sensei_start_lesson( $lesson_id, $user_id );
+        }
+
+        // encode the feedback
+        $encoded_answers_feedback =  array();
+        foreach( $answers_feedback as $question_id => $feedback ){
+            $encoded_answers_feedback[ $question_id ] = base64_encode( $feedback );
+        }
+
+        // save the user data
+        $feedback_saved = WooThemes_Sensei_Utils::add_user_data( 'quiz_answers_feedback', $lesson_id , $encoded_answers_feedback, $user_id ) ;
+
+        //Were the the question feedback save correctly?
+        if( intval( $feedback_saved ) > 0){
+
+            // save transient to make retrieval faster in future
+             $transient_key = 'sensei_answers_feedback_'.$user_id.'_'.$lesson_id;
+             set_transient( $transient_key, $encoded_answers_feedback, 10 * DAY_IN_SECONDS );
+
+        }
+
+        return $feedback_saved;
+
+    } // end save_user_answers_feedback
+
+     /**
+      * Get the user's answers feedback.
+      *
+      * This function returns the feedback submitted by the teacher/admin
+      * during grading. Grading occurs manually or automatically.
+      *
+      * @since 1.7.5
+      * @access public
+      *
+      * @param int $lesson_id
+      * @param int $user_id
+      *
+      * @return false | array $answers_feedback{
+      *  $type int $question_id
+      *  $type string $question_feedback
+      * }
+      */
+     public function get_user_answers_feedback( $lesson_id , $user_id = 0 ){
+
+         $answers_feedback = array();
+
+         // get the user_id if none was passed in use the current logged in user
+         if( ! intval( $user_id ) > 0 ) {
+             $user_id = get_current_user_id();
+         }
+
+         if ( ! intval( $lesson_id ) > 0 || 'lesson' != get_post_type( $lesson_id )
+             || ! intval( $user_id )  > 0 || !get_userdata( $user_id )  ) {
+             return false;
+         }
+
+         // first check the transient to save a few split seconds
+         $transient_key = 'sensei_answers_feedback_'.$user_id.'_'.$lesson_id;
+         $encoded_feedback = get_transient( $transient_key );
+
+         // get the data if nothing was stored in the transient
+         if( empty( $encoded_feedback  ) || !$encoded_feedback ){
+
+             $encoded_feedback = WooThemes_Sensei_Utils::get_user_data( 'quiz_answers_feedback', $lesson_id, $user_id );
+
+             //set the transient with the new valid data for faster retrieval in future
+             set_transient( $transient_key,  $encoded_feedback, 10 * DAY_IN_SECONDS);
+
+         } // end if transient check
+
+         // if there is no data for this user
+         if( ! is_array( $encoded_feedback ) ){
+             return false;
+         }
+
+         foreach( $encoded_feedback as $question_id => $feedback ){
+
+             $answers_feedback[ $question_id ] = base64_decode( $feedback );
+
+         }
+
+         return $answers_feedback;
+
+     } // end get_user_answers_feedback
+
+     /**
+      * Get the user's answer feedback for a specific question.
+      *
+      * This function gives you a single answer note/feedback string
+      * for the user on the given question.
+      *
+      * @since 1.7.5
+      * @access public
+      *
+      * @param int $lesson_id
+      * @param int $question_id
+      * @param int $user_id
+      *
+      * @return string $feedback or bool if false
+      */
+     public function get_user_question_feedback( $lesson_id, $question_id, $user_id = 0 ){
+
+         $feedback = false;
+
+         // parameter validation
+         if( empty( $lesson_id ) || empty( $question_id )
+             || ! ( intval( $lesson_id  ) > 0 )
+             || ! ( intval( $question_id  ) > 0 )
+             || 'lesson' != get_post_type( $lesson_id )
+             || 'question' != get_post_type( $question_id )) {
+
+             return false;
+         }
+
+         // get all the feedback for the user on the given lesson
+         $all_feedback = $this->get_user_answers_feedback( $lesson_id, $user_id );
+
+         if( !$all_feedback || empty( $all_feedback )
+             || ! is_array( $all_feedback ) || ! isset( $all_feedback[ $question_id ] ) ){
+
+             //fallback to data pre 1.7.4
+
+             // setup the sensei data query
+             $args = array(
+                 'post_id' => $question_id,
+                 'user_id' => $user_id,
+                 'type'    => 'sensei_user_answer'
+             );
+             $question_activity = WooThemes_Sensei_Utils::sensei_check_for_activity( $args , true );
+
+             // set the default to false and return that if no old data is available.
+             if( isset( $question_activity->comment_ID ) ){
+                 $feedback = base64_decode( get_comment_meta(  $question_activity->comment_ID , 'answer_note', true ) );
+             }
+
+             // finally use the default question feedback
+             if( empty( $feedback ) ){
+                 $feedback = get_post_meta( $question_id, '_answer_feedback', true );
+             }
+
+             return $feedback;
+
+         }
+
+         return $all_feedback[ $question_id ];
+
+     } // end get_user_question_feedback
 
 } // End Class WooThemes_Sensei_Quiz

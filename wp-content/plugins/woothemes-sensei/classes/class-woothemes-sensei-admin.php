@@ -35,7 +35,12 @@ class WooThemes_Sensei_Admin {
 	 */
 	public function __construct () {
 
+        //register admin styles
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_styles_global' ) );
+
+        //register admin scripts
+        add_action( 'admin_enqueue_scripts', array( $this, 'load_scripts' ) );
+
 		add_action( 'admin_print_styles', array( $this, 'admin_notices_styles' ) );
 		add_action( 'settings_before_form', array( $this, 'install_pages_output' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 10 );
@@ -43,6 +48,7 @@ class WooThemes_Sensei_Admin {
 		add_action( 'admin_head', array( $this, 'admin_menu_highlight' ) );
 		add_action( 'admin_init', array( $this, 'page_redirect' ) );
 		add_action( 'admin_init', array( $this, 'sensei_add_custom_menu_items' ) );
+        add_action( 'admin_init', array( __CLASS__, 'install_pages' ));
 
 		// Duplicate lesson & courses
 		add_filter( 'post_row_actions', array( $this, 'duplicate_action_link' ), 10, 2 );
@@ -96,8 +102,8 @@ class WooThemes_Sensei_Admin {
 			$main_page = add_menu_page( 'Sensei', 'Sensei', $menu_cap, 'sensei' , array( $woothemes_sensei->analysis, 'analysis_page' ) , '', '50' );
 		}
 
-		add_submenu_page( 'edit.php?post_type=lesson', __( 'Order Courses', 'woothemes-sensei' ), __( 'Order Courses', 'woothemes-sensei' ), 'manage_sensei', 'course-order', array( $this, 'course_order_screen' ) );
-		add_submenu_page( 'edit.php?post_type=lesson', __( 'Order Lessons', 'woothemes-sensei' ), __( 'Order Lessons', 'woothemes-sensei' ), 'manage_sensei', 'lesson-order', array( $this, 'lesson_order_screen' ) );
+		add_submenu_page( 'edit.php?post_type=course', __( 'Order Courses', 'woothemes-sensei' ), __( 'Order Courses', 'woothemes-sensei' ), 'manage_sensei', 'course-order', array( $this, 'course_order_screen' ) );
+		add_submenu_page( 'edit.php?post_type=lesson', __( 'Order Lessons', 'woothemes-sensei' ), __( 'Order Lessons', 'woothemes-sensei' ), 'edit_lessons', 'lesson-order', array( $this, 'lesson_order_screen' ) );
 	}
 
 	/**
@@ -142,14 +148,24 @@ class WooThemes_Sensei_Admin {
 		$screen = get_current_screen();
 
 		if ( $screen->base == 'post' && $post_type == 'course' ) {
-			$submenu_file = 'edit.php?post_type=course';
-			$parent_file  = 'edit.php?post_type=lesson';
+
+			$parent_file  = 'edit.php?post_type=course';
+
 		} elseif ( $screen->base == 'edit-tags' && $taxonomy == 'course-category' ) {
-			$submenu_file = 'edit-tags.php?taxonomy=course-category&post_type=course';
-			$parent_file  = 'edit.php?post_type=lesson';
+
+			$submenu_file = 'edit-tags.php?taxonomy=course-category&amp;post_type=course';
+			$parent_file  = 'edit.php?post_type=course';
+
+        } elseif ( $screen->base == 'edit-tags' && $taxonomy == 'module' ) {
+
+            $submenu_file = 'edit-tags.php?taxonomy=module';
+            $parent_file  = 'edit.php?post_type=course';
+
 		} elseif ( in_array( $screen->id, array( 'sensei_message', 'edit-sensei_message' ) ) ) {
-			$submenu_file = 'edit.php?post_type=sensei_message';
+
+            $submenu_file = 'edit.php?post_type=sensei_message';
 			$parent_file  = 'sensei';
+
 		}
 	}
 
@@ -174,43 +190,20 @@ class WooThemes_Sensei_Admin {
 	 * @return void
 	 */
 	function install_pages_output() {
-		global $woothemes_sensei;
 
-		// Install/page installer
-	    $install_complete = false;
+        if( isset($_GET['sensei_install_complete']) && 'true' == $_GET['sensei_install_complete']) {
 
-	    // Add pages button
-	    if (isset($_GET['install_sensei_pages']) && $_GET['install_sensei_pages']) {
+            ?>
+            <div id="message" class="updated sensei-message sensei-connect">
+                <div class="squeezer">
+                    <h4><?php _e( '<strong>Congratulations!</strong> &#8211; Sensei has been installed and set up.', 'woothemes-sensei' ); ?></h4>
+                    <p><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woothemes.com/sensei/" data-text="A premium Learning Management plugin for #WordPress that helps you create courses. Beautifully." data-via="WooThemes" data-size="large" data-hashtags="Sensei">Tweet</a>
+                        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
+                </div>
+            </div>
+            <?php
 
-			$this->create_pages();
-	    	update_option('skip_install_sensei_pages', 1);
-	    	$install_complete = true;
-
-		// Skip button
-	    } elseif (isset($_GET['skip_install_sensei_pages']) && $_GET['skip_install_sensei_pages']) {
-
-	    	update_option('skip_install_sensei_pages', 1);
-	    	$install_complete = true;
-
-	    }
-
-		if ($install_complete) {
-			?>
-	    	<div id="message" class="updated sensei-message sensei-connect">
-				<div class="squeezer">
-					<h4><?php _e( '<strong>Congratulations!</strong> &#8211; Sensei has been installed and set up.', 'woothemes-sensei' ); ?></h4>
-					<p><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woothemes.com/sensei/" data-text="A premium Learning Management plugin for #WordPress that helps you create courses. Beautifully." data-via="WooThemes" data-size="large" data-hashtags="Sensei">Tweet</a>
-		<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></p>
-				</div>
-			</div>
-			<?php
-
-			// Flush rules after install
-			flush_rewrite_rules( false );
-
-			// Set installed option
-			update_option('sensei_installed', 0);
-		}
+        }
 
 	} // End install_pages_output()
 
@@ -295,12 +288,32 @@ class WooThemes_Sensei_Admin {
 
 			wp_register_style( $woothemes_sensei->token . '-admin-custom', $woothemes_sensei->plugin_url . 'assets/css/admin-custom.css', '', '1.6.0', 'screen' );
 			wp_enqueue_style( $woothemes_sensei->token . '-admin-custom' );
-			wp_register_style( $woothemes_sensei->token . '-chosen', $woothemes_sensei->plugin_url . 'assets/chosen/chosen.css', '', '1.5.2', 'screen' );
-			wp_enqueue_style( $woothemes_sensei->token . '-chosen' );
+			wp_register_style( $woothemes_sensei->token . '-select2', $woothemes_sensei->plugin_url . 'assets/select2/select2.css', '', '1.5.2', 'screen' );
+			wp_enqueue_style( $woothemes_sensei->token . '-select2' );
 
 		}
 
 	} // End admin_styles_global()
+
+
+    /**
+     * Load scripts on all admin page where needed
+     *
+     * @since 1.8.2
+     * @access public
+     */
+    public function load_scripts( $hook ){
+
+        $screen = get_current_screen();
+
+        // load edit module scripts
+        if( 'edit-module' ==  $screen->id ){
+
+            wp_enqueue_script( 'sensei-chosen-ajax', Sensei()->plugin_url . 'assets/chosen/ajax-chosen.jquery.min.js', array( 'jquery', 'sensei-chosen' ), Sensei()->version, true );
+
+        }
+
+    }
 
 
 	/**
@@ -314,7 +327,7 @@ class WooThemes_Sensei_Admin {
 	    <div id="message" class="updated sensei-message sensei-connect">
 	    	<div class="squeezer">
 	    		<h4><?php _e( '<strong>Welcome to Sensei</strong> &#8211; You\'re almost ready to create some courses!', 'woothemes-sensei' ); ?></h4>
-	    		<p class="submit"><a href="<?php echo add_query_arg('install_sensei_pages', 'true', admin_url('admin.php?page=woothemes-sensei-settings')); ?>" class="button-primary"><?php _e( 'Install Sensei Pages', 'woothemes-sensei' ); ?></a> <a class="skip button" href="<?php echo add_query_arg('skip_install_sensei_pages', 'true', admin_url('admin.php?page=woothemes-sensei-settings')); ?>"><?php _e('Skip setup', 'woothemes-sensei'); ?></a></p>
+                <p class="submit"><a href="<?php echo esc_url( add_query_arg('install_sensei_pages', 'true', admin_url('admin.php?page=woothemes-sensei-settings') ) ); ?>" class="button-primary"><?php _e( 'Install Sensei Pages', 'woothemes-sensei' ); ?></a> <a class="skip button" href="<?php echo esc_url( add_query_arg( 'skip_install_sensei_pages', 'true', admin_url('admin.php?page=woothemes-sensei-settings' ) ) ); ?>"><?php _e('Skip setup', 'woothemes-sensei'); ?></a></p>
 	    	</div>
 	    </div>
 	    <?php
@@ -467,7 +480,7 @@ class WooThemes_Sensei_Admin {
 				$redirect_url = admin_url( 'edit.php?post_type=' . $post->post_type . '&message=duplicate_failed' );
 			}
 
-			wp_safe_redirect( $redirect_url );
+			wp_safe_redirect( esc_url_raw( $redirect_url ) );
 			exit;
 		}
 	}
@@ -480,46 +493,36 @@ class WooThemes_Sensei_Admin {
 	 */
 	private function duplicate_lesson_quizzes( $old_lesson_id, $new_lesson_id ) {
 
-		$quiz_args = array(
-			'post_type' => 'quiz',
-			'posts_per_page' => 1,
-			'post_parent' => $old_lesson_id,
-			'suppress_filters' 	=> 0
-		);
-		$quiz = array_shift( get_posts( $quiz_args ) );
+        global $woothemes_sensei;
 
-		$question_args = array(
-			'post_type'	=> 'question',
-			'posts_per_page' => -1,
-			'orderby'        => 'meta_value_num title',
-			'order'          => 'ASC',
-			'meta_query'	 => array(
-				array(
-					'key'       => '_quiz_id',
-					'value'     => $quiz->ID,
-				)
-			),
-			'suppress_filters' => 0
-		);
-		$questions = get_posts( $question_args );
+        $old_quiz_id = $woothemes_sensei->lesson->lesson_quizzes( $old_lesson_id );
+        $old_quiz_questions = $woothemes_sensei->lesson->lesson_quiz_questions( $old_quiz_id );
 
-		$quiz->post_parent = $new_lesson_id;
-		$new_quiz = $this->duplicate_post( $quiz, '' );
-		add_post_meta( $new_quiz->ID, '_quiz_lesson', $new_lesson_id );
-		add_post_meta( $new_lesson_id, '_lesson_quiz', $new_quiz->ID );
+        // duplicate the generic wp post information
+		$new_quiz = $this->duplicate_post( get_post( $old_quiz_id ), '' );
 
-		$question_count = 1;
-		foreach( $questions as $question ) {
+		//update the new lesson data
+        add_post_meta( $new_lesson_id, '_lesson_quiz', $new_quiz->ID );
 
-			// Add to quiz
+		//update the new quiz data
+        add_post_meta( $new_quiz->ID, '_quiz_lesson', $new_lesson_id );
+        wp_update_post(
+            array(
+                'ID' => $new_quiz->ID,
+                'post_parent' => $new_lesson_id
+            )
+        );
+
+		foreach( $old_quiz_questions as $question ) {
+
+			// copy the question order over to the new quiz
+			$old_question_order = get_post_meta( $question->ID, '_quiz_question_order'. $old_quiz_id, true );
+            $new_question_order = str_ireplace( $old_quiz_id, $new_quiz->ID , $old_question_order );
+            add_post_meta( $question->ID, '_quiz_question_order' . $new_quiz->ID, $new_question_order );
+
+			// Add question to quiz
 			add_post_meta( $question->ID, '_quiz_id', $new_quiz->ID, false );
 
-			// Set order of question
-			$question_order = $new_quiz->ID . '000' . $question_count;
-			add_post_meta( $question->ID, '_quiz_question_order' . $new_quiz->ID, $question_order );
-
-			// Increment counter for question ordering
-			++$question_count;
 		}
 	}
 
@@ -837,7 +840,22 @@ class WooThemes_Sensei_Admin {
 								break;
 
 								case 'checkbox':
-									$checked = checked( $field['checked'], $data, false );
+                                    //backwards compatibility
+                                    if( empty( $data ) || 'on' == $data ){
+                                        $checked_value = 'on';
+                                    }elseif( 'yes' == $data  ) {
+
+                                        $checked_value = 'yes';
+
+                                    }elseif( 'auto' == $data  ) {
+
+                                        $checked_value = 'auto';
+
+                                    } else {
+                                        $checked_value = 1;
+                                        $data = intval( $data );
+                                    }
+									$checked = checked( $checked_value, $data, false );
 									$html .= '<input id="' . esc_attr( $field['id'] ) . '" type="' . $field['type'] . '" name="' . esc_attr( $field['id'] ) . '" ' . $checked . ' ' . $disabled . '/>' . "\n";
 								break;
 
@@ -937,23 +955,30 @@ class WooThemes_Sensei_Admin {
 			}
 		}
 
-		$args = array(
-			'post_type' => 'course',
-			'posts_per_page' => -1,
-			'suppress_filters' => 0,
-			'orderby' => 'menu_order date',
-			'order' => 'ASC',
-		);
+		$courses = Sensei()->course->get_all_courses();
 
-		$courses = get_posts( $args );
 		if( 0 < count( $courses ) ) {
 
-			$order_string = $this->get_course_order();
+            // order the courses as set by the users
+            $all_course_ids = array();
+            foreach( $courses as $course ){
+
+                $all_course_ids[] = (string)$course->ID;
+
+            }
+            $order_string = $this->get_course_order();
+
+            if( !empty( $order_string ) ){
+                $ordered_course_ids = explode(',' , $order_string );
+                $all_course_ids = array_unique( array_merge( $ordered_course_ids , $all_course_ids ) );
+            }
+
 
 			$html .= '<form id="editgrouping" method="post" action="" class="validate">' . "\n";
 			$html .= '<ul class="sortable-course-list">' . "\n";
 			$count = 0;
-			foreach ( $courses as $course ) {
+			foreach ( $all_course_ids as $course_id ) {
+                $course = get_post( $course_id );
 				$count++;
 				$class = 'course';
 				if ( $count == 1 ) { $class .= ' first'; }
@@ -1007,10 +1032,9 @@ class WooThemes_Sensei_Admin {
 	 * @return void
 	 */
 	public function lesson_order_screen() {
-		global $woothemes_sensei;
 
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		wp_enqueue_script( 'woothemes-sensei-settings', esc_url( $woothemes_sensei->plugin_url . 'assets/js/settings' . $suffix . '.js' ), array( 'jquery', 'jquery-ui-sortable' ), '1.6.0' );
+		wp_enqueue_script( 'woothemes-sensei-settings', esc_url( Sensei()->plugin_url . 'assets/js/settings' . $suffix . '.js' ), array( 'jquery', 'jquery-ui-sortable' ), '1.6.0' );
 
 		?><div id="lesson-order" class="wrap lesson-order">
 		<h2><?php _e( 'Order Lessons', 'woothemes-sensei' ); ?></h2><?php
@@ -1056,7 +1080,7 @@ class WooThemes_Sensei_Admin {
 		$html .= '</form>' . "\n";
 
 		$html .= '<script type="text/javascript">' . "\n";
-		$html .= 'jQuery( \'#lesson-order-course\' ).chosen();' . "\n";
+		$html .= 'jQuery( \'#lesson-order-course\' ).select2({width:"resolve"});' . "\n";
 		$html .= '</script>' . "\n";
 
 		if( isset( $_GET['course_id'] ) ) {
@@ -1069,98 +1093,98 @@ class WooThemes_Sensei_Admin {
 
 				$displayed_lessons = array();
 
-				if( class_exists( 'Sensei_Modules' ) ) {
-					global $sensei_modules;
+                $modules = Sensei()->modules->get_course_modules( intval( $course_id ) );
 
-					$modules = $sensei_modules->get_course_modules( intval( $course_id ) );
+                foreach( $modules as $module ) {
 
-					foreach( $modules as $module ) {
+                    $args = array(
+                        'post_type' => 'lesson',
+                        'post_status' => 'publish',
+                        'posts_per_page' => -1,
+                        'meta_query' => array(
+                            array(
+                                'key' => '_lesson_course',
+                                'value' => intval( $course_id ),
+                                'compare' => '='
+                            )
+                        ),
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => Sensei()->modules->taxonomy,
+                                'field' => 'id',
+                                'terms' => intval( $module->term_id )
+                            )
+                        ),
+                        'meta_key' => '_order_module_' . $module->term_id,
+                        'orderby' => 'meta_value_num date',
+                        'order' => 'ASC',
+                        'suppress_filters' => 0
+                    );
 
-						$args = array(
-		    				'post_type' => 'lesson',
-		    				'post_status' => 'publish',
-		    				'posts_per_page' => -1,
-		    				'meta_query' => array(
-		    					array(
-		    						'key' => '_lesson_course',
-		    						'value' => intval( $course_id ),
-		    						'compare' => '='
-								)
-							),
-							'tax_query' => array(
-								array(
-									'taxonomy' => $sensei_modules->taxonomy,
-									'field' => 'id',
-									'terms' => intval( $module->term_id )
-								)
-							),
-							'meta_key' => '_order_module_' . $module->term_id,
-							'orderby' => 'meta_value_num date',
-							'order' => 'ASC',
-							'suppress_filters' => 0
-						);
+                    $lessons = get_posts( $args );
 
-						$lessons = get_posts( $args );
+                    if( count( $lessons ) > 0 ) {
+                        $html .= '<h3>' . $module->name . '</h3>' . "\n";
+                        $html .= '<ul class="sortable-lesson-list" data-module_id="' . $module->term_id . '">' . "\n";
 
-						if( count( $lessons ) > 0 ) {
-							$html .= '<h3>' . $module->name . '</h3>' . "\n";
-							$html .= '<ul class="sortable-lesson-list" data-module_id="' . $module->term_id . '">' . "\n";
+                        $count = 0;
+                        foreach( $lessons as $lesson ) {
+                            $count++;
+                            $class = 'lesson';
+                            if ( $count == 1 ) { $class .= ' first'; }
+                            if ( $count == count( $lesson ) ) { $class .= ' last'; }
+                            if ( $count % 2 != 0 ) {
+                                $class .= ' alternate';
+                            }
 
-							$count = 0;
-							foreach( $lessons as $lesson ) {
-								$count++;
-								$class = 'lesson';
-								if ( $count == 1 ) { $class .= ' first'; }
-								if ( $count == count( $lesson ) ) { $class .= ' last'; }
-								if ( $count % 2 != 0 ) {
-									$class .= ' alternate';
-								}
+                            $html .= '<li class="' . esc_attr( $class ) . '"><span rel="' . esc_attr( $lesson->ID ) . '" style="width: 100%;"> ' . $lesson->post_title . '</span></li>' . "\n";
 
-								$html .= '<li class="' . esc_attr( $class ) . '"><span rel="' . esc_attr( $lesson->ID ) . '" style="width: 100%;"> ' . $lesson->post_title . '</span></li>' . "\n";
+                            $displayed_lessons[] = $lesson->ID;
+                        }
 
-								$displayed_lessons[] = $lesson->ID;
-							}
+                        $html .= '</ul>' . "\n";
 
-							$html .= '</ul>' . "\n";
+                        $html .= '<input type="hidden" name="lesson-order-module-' . $module->term_id . '" value="" />' . "\n";
+                    }
+                }
 
-							$html .= '<input type="hidden" name="lesson-order-module-' . $module->term_id . '" value="" />' . "\n";
-						}
-					}
-				}
 
-				$args = array(
-					'post_type' => 'lesson',
-					'posts_per_page' => -1,
-					'suppress_filters' => 0,
-					'meta_key' => '_order_' . $course_id,
-					'orderby' => 'meta_value_num date',
-					'order' => 'ASC',
-					'meta_query' => array(
-						array(
-							'key' => '_lesson_course',
-							'value' => intval( $course_id ),
-						),
-					),
-					'post__not_in' => $displayed_lessons,
-				);
-
-				$lessons = get_posts( $args );
+                $lessons = Sensei()->course->course_lessons( $course_id );
 
 				if( 0 < count( $lessons ) ) {
 
-					if( 0 < count( $displayed_lessons ) && class_exists( 'Sensei_Modules' ) ) {
+                    //get module term ids, will be used to exclude lessons
+                    $module_items_ids = array();
+                    if( ! empty( $modules ) ) {
+                        foreach ($modules as $module) {
+                            $module_items_ids[] = $module->term_id;
+                        }
+                    }
+
+					if( 0 < count( $displayed_lessons ) ) {
 						$html .= '<h3>' . __( 'Other Lessons', 'woothemes-sensei' ) . '</h3>' . "\n";
 					}
 
 					$html .= '<ul class="sortable-lesson-list" data-module_id="0">' . "\n";
 					$count = 0;
 					foreach ( $lessons as $lesson ) {
+
+                        // if lesson belongs to one fo the course modules then exclude it here
+                        // as it is listed above
+                        if( has_term( $module_items_ids, 'module', $lesson->ID )  ){
+
+                            continue;
+
+                        }
+
 						$count++;
 						$class = 'lesson';
 						if ( $count == 1 ) { $class .= ' first'; }
 						if ( $count == count( $lesson ) ) { $class .= ' last'; }
 						if ( $count % 2 != 0 ) {
+
 							$class .= ' alternate';
+
 						}
 						$html .= '<li class="' . esc_attr( $class ) . '"><span rel="' . esc_attr( $lesson->ID ) . '" style="width: 100%;"> ' . $lesson->post_title . '</span></li>' . "\n";
 
@@ -1195,27 +1219,24 @@ class WooThemes_Sensei_Admin {
 
 		if( $course_id ) {
 
-			if( class_exists( 'Sensei_Modules' ) ) {
-				global $sensei_modules;
+            $modules = Sensei()->modules->get_course_modules( intval( $course_id ) );
 
-				$modules = $sensei_modules->get_course_modules( intval( $course_id ) );
+            foreach( $modules as $module ) {
 
-				foreach( $modules as $module ) {
+                $module_order_string = $_POST[ 'lesson-order-module-' . $module->term_id ];
 
-					$module_order_string = $_POST[ 'lesson-order-module-' . $module->term_id ];
+                if( $module_order_string ) {
+                    $order = explode( ',', $module_order_string );
+                    $i = 1;
+                    foreach( $order as $lesson_id ) {
+                        if( $lesson_id ) {
+                            update_post_meta( $lesson_id, '_order_module_' . $module->term_id, $i );
+                            ++$i;
+                        }
+                    }
+                }
+            }
 
-					if( $module_order_string ) {
-						$order = explode( ',', $module_order_string );
-						$i = 1;
-						foreach( $order as $lesson_id ) {
-							if( $lesson_id ) {
-								update_post_meta( $lesson_id, '_order_module_' . $module->term_id, $i );
-								++$i;
-							}
-						}
-					}
-				}
-			}
 
 			if( $order_string ) {
 				update_post_meta( $course_id, '_lesson_order', $order_string );
@@ -1249,12 +1270,12 @@ class WooThemes_Sensei_Admin {
 		global $nav_menu_selected_id, $woothemes_sensei;
 
 		$menu_items = array(
-			'#senseicourses' => __( 'Courses', 'woothemes_sensei' ),
-			'#senseilessons' => __( 'Lessons', 'woothemes_sensei' ),
-			'#senseimycourses' => __( 'My Courses', 'woothemes_sensei' ),
-			'#senseilearnerprofile' => __( 'My Profile', 'woothemes_sensei' ),
-			'#senseimymessages' => __( 'My Messages', 'woothemes_sensei' ),
-			'#senseiloginlogout' => __( 'Login', 'woothemes_sensei' ) . '|' . __( 'Logout', 'woothemes_sensei' )
+			'#senseicourses' => __( 'Courses', 'woothemes-sensei' ),
+			'#senseilessons' => __( 'Lessons', 'woothemes-sensei' ),
+			'#senseimycourses' => __( 'My Courses', 'woothemes-sensei' ),
+			'#senseilearnerprofile' => __( 'My Profile', 'woothemes-sensei' ),
+			'#senseimymessages' => __( 'My Messages', 'woothemes-sensei' ),
+			'#senseiloginlogout' => __( 'Login', 'woothemes-sensei' ) . '|' . __( 'Logout', 'woothemes-sensei' )
 		);
 
 		$menu_items_obj = array();
@@ -1324,7 +1345,7 @@ class WooThemes_Sensei_Admin {
 				    <div id="message" class="error sensei-message sensei-connect">
 				    	<div class="squeezer">
 			    			<p><?php printf( __( '<strong>Your theme does not declare Sensei support</strong> &#8211; if you encounter layout issues please read our integration guide or choose a %1$sSensei theme%2$s :)', 'woothemes-sensei' ), '<a href="http://www.woothemes.com/product-category/themes/sensei-themes/">', '</a>' ); ?></p>
-							<p class="submit"><a href="<?php echo esc_url( apply_filters( 'sensei_docs_url', 'http://docs.woothemes.com/document/sensei-and-theme-compatibility/', 'theme-compatibility' ) ); ?>" class="button-primary"><?php _e( 'Theme Integration Guide', 'woothemes-sensei' ); ?></a> <a class="skip button-primary" href="<?php echo esc_url( add_query_arg( 'sensei_hide_notice', 'theme_check' ) ); ?>"><?php _e( 'Hide this notice', 'woothemes-sensei' ); ?></a></p>
+                            <p class="submit"><a href="<?php echo esc_url( apply_filters( 'sensei_docs_url', 'http://docs.woothemes.com/document/sensei-and-theme-compatibility/', 'theme-compatibility' ) ); ?>" class="button-primary"><?php _e( 'Theme Integration Guide', 'woothemes-sensei' ); ?></a> <a class="skip button-primary" href="<?php echo esc_url( add_query_arg( 'sensei_hide_notice', 'theme_check' ) ); ?>"><?php _e( 'Hide this notice', 'woothemes-sensei' ); ?></a></p>
 			    		</div>
 			    	</div>
 			    	<?php
@@ -1359,5 +1380,59 @@ class WooThemes_Sensei_Admin {
 
 		return $prevent_access;
 	}
+
+    /**
+     * Hooked onto admin_init. Listens for install_sensei_pages and skip_install_sensei_pages query args
+     * on the sensei settings page.
+     *
+     * The function
+     *
+     * @since 1.8.7
+     */
+    public  static function install_pages(){
+
+        // only fire on the settings page
+        if( ! isset( $_GET['page'] )
+            || 'woothemes-sensei-settings' != $_GET['page']
+            || 1 == get_option('skip_install_sensei_pages') ){
+
+            return;
+
+        }
+
+        // Install/page installer
+        $install_complete = false;
+
+        // Add pages button
+        if (isset($_GET['install_sensei_pages']) && $_GET['install_sensei_pages']) {
+
+            Sensei()->admin->create_pages();
+            update_option('skip_install_sensei_pages', 1);
+            $install_complete = true;
+            $settings_url = remove_query_arg('install_sensei_pages');
+
+            // Skip button
+        } elseif (isset($_GET['skip_install_sensei_pages']) && $_GET['skip_install_sensei_pages']) {
+
+            update_option('skip_install_sensei_pages', 1);
+            $install_complete = true;
+            $settings_url = remove_query_arg('skip_install_sensei_pages');
+
+        }
+
+        if ($install_complete) {
+
+            // Flush rules after install
+            flush_rewrite_rules( false );
+
+            // Set installed option
+            update_option('sensei_installed', 0);
+
+            $complete_url = add_query_arg( 'sensei_install_complete', 'true', $settings_url  );
+            wp_redirect( admin_url( $complete_url ) );
+
+        }
+
+    }// end install_pages
 
 } // End Class

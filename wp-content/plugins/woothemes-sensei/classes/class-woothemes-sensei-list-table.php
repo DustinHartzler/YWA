@@ -31,6 +31,31 @@ class WooThemes_Sensei_List_Table extends WP_List_Table {
 	public $token;
 
 	/**
+	 * Used for indicating if the output is for csv or not
+	 *
+	 * @var bool $csv_output
+	 * @access public
+	 */
+	public $csv_output = false;
+
+	/**
+	 * Used for storing the string of a search for passing between functions
+	 *
+	 * @var string $search
+	 * @access public
+	 */
+	public $search = false;
+
+	/**
+	 * Used for storing the total number of items available for the given query
+	 * also used for generating the pagination.
+	 *
+	 * @var int $total_items
+	 * @access public
+	 */
+	public $total_items = 0;
+
+	/**
 	 * Constructor
 	 * @since  1.2.0
 	 * @return  void
@@ -151,7 +176,8 @@ class WooThemes_Sensei_List_Table extends WP_List_Table {
 			$sortable[$id] = $data;
 		}
 
-		$this->_column_headers = array( $columns, $hidden, $sortable );
+        $primary = $this->get_primary_column_name();
+        $this->_column_headers = array( $columns, $hidden, $sortable, $primary );
 
 		return $this->_column_headers;
 	}

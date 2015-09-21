@@ -249,8 +249,16 @@ class WooThemes_Sensei_Utils {
 		if ( ( is_array( $args['status'] ) || 'any' == $args['status'] ) && version_compare($wp_version, '4.1', '<') ) {
 			add_filter( 'comments_clauses', array( __CLASS__, 'comment_any_status_filter' ) );
 		}
-		// Get comments
-		$comments = get_comments( $args );
+
+        //Get the comments
+        /**
+         * This filter runs inside Sensei_Utils::sensei_check_for_activity
+         *
+         * It runs while getting the comments for the given request.
+         *
+         * @param int|array $comments
+         */
+        $comments = apply_filters('sensei_check_for_activity', get_comments( $args ) );
 
 		remove_filter( 'comments_clauses', array( __CLASS__, 'comment_multiple_status_filter' ) );
 		remove_filter( 'comments_clauses', array( __CLASS__, 'comment_any_status_filter' ) );
@@ -417,7 +425,7 @@ class WooThemes_Sensei_Utils {
 			return false;
 
 		$orders = get_posts( array(
-		    'numberposts' => -1,
+		    'posts_per_page' => -1,
 		    'meta_key'    => '_customer_user',
 		    'meta_value'  => intval( $user_id ),
 		    'post_type'   => 'shop_order',
@@ -509,14 +517,7 @@ class WooThemes_Sensei_Utils {
 			foreach( $submitted as $question_id => $answer ) {
 
 				// Get question type
-				$question_types = wp_get_post_terms( $question_id, 'question-type' );
-				foreach( $question_types as $type ) {
-					$question_type = $type->slug;
-				}
-
-				if( ! $question_type ) {
-					$question_type = 'multiple-choice';
-				}
+				$question_type = Sensei()->question->get_question_type( $question_id );
 
 				// Sanitise answer
 				if( 0 == get_magic_quotes_gpc() ) {
@@ -938,6 +939,7 @@ class WooThemes_Sensei_Utils {
 	/**
 	 * Returns the answer_notes for a specific question and user, or sensei_user_answer entry
 	 *
+     * @deprecated since 1.7.5 use $woothemes_sensei->quiz->get_user_question_feedback instead
 	 * @param mixed $question
 	 * @param int $user_id
 	 * @return string
@@ -1077,7 +1079,7 @@ class WooThemes_Sensei_Utils {
 		$questions_array = array();
 		if ( 0 < $quiz_id ) {
 			$question_args = array( 'post_type'         => 'question',
-                                    'numberposts'       => -1,
+                                    'posts_per_page'       => -1,
                                     'orderby'           => 'ID',
                                     'order'             => 'ASC',
                                     'meta_query'		=> array(
@@ -1131,7 +1133,7 @@ class WooThemes_Sensei_Utils {
 			}
 		}
 
-		return round( $course_passmark );
+		return Woothemes_Sensei_Utils::round( $course_passmark );
 	}
 
 	/**
@@ -1176,7 +1178,7 @@ class WooThemes_Sensei_Utils {
 
 		}
 
-		return round( $total_grade );
+		return WooThemes_Sensei_Utils::round( $total_grade );
 	}
 
 	/**
@@ -1234,7 +1236,7 @@ class WooThemes_Sensei_Utils {
 				} else {
 					$status = 'failed';
 					$box_class = 'alert';
-					$message = sprintf( __( 'You require %1$d%% to pass this course. Your grade is %2$d%%.', 'woothemes-sensei' ), $passmark, $user_grade );
+					$message = sprintf( __( 'You require %1$d%% to pass this course. Your grade is %2$s%%.', 'woothemes-sensei' ), $passmark, $user_grade );
 				}
 			}
 
@@ -1325,14 +1327,14 @@ class WooThemes_Sensei_Utils {
 				// Lesson status will be "passed" (passmark reached)
 				elseif ( ! empty( $quiz_grade ) && abs( $quiz_grade ) >= 0 ) {
 					if( $is_lesson ) {
-						$message = sprintf( __( 'Congratulations! You have passed this lesson\'s quiz achieving %d%%', 'woothemes-sensei' ), round( $quiz_grade ) );
+						$message = sprintf( __( 'Congratulations! You have passed this lesson\'s quiz achieving %s%%', 'woothemes-sensei' ), WooThemes_Sensei_Utils::round( $quiz_grade ) );
 					} else {
-						$message = sprintf( __( 'Congratulations! You have passed this quiz achieving %d%%', 'woothemes-sensei' ), round( $quiz_grade ) );
+						$message = sprintf( __( 'Congratulations! You have passed this quiz achieving %s%%', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_grade ) );
 					}
 				}
 
 			}
-			// Lesson/Quiz not complete
+            // Lesson/Quiz not complete
 			else {
 				// Lesson/Quiz isn't "complete" instead it's ungraded (previously this "state" meant that it *was* complete)
 				if ( isset( $user_lesson_status->comment_approved ) && 'ungraded' == $user_lesson_status->comment_approved ) {
@@ -1341,7 +1343,7 @@ class WooThemes_Sensei_Utils {
 					if( $is_lesson ) {
 						$message = sprintf( __( 'You have completed this lesson\'s quiz and it will be graded soon. %1$sView the lesson quiz%2$s', 'woothemes-sensei' ), '<a href="' . esc_url( get_permalink( $quiz_id ) ) . '" title="' . esc_attr( get_the_title( $quiz_id ) ) . '">', '</a>' );
 					} else {
-						$message = sprintf( __( 'You have completed this quiz and it will be graded soon. You require %1$d%% to pass.', 'woothemes-sensei' ), round( $quiz_passmark ) );
+						$message = sprintf( __( 'You have completed this quiz and it will be graded soon. You require %1$s%% to pass.', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_passmark ) );
 					}
 				}
 				// Lesson status must be "failed"
@@ -1349,9 +1351,9 @@ class WooThemes_Sensei_Utils {
 					$status = 'failed';
 					$box_class = 'alert';
 					if( $is_lesson ) {
-						$message = sprintf( __( 'You require %1$d%% to pass this lesson\'s quiz. Your grade is %2$d%%', 'woothemes-sensei' ), round( $quiz_passmark ), round( $quiz_grade ) );
+						$message = sprintf( __( 'You require %1$d%% to pass this lesson\'s quiz. Your grade is %2$s%%', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_passmark ),  WooThemes_Sensei_Utils::round( $quiz_grade ) );
 					} else {
-						$message = sprintf( __( 'You require %1$d%% to pass this quiz. Your grade is %2$d%%', 'woothemes-sensei' ), round( $quiz_passmark ), round( $quiz_grade ) );
+						$message = sprintf( __( 'You require %1$d%% to pass this quiz. Your grade is %2$s%%', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_passmark ),  WooThemes_Sensei_Utils::round( $quiz_grade ) );
 					}
 				}
 				// Lesson/Quiz requires a pass
@@ -1359,9 +1361,9 @@ class WooThemes_Sensei_Utils {
 					$status = 'not_started';
 					$box_class = 'info';
 					if( $is_lesson ) {
-						$message = sprintf( __( 'You require %1$d%% to pass this lesson\'s quiz.', 'woothemes-sensei' ), round( $quiz_passmark ) );
+						$message = sprintf( __( 'You require %1$d%% to pass this lesson\'s quiz.', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_passmark ) );
 					} else {
-						$message = sprintf( __( 'You require %1$d%% to pass this quiz.', 'woothemes-sensei' ), round( $quiz_passmark ) );
+						$message = sprintf( __( 'You require %1$d%% to pass this quiz.', 'woothemes-sensei' ),  WooThemes_Sensei_Utils::round( $quiz_passmark ) );
 					}
 				}
 			}
@@ -1428,6 +1430,10 @@ class WooThemes_Sensei_Utils {
 			if( ! $user_id ) {
 				$user_id = get_current_user_id();
 			}
+
+            if( ! $user_id > 0 ){
+                return false;
+            }
 
 			$user_course_status_id = WooThemes_Sensei_Utils::sensei_get_activity_value( array( 'post_id' => $course_id, 'user_id' => $user_id, 'type' => 'sensei_course_status', 'field' => 'comment_ID' ) );
 			if( $user_course_status_id ) {
@@ -1569,7 +1575,10 @@ class WooThemes_Sensei_Utils {
 				}
 
 				$user_course_status = WooThemes_Sensei_Utils::user_course_status( $course, $user_id );
-				$user_course_status = $user_course_status->comment_approved;
+				if( isset( $user_course_status->comment_approved ) ){
+                    $user_course_status = $user_course_status->comment_approved;
+                }
+
 			}
 			if( $user_course_status && 'complete' == $user_course_status ) {
 				return true;
@@ -1626,6 +1635,10 @@ class WooThemes_Sensei_Utils {
 					$user_id = get_current_user_id();
 				}
 
+                // the user is not logged in
+                if( ! $user_id > 0 ){
+                    return false;
+                }
 				$_user_lesson_status = WooThemes_Sensei_Utils::user_lesson_status( $lesson, $user_id );
 
 				if ( $_user_lesson_status ) {
@@ -1698,9 +1711,9 @@ class WooThemes_Sensei_Utils {
 	 * Returns the requested lesson status
 	 *
 	 * @since 1.7.0
-	 * @param type $lesson_id
-	 * @param type $user_id
-	 * @return object
+	 * @param int $lesson_id
+	 * @param int $user_id
+	 * @return object | bool
 	 */
 	public static function user_lesson_status( $lesson_id = 0, $user_id = 0 ) {
 		global $woothemes_sensei;
@@ -1916,16 +1929,16 @@ class WooThemes_Sensei_Utils {
      * Alias to Woothemes_Sensei_Utils::update_user_data
      * @since 1.7.4
      *
-     * @param int $post_id
      * @param string $data_key maximum 39 characters allowed
+     * @param int $post_id
      * @param mixed $value
      * @param int $user_id
      *
      * @return bool $success
      */
-    public static function add_user_data( $post_id, $data_key, $value = '' , $user_id = 0  ){
+    public static function add_user_data( $data_key, $post_id , $value = '' , $user_id = 0  ){
 
-        return self::update_user_data( $post_id, $data_key, $value , $user_id );
+        return self::update_user_data( $data_key, $post_id, $value , $user_id );
 
     }// end add_user_data
 
@@ -1937,14 +1950,14 @@ class WooThemes_Sensei_Utils {
      *
      * @since 1.7.4
      *
-     * @param int $post_id
      * @param string $data_key maximum 39 characters allowed
+     * @param int $post_id
      * @param mixed $value
      * @param int $user_id
      *
      * @return bool $success
      */
-    public static function update_user_data( $post_id, $data_key, $value = '' , $user_id = 0  ){
+    public static function update_user_data( $data_key, $post_id, $value = '' , $user_id = 0  ){
 
         if( ! ( $user_id > 0 ) ){
             $user_id = get_current_user_id();
@@ -1989,13 +2002,13 @@ class WooThemes_Sensei_Utils {
      *
      * @since 1.7.4
      *
-     * @param $post_id
      * @param $data_key
+     * @param $post_id
      * @param int $user_id
      *
      * @return mixed $user_data_value
      */
-    public static function get_user_data( $post_id, $data_key, $user_id = 0  ){
+    public static function get_user_data( $data_key, $post_id, $user_id = 0  ){
 
         $user_data_value = true;
 
@@ -2029,13 +2042,15 @@ class WooThemes_Sensei_Utils {
     }// end get_user_data
 
     /**
-     * @param int $post_id
+     * Delete the Sensei user data for the given key, Sensei post type and user combination.
+     *
      * @param int $data_key
+     * @param int $post_id
      * @param int $user_id
      *
      * @return bool $deleted
      */
-    public static function delete_user_data( $post_id, $data_key, $user_id ){
+    public static function delete_user_data( $data_key, $post_id , $user_id ){
         $deleted = true;
 
         if( ! ( $user_id > 0 ) ){
@@ -2066,5 +2081,130 @@ class WooThemes_Sensei_Utils {
         return $deleted;
 
     }// end delete_user_data
+
+
+    /**
+     * The function creates a drop down. Never write up a Sensei select statement again.
+     *
+     * @since 1.8.0
+     *
+     * @param string $selected_value
+     * @param $options{
+     *    @type string $value the value saved in the database
+     *    @type string $option what the user will see in the list of items
+     * }
+     * @param array $attributes{
+     *   @type string $attribute  type such name or id etc.
+     *  @type string $value
+     * }
+     * @param bool $enable_none_option
+     *
+     * @return string $drop_down_element
+     */
+    public static function generate_drop_down( $selected_value, $options = array() , $attributes = array(), $enable_none_option = true ) {
+
+        $drop_down_element = '';
+
+        // setup the basic attributes
+        if( !isset( $attributes['name'] ) || empty( $attributes['name']  ) ) {
+
+            $attributes['name'] = 'sensei-options';
+
+        }
+
+        if( !isset( $attributes['id'] ) || empty( $attributes['id']  ) ) {
+
+            $attributes['id'] = 'sensei-options';
+
+        }
+
+        if( !isset( $attributes['class'] ) || empty( $attributes['class']  ) ) {
+
+            $attributes['class'] ='chosen_select widefat';
+
+        }
+
+        // create element attributes
+        $combined_attributes = '';
+        foreach( $attributes as $attribute => $value ){
+
+            $combined_attributes .= $attribute . '="'.$value.'"' . ' ';
+
+        }// end for each
+
+
+        // create the select element
+        $drop_down_element .= '<select '. $combined_attributes . ' >' . "\n";
+
+        // show the none option if the client requested
+        if( $enable_none_option ) {
+            $drop_down_element .= '<option value="">' . __('None', 'woothemes-sensei') . '</option>';
+        }
+
+        if ( count( $options ) > 0 ) {
+
+            foreach ($options as $value => $option ){
+
+                $element = '';
+                $element.= '<option value="' . esc_attr( $value ) . '"';
+                $element .= selected( $value, $selected_value, false ) . '>';
+                $element .= esc_html(  $option ) . '</option>' . "\n";
+
+                // add the element to the select html
+                $drop_down_element.= $element;
+            } // End For Loop
+
+        } // End If Statement
+
+        $drop_down_element .= '</select>' . "\n";
+
+        return $drop_down_element;
+
+    }// generate_drop_down
+
+    /**
+     * Wrapper for the default php round() function.
+     * This allows us to give more control to a user on how they can round Sensei
+     * decimals passed through this function.
+     *
+     * @since 1.8.5
+     *
+     * @param double $val
+     * @param int $precision
+     * @param $mode
+     * @param string $context
+     *
+     * @return double $val
+     */
+    public static function round( $val, $precision = 0, $mode = PHP_ROUND_HALF_UP, $context = ''  ){
+
+        /**å
+         * Change the precision for the Sensei_Utils::round function.
+         * the precision given will be passed into the php round function
+         * @since 1.8.5
+         */
+        $precision = apply_filters( 'sensei_round_precision', $precision , $val, $context, $mode );
+
+        /**
+         * Change the mode for the Sensei_Utils::round function.
+         * the mode given will be passed into the php round function
+         *
+         * This applies only to PHP version 5.3.0 and greater
+         *
+         * @since 1.8.5
+         */
+        $mode = apply_filters( 'sensei_round_mode', $mode , $val, $context, $precision   );
+
+        if ( version_compare(PHP_VERSION, '5.3.0') >= 0 ) {
+
+            return round( $val, $precision, $mode );
+
+        }else{
+
+            return round( $val, $precision );
+
+        }
+
+    }
 
 } // End Class

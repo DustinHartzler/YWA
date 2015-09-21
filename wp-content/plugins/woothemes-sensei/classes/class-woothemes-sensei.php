@@ -45,6 +45,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * - get_image_size()
  */
 class WooThemes_Sensei {
+
+    /**
+     * @var $_instance reference to the the main and only instance of the Sensei class.
+     * @since 1.8.0
+     */
+    protected static $_instance = null;
+
 	public $admin;
 	public $frontend;
 	public $post_types;
@@ -83,6 +90,11 @@ class WooThemes_Sensei {
 		$this->load_class( 'posttypes' );
 		$this->post_types = new WooThemes_Sensei_PostTypes();
 		$this->post_types->token = 'woothemes-sensei-posttypes';
+
+        // updates class
+        $this->load_class( 'updates' );
+        $this->updates = new WooThemes_Sensei_Updates( $this );
+
 		// Setup settings screen.
 		$this->load_class( 'settings-api' );
 		$this->load_class( 'settings' );
@@ -97,14 +109,15 @@ class WooThemes_Sensei {
 		} // End If Statement
 		$this->settings->setup_settings();
 		$this->settings->get_settings();
-		// Load Learner Profiles Class
-		$this->load_class( 'learner-profiles' );
-		$this->learner_profiles = new WooThemes_Sensei_Learner_Profiles();
-		$this->learner_profiles->token = $this->token;
+
 		// Load Course Results Class
 		$this->load_class( 'course-results' );
 		$this->course_results = new WooThemes_Sensei_Course_Results();
 		$this->course_results->token = $this->token;
+
+        // Load the teacher role
+        require_once( 'class-sensei-teacher.php' );
+        $this->teacher = new Sensei_Teacher();
 
 		// Add the Course class
 		$this->course = $this->post_types->course;
@@ -118,8 +131,20 @@ class WooThemes_Sensei {
 		//Add the quiz class
 		$this->quiz = $this->post_types->quiz;
 
+        // load the modules class
+        add_action( 'plugins_loaded', array( $this, 'load_modules_class' ) );
+
+        // Load Learner Management Functionality
+        $this->load_class( 'learners' );
+        $this->learners = new WooThemes_Sensei_Learners( $file );
+        $this->learners->token = $this->token;
+
 		// Differentiate between administration and frontend logic.
 		if ( is_admin() ) {
+
+            // Load Admin Welcome class
+            require_once( 'admin/class-sensei-welcome.php' );
+            new Sensei_Welcome();
 
 			// Load Admin Class
 			$this->load_class( 'admin' );
@@ -130,12 +155,6 @@ class WooThemes_Sensei {
 			$this->load_class( 'analysis' );
 			$this->analysis = new WooThemes_Sensei_Analysis( $file );
 			$this->analysis->token = $this->token;
-
-			// Load Learner Management Functionality
-			$this->load_class( 'learners' );
-			$this->learners = new WooThemes_Sensei_Learners( $file );
-			$this->learners->token = $this->token;
-
 
 
 		} else {
@@ -165,7 +184,12 @@ class WooThemes_Sensei {
 		$this->emails = new WooThemes_Sensei_Emails( $file );
 		$this->emails->token = $this->token;
 
-		// Image Sizes
+        // Load Learner Profiles Class
+        $this->load_class( 'learner-profiles' );
+        $this->learner_profiles = new WooThemes_Sensei_Learner_Profiles();
+        $this->learner_profiles->token = $this->token;
+
+        // Image Sizes
 		$this->init_image_sizes();
 		// Force WooCommerce Required Settings
 		$this->set_woocommerce_functionality();
@@ -201,7 +225,49 @@ class WooThemes_Sensei {
 
 		// Check for and activate JetPack LaTeX support
 		add_action( 'plugins_loaded', array( $this, 'jetpack_latex_support'), 200 ); // Runs after Jetpack has loaded it's modules
-	} // End __construct()
+
+    } // End __construct()
+
+    /**
+     * Global Sensei Instance
+     *
+     * Ensure that only one instance of the main Sensei class can be loaded.
+     *
+     * @since 1.8.0
+     * @static
+     * @see WC()
+     * @return WooThemes_Sensei Instance.
+     */
+    public static function instance() {
+
+        if ( is_null( self::$_instance ) ) {
+
+            //Sensei requires a reference to the main Sensei plugin file
+            $sensei_main_plugin_file = dirname ( dirname( __FILE__ ) ) . '/woothemes-sensei.php';
+
+            self::$_instance = new self( $sensei_main_plugin_file  );
+
+        }
+
+        return self::$_instance;
+
+    } // end instance()
+
+    /**
+     * Cloning is forbidden.
+     * @since 1.8.0
+     */
+    public function __clone() {
+        _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woothemes-sensei' ), '2.1' );
+    }
+
+    /**
+     * Unserializing instances of this class is forbidden.
+     * @since 1.8.0
+     */
+    public function __wakeup() {
+        _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woothemes-sensei' ), '2.1' );
+    }
 
 	/**
 	 * Run Sensei updates.
@@ -212,9 +278,7 @@ class WooThemes_Sensei {
 	public function run_updates() {
 		// Run updates if administrator
 		if ( current_user_can( 'manage_options' ) || current_user_can( 'manage_sensei' ) ) {
-			$this->load_class( 'updates' );
-			$this->updates = new WooThemes_Sensei_Updates( $this );
-			$this->updates->update();
+
 		} // End If Statement
 	} // End run_updates()
 
@@ -534,7 +598,7 @@ class WooThemes_Sensei {
 
 		if ( $file ) {
 			$template = locate_template( $find );
-			if ( ! $template ) $template = $this->plugin_path() . '/templates/' . $file;
+			if ( ! $template ) $template = $this->plugin_path() . 'templates/' . $file;
 		} // End If Statement
 
 		return $template;
@@ -545,11 +609,22 @@ class WooThemes_Sensei {
 	 * Determine the relative path to the plugin's directory.
 	 * @access public
 	 * @since  1.0.0
-	 * @return void
+	 * @return string $sensei_plugin_path
 	 */
 	public function plugin_path () {
-		if ( $this->plugin_path ) return $this->plugin_path;
-		return $this->plugin_path = untrailingslashit( plugin_dir_path( __FILE__ ) );
+
+		if ( $this->plugin_path ) {
+
+            $sensei_plugin_path =  $this->plugin_path;
+
+        }else{
+
+            $sensei_plugin_path = plugin_dir_path( __FILE__ );
+
+        }
+
+		return $sensei_plugin_path;
+
 	} // End plugin_path()
 
 
@@ -575,7 +650,7 @@ class WooThemes_Sensei {
 	 * @return void
 	 */
 	public function woocommerce_course_update ( $course_id = 0, $order_user = array()  ) {
-		global $current_user,  $woothemes_sensei;
+		global $current_user;
 
 		if ( ! isset( $current_user ) ) return;
 
@@ -748,6 +823,21 @@ class WooThemes_Sensei {
 				break;
 
 		} // End Switch Statement
+
+        /**
+         * filter the permissions message shown on sensei post types.
+         *
+         * @since 1.8.7
+         *
+         * @param array $permissions_message{
+         *
+         *   @type string $title
+         *   @type string $message
+         *
+         * }
+         * @param string $post_id
+         */
+        $this->permissions_message = apply_filters( 'sensei_permissions_message', $this->permissions_message, $post->ID );
 
 		if( sensei_all_access() || WooThemes_Sensei_Utils::is_preview_lesson( $post->ID ) ) {
 			$user_allowed = true;
@@ -1015,7 +1105,7 @@ class WooThemes_Sensei {
 		$order_items = $order->get_items();
 		$order_id = $order->id;
 
-		$messages = array();
+        echo '<h2>' . __( 'Course details', 'woothemes-sensei' ) . '</h2>';
 
 		foreach ( $order_items as $item ) {
 
@@ -1047,7 +1137,6 @@ class WooThemes_Sensei {
 							$title = $course->post_title;
 							$permalink = get_permalink( $course->ID );
 
-							echo '<h2>' . __( 'Course details', 'woothemes-sensei' ) . '</h2>';
 							echo '<p><strong>' . sprintf( __( 'View course: %1$s', 'woothemes-sensei' ), '</strong><a href="' . esc_url( $permalink ) . '">' . $title . '</a>' ) . '</p>';
 
 						}
@@ -1189,5 +1278,50 @@ class WooThemes_Sensei {
 			add_filter( 'sensei_answer_text', 'latex_markup' );
 		}
 	}
+
+    /**
+     * Load the module functionality.
+     *
+     * This function is hooked into plugins_loaded to avoid conflicts with
+     * the retired modules extension.
+     *
+     * @since 1.8.0
+     */
+    public function load_modules_class(){
+        global $sensei_modules, $woothemes_sensei;
+
+        if( !class_exists( 'Sensei_Modules' )
+            &&  'Sensei_Modules' != get_class( $sensei_modules ) ) {
+
+            //Load the modules class
+            require_once( 'class-sensei-modules.php');
+            $woothemes_sensei->modules = new Sensei_Core_Modules( $this->file );
+
+        }else{
+            // fallback for people still using the modules extension.
+            global $sensei_modules;
+            $woothemes_sensei->modules = $sensei_modules;
+            add_action( 'admin_notices', array( $this, 'disable_sensei_modules_extension'), 30 );
+        }
+    }
+
+    /**
+     * Tell the user to that the modules extension is no longer needed.
+     *
+     * @since 1.8.0
+     */
+    public function disable_sensei_modules_extension(){ ?>
+        <div class="notice updated fade">
+                <p>
+                    <?php
+                    $plugin_manage_url = admin_url().'plugins.php#sensei-modules';
+                    $plugin_link_element = '<a href="' . $plugin_manage_url . '" >plugins page</a> ';
+                    ?>
+                    <strong> Modules are now included in Sensei,</strong> so you no longer need the Sensei Modules extension.
+                    Please deactivate and delete it from your <?php echo $plugin_link_element; ?>. (This will not affect your existing modules).
+                </p>
+        </div>
+
+    <?php }// end function
 
 } // End Class

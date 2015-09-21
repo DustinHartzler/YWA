@@ -30,7 +30,7 @@ class WooThemes_Sensei_Messages {
 		$this->meta_fields = array( 'sender', 'receiver' );
 
 		// Add Messages page to admin menu
-		add_action( 'admin_menu', array( $this, 'add_menu_item' ), 11 );
+		add_action( 'admin_menu', array( $this, 'add_menu_item' ), 40 );
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ), 10, 2 );
 		add_action( 'admin_menu', array( $this, 'remove_meta_box' ) );
 
@@ -40,13 +40,23 @@ class WooThemes_Sensei_Messages {
 		// Monitor when new reply is posted
 		add_action( 'comment_post', array( $this, 'message_reply_received' ), 10, 1 );
 
+        // Block WordPress from sending comment update emails for the messages post type
+        add_filter('comment_notification_recipients', array( $this, 'stop_wp_comment_emails' ),  20, 2  );
+
+        // Block WordPress from sending comment moderator emails on the sensei messages post types
+        add_filter('comment_moderation_recipients', array( $this, 'stop_wp_comment_emails' ),  20, 2  );
+
 		// Process saving of message posts
 		add_action( 'save_post', array( $this, 'save_message' ) );
 
 		// Add message links to courses & lessons
-		add_action( 'sensei_course_single_lessons', array( $this, 'send_message_link' ), 1 );
+		add_action( 'sensei_course_single_meta', array( $this, 'send_message_link' ), 14 );
 
-		add_action( 'sensei_lesson_quiz_meta', array( $this, 'send_message_link' ), 20, 2 );
+        // add message link to lesson
+        add_action( 'sensei_lesson_single_title', array( $this, 'send_message_link' ), 11, 2 );
+
+        // add message link to lesson
+        add_action( 'sensei_quiz_questions', array( $this, 'send_message_link' ), 3, 2 );
 
 		// Hide messages and replies from users who do not have access
         add_action( 'pre_get_posts', array( $this, 'message_list' ), 10, 1 );
@@ -60,7 +70,7 @@ class WooThemes_Sensei_Messages {
 	public function add_menu_item() {
 		global $woothemes_sensei;
 		if( ! isset( $woothemes_sensei->settings->settings['messages_disable'] ) || ! $woothemes_sensei->settings->settings['messages_disable'] ) {
-			add_submenu_page( 'sensei', __( 'Messages', 'woothemes-sensei'),  __( 'Messages', 'woothemes-sensei') , 'manage_sensei', 'edit.php?post_type=sensei_message' );
+			add_submenu_page( 'sensei', __( 'Messages', 'woothemes-sensei'),  __( 'Messages', 'woothemes-sensei') , 'edit_courses', 'edit.php?post_type=sensei_message' );
 		}
 	}
 
@@ -155,8 +165,12 @@ class WooThemes_Sensei_Messages {
 	public function send_message_link( $post_id = 0, $user_id = 0 ) {
 		global $woothemes_sensei, $post;
 
-		if ( ! ( is_singular( 'course' ) || is_singular( 'lesson' ) ) ) {
+        // only show the link for the allowed post types:
+        $allowed_post_types = array('lesson', 'course', 'quiz');
+		if ( ! in_array( get_post_type() , $allowed_post_types ) ) {
+
 			return;
+
 		}
 
 		$html = '';
@@ -172,11 +186,13 @@ class WooThemes_Sensei_Messages {
 
 				if( 'lesson' == $post->post_type ) {
 					$contact_button_text = __( 'Contact Lesson Teacher', 'woothemes-sensei' );
-				} else {
+				} elseif( 'course' == $post->post_type ) {
 					$contact_button_text = __( 'Contact Course Teacher', 'woothemes-sensei' );
-				}
+				}else{
+                    $contact_button_text = __( 'Contact Teacher', 'woothemes-sensei' );
+                }
 
-				$html .= '<p><a class="button send-message-button" href="' . $href . '#private_message">' . $contact_button_text . '</a></p>';
+				$html .= '<p><a class="button send-message-button" href="' . esc_url($href) . '#private_message">' . $contact_button_text . '</a></p>';
 			}
 
 			if( isset( $this->message_notice ) && isset( $this->message_notice['type'] ) && isset( $this->message_notice['notice'] ) ) {
@@ -199,8 +215,19 @@ class WooThemes_Sensei_Messages {
 
 		if( ! isset( $post->ID ) ) return $html;
 
-		$html .= '<h3 id="private_message">' . __( 'Send Private Message', 'woothemes-sensei' ) . '</h3>';
+        //confirm private message
+        $confirmation = '';
+        if( isset( $_GET[ 'send' ] ) && 'complete' == $_GET[ 'send' ] ) {
 
+            $confirmation_message = __('Your private message has been sent.', 'woothemes-sensei');
+            $confirmation = '<div class="sensei-message tick">' . $confirmation_message . '</div>';
+
+        }
+
+		$html .= '<h3 id="private_message">' . __( 'Send Private Message', 'woothemes-sensei' ) . '</h3>';
+        $html .= '<p>';
+        $html .=  $confirmation;
+        $html .= '</p>';
 		$html .= '<form name="contact-teacher" action="" method="post" class="contact-teacher">';
 			$html .= '<p class="form-row form-row-wide">';
 				$html .= '<textarea name="contact_message" placeholder="' . __( 'Enter your private message.', 'woothemes-sensei' ) . '"></textarea>';
@@ -226,17 +253,6 @@ class WooThemes_Sensei_Messages {
 
 		$message_id = $this->save_new_message_post( $_POST['sender_id'], $_POST['receiver_id'], $_POST['contact_message'], $_POST['post_id'] );
 
-		if( $message_id ) {
-
-			$message_url = get_permalink( $message_id );
-
-			$this->message_notice['type'] = 'tick';
-			$this->message_notice['notice'] = sprintf( __( 'Your private message has been sent - you can view the message and its replies %1$shere%2$s.', 'woothemes-sensei' ), '<a href="' . esc_url( $message_url ) . '">', '</a>' );
-		} else {
-			$this->message_notice['type'] = 'alert';
-			$this->message_notice['notice'] = __( 'There was an error sending your message - please try again.', 'woothemes-sensei' );
-		}
-
 	}
 
 	public function message_reply_received( $comment_id = 0 ) {
@@ -256,6 +272,30 @@ class WooThemes_Sensei_Messages {
 
 		do_action( 'sensei_private_message_reply', $comment, $message );
 	}
+
+    /**
+     * This function stops WordPress from sending the default comment update emails.
+     *
+     * This function is hooked into comment_notification_recipients. It will simply return
+     * an empty array if the current passed in comment is on a message post type.
+     *
+     * @param array $emails
+     * @param int $comment_id
+     * @return array;
+     */
+    public function stop_wp_comment_emails( $emails , $comment_id ){
+
+        $comment = get_comment( $comment_id );
+        if( isset( $comment->comment_post_ID ) &&
+            'sensei_message' == get_post_type( $comment->comment_post_ID )  ){
+
+            // empty the emails array to ensure no emails are sent for this comment
+            $emails = array();
+
+        }
+        return $emails;
+
+    }// end stop_wp_comment_emails
 
 	/**
      * Save new message post
@@ -306,7 +346,9 @@ class WooThemes_Sensei_Messages {
 		        do_action( 'sensei_new_private_message', $message_id );
 
 		    } else {
+
 		    	$message_id = false;
+
 		    }
 	    }
 
@@ -411,7 +453,7 @@ class WooThemes_Sensei_Messages {
 
 		if( is_single() && is_singular( $this->post_type ) && in_the_loop() ) {
 			if( ! is_user_logged_in() || ! $this->view_message( $post->ID ) ) {
-				$content = __( 'Please log in to to view your messages.', 'woothemes-sensei' );
+				$content = __( 'Please log in to view your messages.', 'woothemes-sensei' );
 			}
 		}
 

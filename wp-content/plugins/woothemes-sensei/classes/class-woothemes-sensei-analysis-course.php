@@ -34,7 +34,6 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 	public $total_lessons;
 	public $user_ids;
 	public $view = 'lesson';
-	public $csv_output = false;
 	public $page_slug = 'sensei_analysis';
 
 	/**
@@ -323,17 +322,22 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 				$course_percent = get_comment_meta( $item->comment_ID, 'percent', true );
 
 				// Output users data
-				$user = get_user_by( 'id', $item->user_id );
-				$user_name = $user->display_name;
+				$user_name = $woothemes_sensei->learners->get_learner_full_name( $item->user_id );
+
 				if ( !$this->csv_output ) {
+
 					$url = add_query_arg( array( 'page' => $this->page_slug, 'user_id' => $item->user_id, 'course_id' => $this->course_id ), admin_url( 'admin.php' ) );
 
-					$user_name = '<strong><a class="row-title" href="' . $url . '">' . $user_name . '</a></strong>';
+					$user_name = '<strong><a class="row-title" href="' . esc_url( $url ) . '">' . $user_name . '</a></strong>';
 					$status = sprintf( '<span class="%s">%s</span>', $status_class, $status );
 					if ( is_numeric($course_percent) ) {
+
 						$course_percent .= '%';
+
 					}
+
 				} // End If Statement
+
 				$column_data = apply_filters( 'sensei_analysis_course_column_data', array( 'title' => $user_name,
 												'started' => $user_start_date,
 												'completed' => $user_end_date,
@@ -403,7 +407,7 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 					}
 					else {
 						$url = add_query_arg( array( 'page' => $this->page_slug, 'lesson_id' => $item->ID ), admin_url( 'admin.php' ) );
-						$lesson_title = '<strong><a class="row-title" href="' . $url . '">' . apply_filters( 'the_title', $item->post_title, $item->ID ) . '</a></strong>';
+						$lesson_title = '<strong><a class="row-title" href="' . esc_url( $url ) . '">' . apply_filters( 'the_title', $item->post_title, $item->ID ) . '</a></strong>';
 
 						$status = sprintf( '<span class="%s">%s</span>', $status_class, $status );
 						if ( is_numeric($grade) ) {
@@ -459,7 +463,7 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 					}
 					else {
 						$url = add_query_arg( array( 'page' => $this->page_slug, 'lesson_id' => $item->ID ), admin_url( 'admin.php' ) );
-						$lesson_title = '<strong><a class="row-title" href="' . $url . '">' . apply_filters( 'the_title', $item->post_title, $item->ID ) . '</a></strong>';
+						$lesson_title = '<strong><a class="row-title" href="' . esc_url( $url ) . '">' . apply_filters( 'the_title', $item->post_title, $item->ID ) . '</a></strong>';
 
 						if ( is_numeric( $lesson_average_grade ) ) {
 							$lesson_average_grade .= '%';
@@ -600,8 +604,8 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 			'page' => $this->page_slug,
 			'course_id' => $this->course_id,
 		);
-		$learners_url = add_query_arg( array_merge( $url_args, array( 'view' => 'user' ) ), admin_url( 'admin.php' ) );
-		$lessons_url = add_query_arg( array_merge( $url_args, array( 'view' => 'lesson' ) ), admin_url( 'admin.php' ) );
+		$learners_url = esc_url( add_query_arg( array_merge( $url_args, array( 'view' => 'user' ) ), admin_url( 'admin.php' ) ) );
+		$lessons_url = esc_url( add_query_arg( array_merge( $url_args, array( 'view' => 'lesson' ) ), admin_url( 'admin.php' ) ) );
 
 		$learners_class = $lessons_class = '';
 
@@ -636,19 +640,20 @@ class WooThemes_Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_
 	 * @return void
 	 */
 	public function data_table_footer() {
+        global $woothemes_sensei;
 		$course = get_post( $this->course_id );
 		$report = sanitize_title( $course->post_title ) . '-' . $this->view . 's-overview';
 		if ( $this->user_id ) {
-			$user = get_user_by( 'id', $this->user_id );
-			$report = sanitize_title( $user->display_name ) . '-' . $report;
+            $user_name = $woothemes_sensei->learners->get_learner_full_name( $this->user_id );
+			$report = sanitize_title( $user_name  ) . '-' . $report;
 		}
 
 		$url_args = array( 'page' => $this->page_slug, 'course_id' => $this->course_id, 'view' => $this->view, 'sensei_report_download' => $report );
 		if ( $this->user_id ) {
 			$url_args['user_id'] = $this->user_id;
 		}
-		$url = add_query_arg( $url_args, admin_url( 'admin.php' ) );
-		echo '<a class="button button-primary" href="' . wp_nonce_url( $url, 'sensei_csv_download-' . $report, '_sdl_nonce' ) . '">' . __( 'Export all rows (CSV)', 'woothemes-sensei' ) . '</a>';
+		$url =  add_query_arg( $url_args, admin_url( 'admin.php' ) );
+		echo '<a class="button button-primary" href="' . esc_url( wp_nonce_url( $url, 'sensei_csv_download-' . $report, '_sdl_nonce' ) ) . '">' . __( 'Export all rows (CSV)', 'woothemes-sensei' ) . '</a>';
 	} // End data_table_footer()
 
 	/**
