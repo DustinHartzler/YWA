@@ -1,0 +1,144 @@
+*** Hub Changelog ***
+
+2015.04.27 - version 1.2.6
+ * Fix - Fixes the Homepage Testimonials author URL.
+   includes/homepage/testimonials.php
+
+ * Fix - Changed the testimonials JS selector to be more specific.
+   includes/js/testimonials.js
+
+ * Fix - Removed layout selector box from posts, posts are always full width by design.
+   includes/theme-options.php
+
+2015.03.17 - version 1.2.5
+ * Fix - Limit the doubleTabToGo script to Android devices.
+   includes/js/general.js
+
+2015.03.04 - version 1.2.4
+ * New - WooCommerce 2.3 support
+   includes/integrations/woocommerce/css/woocommerce.css
+
+2014.09.24 - version 1.2.3
+ * New - Added Sensei support function
+   includes/integrations/sensei/functions.php
+
+2014.07.04 - version 1.2.2
+ * Fix - Shop product display
+   includes/integrations/woocommerce/css/woocommerce.less
+   includes/integrations/woocommerce/css/woocommerce.css
+
+2014.06.25 - version 1.2.1
+ * Fix - Fixes Sensei lesson width.
+   includes/integrations/sensei/css/sensei.less,
+   includes/integrations/sensei/css/sensei.css
+
+ * Fix - Fixes omepage Recent Posts number option not working properly.
+   theme-options.php
+
+2014.05.22 - version 1.2.0
+ * Tweak - Simplified Testimonials section code.
+   includes/homepage/testimonials.php,
+   includes/integrations/testimonials/testimonials.php,
+   includes/js/testimonials.js,
+   style.css
+
+ * New - Added support for the Homepage Control plugin.
+   includes/theme-actions.php,
+   includes/theme-options.php,
+   index.php
+
+ * New - Added Featured Products section to the homepage.
+   includes/homepage/featured-products.php,
+   includes/integrations/woocommerce/css/woocommerce.css,
+   includes/integrations/woocommerce/css/woocommerce.less,
+   includes/theme-actions.php,
+   includes/theme-options.php,
+   style.css
+
+2014.05.09 - version 1.1.3
+ * Fix - Fixes invalid HTML in Testimonials section.
+   includes/integrations/testimonials/testimonials.php,
+   style.css
+
+2014.04.30 - version 1.1.2
+ * Fix - Fixes Testimonials errors if the plugin is not installed
+   style.css,
+   includes/integrations/testimonials/testimonials.php,
+   index.php
+
+ * Fix - Fixes background option not working.
+   style.css
+
+2014.04.01 - version 1.1.1
+ * Fix - Fixes Testimonials thumbnail navigation.
+   includes/homepage/testimonials.php
+   includes/integrations/testimonials/testimonials.php
+
+ * Fix - Fixes styling issue with Sensei Certificates.
+   includes/integrations/sensei/css/sensei.css
+
+ * Fix - Fixes styling in Product Categories shortcode.
+   includes/integrations/woocommerce/css/woocommerce.less
+
+2014.03.26 - version 1.1.0
+ * New - Added Projects Integration
+   includes/integrations/*,
+   single.php,
+   includes/theme-functions.php,
+   includes/theme-plugin-integrations.php
+
+2014.03.05 - version 1.0.2
+ * Fix - Fixes custom footer top content theme option key.
+   footer.php
+
+ * Fix - Fixes typography options.
+   includes/theme-actions.php
+
+ * Fix - Fixes testimonials theme option key.
+   includes/theme-options.php
+
+ * Fix - Fixes styling of the custom post type archives and single pages.
+   css/layout.css,
+   style.css
+
+ * Fix - Homepage slider not displaying correcly correctly on mobile devices.
+   style.css
+
+ * Fix - Fixes overlapping homepage sections on mobile devices.
+   style.css
+
+ * Fix - Adds missing social icons to Contact Page Template.
+   includes/theme-functions.php
+
+ * Tweak - Updates FitVids to version 1.1.
+   includes/js/fitvids.js
+   includes/js/fitvids.min.js
+
+2013.12.30 - version 1.0.1
+ * Fix - Fixes number of Popular Posts displayed.
+   includes/theme-options.php
+
+ * Fix - Various styling fixes.
+   style.css
+
+ * Tweak - Makes the direction navigation in the "Discover" section easier to user on handheld devices.
+   style.css
+
+ * Fix - Removes unused fields from the "Subscribe & Connect" section.
+   includes/theme-options.php
+
+ * Fix - Changes incorrect z-index value in main navigation menu.
+   style.css
+
+ * Tweak - Decreased padding on tabs.
+   style.css
+
+ * Fix - Fixes Safari bug when hovering menu items.
+   css/layout.css
+
+ * Fix - Added styling for Business template.
+   template-business.php,
+   style.css
+
+2013.12.01 - version 1.0.0
+ * First release!
