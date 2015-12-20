@@ -5,16 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /*---------------------------------------------------------------------------------*/
 
 class Woo_EmbedWidget extends WP_Widget {
-	var $settings = array( 'title', 'cat_id', 'width', 'height', 'limit', 'tag' );
+	var $defaults = array( 'title' => '', 'cat_id' => '', 'width' => 300, 'height' => 200, 'limit' => 10, 'tag' => '' );
 
-	function Woo_EmbedWidget() {
+	function __construct() {
 		$widget_ops = array( 'description' => 'Display the Embed code from posts in tab like fashion.' );
-		parent::WP_Widget( false, __( 'Woo - Embed/Video', 'woothemes' ), $widget_ops );
+		parent::__construct( false, __( 'Woo - Embed/Video', 'woothemes' ), $widget_ops );
 	}
 
 	function widget( $args, $instance ) {
 		extract( $args, EXTR_SKIP );
-		$instance = $this->woo_enforce_defaults( $instance );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 
 		if ( !empty( $tag ) )
@@ -55,41 +55,28 @@ class Woo_EmbedWidget extends WP_Widget {
 	}
 
 	function update( $new_instance, $old_instance ) {
-		$new_instance = $this->woo_enforce_defaults( $new_instance );
+		foreach( array_keys( $this->defaults ) as $setting ) {
+			$new_instance[$setting] = sanitize_text_field( $new_instance[$setting] );
+		}
+
+		if ( $new_instance['limit'] < 1 )
+			$new_instance['limit'] = 1;
+		elseif ( $new_instance['limit'] > 10 )
+			$new_instance['limit'] = 10;
+
+		$new_instance['width'] = absint( $new_instance['width'] );
+		if ( $new_instance['width'] < 1 )
+			$new_instance['width'] = $this->defaults['width'];
+
+		$new_instance['height'] = absint( $new_instance['height'] );
+		if ( $new_instance['height'] < 1 )
+			$new_instance['height'] = $this->defaults['height'];
+
 		return $new_instance;
 	}
 
-	function woo_enforce_defaults( $instance ) {
-		$defaults = $this->woo_get_settings();
-		$instance = wp_parse_args( $instance, $defaults );
-		$instance['cat_id'] = absint( $instance['cat_id'] );
-		if ( $instance['cat_id'] < 1 )
-			$instance['cat_id'] = '';
-		// Enforce defaults if any of these three are empty
-		foreach ( array( 'limit', 'width', 'height' ) as $setting ) {
-			$instance[$setting] = absint( $instance[$setting] );
-			if ( $instance[$setting] < 1 )
-				$instance[$setting] = $defaults[$setting];
-		}
-		return $instance;
-	}
-
-	/**
-	 * Provides an array of the settings with the setting name as the key and the default value as the value
-	 * This cannot be called get_settings() or it will override WP_Widget::get_settings()
-	 */
-	function woo_get_settings() {
-		// Set the default to a blank string
-		$settings = array_fill_keys( $this->settings, '' );
-		// Now set the more specific defaults
-		$settings['limit']  = 10;
-		$settings['width']  = 300;
-		$settings['height'] = 200;
-		return $settings;
-	}
-
 	function form( $instance ) {
-		$instance = $this->woo_enforce_defaults( $instance );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 		?>
 			<p>
@@ -128,7 +115,10 @@ class Woo_EmbedWidget extends WP_Widget {
 	}
 }
 
-register_widget( 'Woo_EmbedWidget' );
+function register_woo_embed_widget() {
+	register_widget( 'Woo_EmbedWidget' );
+}
+add_action( 'widgets_init', 'register_woo_embed_widget' );
 
 if ( is_active_widget( null, null, 'woo_embedwidget' ) == true ) {
 	add_action( 'wp_footer','woo_widget_embed_js' );

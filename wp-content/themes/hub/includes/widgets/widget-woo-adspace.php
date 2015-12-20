@@ -5,17 +5,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /*---------------------------------------------------------------------------------*/
 
 class Woo_AdWidget extends WP_Widget {
-	var $settings = array( 'title', 'adcode', 'image', 'href', 'alt' );
+	var $defaults = array( 'title' => '', 'adcode' => '', 'image' => '', 'href' => '', 'alt' => '' );
 
-	function Woo_AdWidget() {
+	function __construct() {
 		$widget_ops = array('description' => 'Use this widget to add any type of Ad as a widget.' );
-		parent::WP_Widget(false, __('Woo - Adspace Widget', 'woothemes'),$widget_ops);
+		parent::__construct(false, __('Woo - Adspace Widget', 'woothemes'),$widget_ops);
 	}
 
 	function widget($args, $instance) {
-		$settings = $this->woo_get_settings();
 		extract( $args, EXTR_SKIP );
-		$instance = wp_parse_args( $instance, $settings );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 		echo '<div class="adspace-widget widget">';
 
@@ -25,33 +24,22 @@ class Woo_AdWidget extends WP_Widget {
 		if ( $adcode != '' ) {
 			echo $adcode;
 		} else {
-			?><a href="<?php echo esc_url( $href ); ?>"><img src="<?php echo apply_filters( 'image', $image, $instance, $this->id_base ); ?>" alt="<?php echo esc_attr( $alt ); ?>" /></a><?php
+			?><a href="<?php echo esc_url( $href ); ?>"><img src="<?php echo esc_url( apply_filters( 'image', $image, $instance, $this->id_base ) ); ?>" alt="<?php echo esc_attr( $alt ); ?>" /></a><?php
 		}
 		echo '</div>';
 	}
 
 	function update( $new_instance, $old_instance ) {
 		foreach ( array( 'title', 'alt', 'image', 'href' ) as $setting )
-			$new_instance[$setting] = strip_tags( $new_instance[$setting] );
+			$new_instance[$setting] = sanitize_text_field( strip_tags( $new_instance[$setting] ) );
 		// Users without unfiltered_html cannot update this arbitrary HTML field
 		if ( !current_user_can( 'unfiltered_html' ) )
 			$new_instance['adcode'] = $old_instance['adcode'];
 		return $new_instance;
 	}
 
-	/**
-	 * Provides an array of the settings with the setting name as the key and the default value as the value
-	 * This cannot be called get_settings() or it will override WP_Widget::get_settings()
-	 */
-	function woo_get_settings() {
-		// Set the default to a blank string
-		$settings = array_fill_keys( $this->settings, '' );
-		// Now set the more specific defaults
-		return $settings;
-	}
-
 	function form($instance) {
-		$instance = wp_parse_args( $instance, $this->woo_get_settings() );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 ?>
 	<p>
@@ -81,4 +69,7 @@ class Woo_AdWidget extends WP_Widget {
 	}
 }
 
-register_widget( 'Woo_AdWidget' );
+function register_woo_adspace_widget() {
+	register_widget( 'Woo_AdWidget' );
+}
+add_action( 'widgets_init', 'register_woo_adspace_widget' );

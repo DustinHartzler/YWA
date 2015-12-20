@@ -1,5 +1,25 @@
 *** Hub Changelog ***
 
+2015.11.19 - version 1.2.11
+ * Tweak - Additional styling for new elements in Sensei 1.9.
+   includes/integrations/sensei/css/sensei.css
+
+2015.09.29 - version 1.2.10
+ * New - Fixed layout issues with the WooCommerce Photography plugin.
+   includes/integrations/woocommerce/css/woocommerce.css
+
+2015.09.16 - version 1.2.9
+ * Fix - Updates Widget constructors and update functions for security purposes.
+   includes/widgets/*,
+
+2014.06.11 - version 1.2.8
+ * Fix - Fixed Homepage settings for Our Team and Featured Products.
+   includes/theme-options.php
+
+2015.06.04 - version 1.2.7
+ * includes/js/jquery.prettyPhoto.js - Updated prettyPhoto to version 3.1.6.
+ * includes/js/jquery.prettyPhoto.min.js - Updated prettyPhoto to version 3.1.6.
+
 2015.04.27 - version 1.2.6
  * Fix - Fixes the Homepage Testimonials author URL.
    includes/homepage/testimonials.php

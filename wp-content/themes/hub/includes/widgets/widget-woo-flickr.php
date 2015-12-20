@@ -4,16 +4,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /* Flickr widget */
 /*---------------------------------------------------------------------------------*/
 class Woo_flickr extends WP_Widget {
-	var $settings = array( 'id', 'number', 'type', 'sorting', 'size' );
+	var $defaults = array( 'id' => '', 'number' => '', 'type' => 'user', 'sorting' => 'latest', 'size' => 's' );
 
-	function Woo_flickr() {
+	function __construct() {
 		$widget_ops = array( 'description' => 'This Flickr widget populates photos from a Flickr ID.' );
-		parent::WP_Widget( false, __( 'Woo - Flickr', 'woothemes' ), $widget_ops );
+		parent::__construct( false, __( 'Woo - Flickr', 'woothemes' ), $widget_ops );
 	}
 
 	function widget( $args, $instance ) {
 		extract( $args, EXTR_SKIP );
-		$instance = $this->woo_enforce_defaults( $instance );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 
 		echo $before_widget;
@@ -21,57 +21,30 @@ class Woo_flickr extends WP_Widget {
 		<?php _e( 'Photos on <span>flick<span>r</span></span>', 'woothemes' ); ?>
         <?php echo $after_title; ?>
         <div class="wrap fix">
-            <script type="text/javascript" src="<?php echo esc_url( 'http://www.flickr.com/badge_code_v2.gne?count=' . $number . '&amp;display=' . $sorting . '&amp;layout=x&amp;source=' . $type . '&amp;' . $type . '=' . $instance['id'] . '&amp;size=' . $size ); ?>"></script>
+            <script type="text/javascript" src="<?php echo esc_url( 'https://www.flickr.com/badge_code_v2.gne?count=' . $number . '&amp;display=' . $sorting . '&amp;layout=x&amp;source=' . $type . '&amp;' . $type . '=' . $instance['id'] . '&amp;size=' . $size ); ?>"></script>
         </div><?php
 		echo $after_widget;
 	}
 
 	function update( $new_instance, $old_instance ) {
-		$new_instance = $this->woo_enforce_defaults( $new_instance );
+		foreach( array_keys( $this->defaults ) as $setting ) {
+			$new_instance[$setting] = sanitize_text_field( $new_instance[$setting] );
+		}
+
+		if ( ! in_array( $new_instance['sorting'], array( 'random', 'latest' ) ) )
+			$new_instance['sorting'] = $this->defaults['sorting'];
+
+		if ( ! in_array( $new_instance['size'], array( 's', 'm', 't' ) ) )
+			$new_instance['size'] = $this->defaults['size'];
+
+		if ( ! in_array( $new_instance['type'], array( 'group', 'user' ) ) )
+			$new_instance['type'] = $this->defaults['type'];
+
 		return $new_instance;
 	}
 
-	function woo_enforce_defaults( $instance ) {
-		$defaults = $this->woo_get_settings();
-		$instance = wp_parse_args( $instance, $defaults );
-		if ( $instance['limit'] < 1 )
-			$instance['limit'] = 1;
-		elseif ( $instance['limit'] > 10 )
-			$instance['limit'] = 10;
-		$instance['width'] = absint( $instance['width'] );
-		if ( $instance['width'] < 1 )
-			$instance['width'] = $defaults['width'];
-		$instance['height'] = absint( $instance['height'] );
-		if ( $instance['height'] < 1 )
-			$instance['height'] = $defaults['height'];
-		if ( $instance['sorting'] != 'random' )
-			$instance['sorting'] = $defaults['sorting'];
-		if ( !in_array( $instance['size'], array( 's', 'm', 't' ) ) )
-			$instance['size'] = $defaults['size'];
-		if ( $instance['type'] != 'group' )
-			$instance['type'] = $defaults['type'];
-		return $instance;
-	}
-
-	/**
-	 * Provides an array of the settings with the setting name as the key and the default value as the value
-	 * This cannot be called get_settings() or it will override WP_Widget::get_settings()
-	 */
-	function woo_get_settings() {
-		// Set the default to a blank string
-		$settings = array_fill_keys( $this->settings, '' );
-		// Now set the more specific defaults
-		$settings['limit']  = 10;
-		$settings['width']  = 300;
-		$settings['height'] = 200;
-		$settings['size'] = 's';
-		$settings['sorting'] = 'latest';
-		$settings['type'] = 'user';
-		return $settings;
-	}
-
 	function form( $instance ) {
-		$instance = $this->woo_enforce_defaults( $instance );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 ?>
 			<p>
@@ -112,4 +85,7 @@ class Woo_flickr extends WP_Widget {
 	}
 }
 
-register_widget( 'woo_flickr' );
+function register_woo_flickr_widget() {
+	register_widget( 'Woo_flickr' );
+}
+add_action( 'widgets_init', 'register_woo_flickr_widget' );

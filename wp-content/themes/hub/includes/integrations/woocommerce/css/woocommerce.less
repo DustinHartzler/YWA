@@ -410,11 +410,11 @@ ul.woocommerce-error, ul.woocommerce_error {
 	z-index: 9999;
 }
 .quantity {
-	width:4.236em;
+	width: 3em;
 	position: relative;
 	.qty {
 		.borderbox;
-		width:4.236em;
+		width: 3em;
 		height: 40px;
 		padding: 0 .618em;
 	}
@@ -1066,6 +1066,49 @@ ul.products li.product-category {
 	}
 }
 
+// WooCommerce Photography
+.woocommerce,
+.woocommerce-page {
+	ul.products {
+		.photography-products-list {
+			li.product-type-photography {
+				width: 100%;
+				padding: 0;
+				margin-bottom: 1.618em;
+				text-align: left;
+
+				&:before {
+					content: none;
+				}
+
+				.photography-image {
+					img {
+						position: static;
+					}
+				}
+
+				.photography-content {
+					.price {
+						font-size: 1em;
+					}
+				}
+
+				.photography-sku,
+				.photography-quantity {
+					margin-bottom: .618em;
+				}
+			}
+		}
+	}
+
+	.tools {
+		.quantity {
+			margin-left: .857em;
+			margin-right: .618em;
+		}
+	}
+}
+
 @media only screen and (min-width: 768px) {
 
 	#header {
@@ -1396,5 +1439,19 @@ ul.products li.product-category {
 	 }
 	 ul.products li.product-category {
 		padding: .236em;
+	}
+	/**
+	 * WooCommerce Photography
+	 */
+	.woocommerce,
+	.woocommerce-page {
+		ul.products {
+			.photography-products-list {
+				li.product-type-photography {
+					padding: 0;
+					width: 33.33%;
+				}
+			}
+		}
 	}
 }

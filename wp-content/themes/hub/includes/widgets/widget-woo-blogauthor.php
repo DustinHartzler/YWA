@@ -4,17 +4,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /* Blog Author Info */
 /*---------------------------------------------------------------------------------*/
 class Woo_BlogAuthorInfo extends WP_Widget {
-	var $settings = array( 'title', 'bio', 'custom_email', 'avatar_size', 'avatar_align', 'read_more_text', 'read_more_url', 'page' );
+	var $defaults = array( 'title' => '', 'bio' => '', 'custom_email' => '', 'avatar_size' => 48, 'avatar_align' => 'left', 'read_more_text' => '', 'read_more_url' => '', 'page' => '' );
 
-	function Woo_BlogAuthorInfo() {
+	function __construct() {
 		$widget_ops = array( 'description' => 'This is a WooThemes Blog Author Info widget.' );
-		parent::WP_Widget( false, __( 'Woo - Blog Author Info', 'woothemes' ), $widget_ops );
+		parent::__construct( false, __( 'Woo - Blog Author Info', 'woothemes' ), $widget_ops );
 	}
 
 	function widget( $args, $instance ) {
-		$settings = $this->woo_get_settings();
 		extract( $args, EXTR_SKIP );
-		$instance = wp_parse_args( $instance, $settings );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 
 		// Enforce defaults
@@ -36,30 +35,23 @@ class Woo_BlogAuthorInfo extends WP_Widget {
 	}
 
 	function update($new_instance, $old_instance) {
-		foreach ( array( 'read_more_text', 'read_more_url' ) as $setting )
-			$new_instance[$setting] = strip_tags( $new_instance[$setting] );
+		$keys = array_keys( $this->defaults );
+		unset( $keys['bio'] );
+		foreach( $keys as $setting ) {
+			$new_instance[$setting] = sanitize_text_field( striptags( $new_instance[$setting] ) );
+		}
+
 		$new_instance['bio'] = wp_kses_post( $new_instance['bio'] );
+
 		$new_instance['avatar_size'] = absint( $new_instance['avatar_size'] );
 		if ( $new_instance['avatar_size'] < 1 )
 			$new_instance['avatar_size'] = '';
+
 		return $new_instance;
 	}
 
-	/**
-	 * Provides an array of the settings with the setting name as the key and the default value as the value
-	 * This cannot be called get_settings() or it will override WP_Widget::get_settings()
-	 */
-	function woo_get_settings() {
-		// Set the default to a blank string
-		$settings = array_fill_keys( $this->settings, '' );
-		// Now set the more specific defaults
-		$settings['avatar_size'] = 48;
-		$settings['avatar_align'] = 'left';
-		return $settings;
-	}
-
 	function form( $instance ) {
-		$instance = wp_parse_args( $instance, $this->woo_get_settings() );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 		?>
 		<p>
@@ -105,4 +97,8 @@ class Woo_BlogAuthorInfo extends WP_Widget {
 	}
 }
 
-register_widget( 'Woo_BlogAuthorInfo' );
+function register_woo_blogauthor_widget() {
+	register_widget( 'Woo_BlogAuthorInfo' );
+}
+add_action( 'widgets_init', 'register_woo_blogauthor_widget' );
+

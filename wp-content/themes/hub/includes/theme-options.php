@@ -72,6 +72,7 @@ $slide_groups = $cats;
 $options = array();
 $other_entries = array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19' );
 $other_entries_multiples = array( '3' => '3', '6' => '6', '9' => '9', '12' => '12', '15' => '15' );
+$other_entries_edge = array( '5' => '5', '10' => '10', '15' => '15' );
 
 /* General */
 
@@ -553,7 +554,7 @@ $options[] = array( 'name' => __( 'Number of Team Members', 'woothemes' ),
                     'id' => $shortname . '_homepage_our_team_number',
                     'std' => '5',
                     'type' => 'select2',
-                    'options' => array( '5', '10', '15' ) );
+                    'options' => $other_entries_edge );
 
 /* Featured Products */
 
@@ -577,7 +578,7 @@ $options[] = array( 'name' => __( 'Number of Featured Products', 'woothemes' ),
                     'id' => $shortname . '_homepage_featured_products_number',
                     'std' => '5',
                     'type' => 'select2',
-                    'options' => array( '5', '10', '15' ) );
+                    'options' => $other_entries_edge );
 
 /* WooCommerce */
 

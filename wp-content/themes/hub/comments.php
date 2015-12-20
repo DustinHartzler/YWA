@@ -26,7 +26,7 @@ if ( post_password_required() ) { ?>
 </div><!-- /#comments-wrapper -->
 <?php return; } ?>
 
-<?php $comments_by_type = &separate_comments( $comments ); ?>
+<?php $comments_by_type = separate_comments( $comments ); ?>
 
 <!-- You can start editing here. -->
 <?php if ( comments_open() ) { ?>

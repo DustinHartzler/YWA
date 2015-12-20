@@ -4,16 +4,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /* Subscribe widget */
 /*---------------------------------------------------------------------------------*/
 class Woo_Subscribe extends WP_Widget {
-	var $settings = array( 'title', 'form', 'social', 'single', 'page' );
+	var $defaults = array( 'title' => '', 'form' => '', 'social' => '', 'single' => '', 'page' => '' );
 
-	function Woo_Subscribe() {
+	function __construct() {
 		$widget_ops = array( 'description' => 'Add a subscribe/connect widget.' );
-		parent::WP_Widget( false, __( 'Woo - Subscribe / Connect', 'woothemes' ), $widget_ops );
+		parent::__construct( false, __( 'Woo - Subscribe / Connect', 'woothemes' ), $widget_ops );
 	}
 
 	function widget( $args, $instance ) {
-		$instance = $this->woo_enforce_defaults( $instance );
 		extract( $args, EXTR_SKIP );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 		if ( !is_singular() || ($single != 'on' && is_single()) || ($page != 'on' && is_page()) ) {
 		?>
@@ -25,36 +25,24 @@ class Woo_Subscribe extends WP_Widget {
 	}
 
 	function update($new_instance, $old_instance) {
-		$new_instance = $this->woo_enforce_defaults( $new_instance );
+		foreach( array_keys( $this->defaults ) as $setting ) {
+			$new_instance[$setting] = sanitize_text_field( $new_instance[$setting] );
+		}
+
+		if ( '' == $new_instance['title'] ) {
+			$new_instance['title'] = __('Subscribe', 'woothemes');
+		}
+
+		foreach ( array( 'form', 'social', 'single', 'page' ) as $checkbox ) {
+			if ( 'on' != $new_instance[$checkbox] )
+					$new_instance[$checkbox] = '';
+		}
+
 		return $new_instance;
 	}
 
-	function woo_enforce_defaults( $instance ) {
-		$defaults = $this->woo_get_settings();
-		$instance = wp_parse_args( $instance, $defaults );
-		$instance['title'] = strip_tags( $instance['title'] );
-		if ( '' == $instance['title'] )
-			$instance['title'] = __('Subscribe', 'woothemes');
-		foreach ( array( 'form', 'social', 'single', 'page' ) as $checkbox ) {
-			if ( 'on' != $instance[$checkbox] )
-					$instance[$checkbox] = '';
-		}
-		return $instance;
-	}
-
-	/**
-	 * Provides an array of the settings with the setting name as the key and the default value as the value
-	 * This cannot be called get_settings() or it will override WP_Widget::get_settings()
-	 */
-	function woo_get_settings() {
-		// Set the default to a blank string
-		$settings = array_fill_keys( $this->settings, '' );
-		// Now set the more specific defaults
-		return $settings;
-	}
-
 	function form($instance) {
-		$instance = $this->woo_enforce_defaults( $instance );
+		$instance = wp_parse_args( $instance, $this->defaults );
 		extract( $instance, EXTR_SKIP );
 ?>
 		<p><em>Setup this widget in your <a href="<?php echo admin_url( 'admin.php?page=woothemes' ); ?>">options panel</a> under <strong>Subscribe &amp; Connect</strong></em>.</p>
@@ -78,4 +66,7 @@ class Woo_Subscribe extends WP_Widget {
 	}
 }
 
-register_widget( 'Woo_Subscribe' );
+function register_woo_subscribe_widget() {
+	register_widget( 'Woo_Subscribe' );
+}
+add_action( 'widgets_init', 'register_woo_subscribe_widget' );

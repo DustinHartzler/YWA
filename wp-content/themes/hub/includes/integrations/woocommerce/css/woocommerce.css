@@ -484,14 +484,14 @@ ul.woocommerce_error {
   z-index: 9999;
 }
 .quantity {
-  width: 4.236em;
+  width: 3em;
   position: relative;
 }
 .quantity .qty {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  width: 4.236em;
+  width: 3em;
   height: 40px;
   padding: 0 .618em;
 }
@@ -1202,6 +1202,36 @@ ul.products li.product-category img {
 ul.products li.product-category:before {
   content: none;
 }
+.woocommerce ul.products .photography-products-list li.product-type-photography,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 1.618em;
+  text-align: left;
+}
+.woocommerce ul.products .photography-products-list li.product-type-photography:before,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography:before {
+  content: none;
+}
+.woocommerce ul.products .photography-products-list li.product-type-photography .photography-image img,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography .photography-image img {
+  position: static;
+}
+.woocommerce ul.products .photography-products-list li.product-type-photography .photography-content .price,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography .photography-content .price {
+  font-size: 1em;
+}
+.woocommerce ul.products .photography-products-list li.product-type-photography .photography-sku,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography .photography-sku,
+.woocommerce ul.products .photography-products-list li.product-type-photography .photography-quantity,
+.woocommerce-page ul.products .photography-products-list li.product-type-photography .photography-quantity {
+  margin-bottom: .618em;
+}
+.woocommerce .tools .quantity,
+.woocommerce-page .tools .quantity {
+  margin-left: .857em;
+  margin-right: .618em;
+}
 @media only screen and (min-width: 768px) {
   #header #navigation ul.nav.cart > li {
     border: 0;
@@ -1512,5 +1542,13 @@ ul.products li.product-category:before {
   }
   ul.products li.product-category {
     padding: .236em;
+  }
+  /**
+	 * WooCommerce Photography
+	 */
+  .woocommerce ul.products .photography-products-list li.product-type-photography,
+  .woocommerce-page ul.products .photography-products-list li.product-type-photography {
+    padding: 0;
+    width: 33.33%;
   }
 }
