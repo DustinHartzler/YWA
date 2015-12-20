@@ -22,26 +22,16 @@
          *
          * @since 1.9.0
          *
-         * @hooked
-         * @param $quiz_id
+         * @hooked Sensei_Quiz::the_title               - 20
+         * @hooked Sensei_Quiz::the_user_status_message - 40
+         * @param integer $quiz_id
          *
          */
         do_action( 'sensei_single_quiz_content_inside_before', get_the_ID() );
 
     ?>
 
-    <header>
-
-        <h2 class="title"> <? the_title(); ?> </h2>
-
-    </header>
-
     <section class="entry quiz-questions">
-
-        <?php the_content(); // @todo why would quiz content be needed? The quiz post type is only a list ofQ's check it out?>
-
-        <?php  // Handle Quiz Completion @todo deprecate
-        do_action( 'sensei_complete_quiz' ); ?>
 
         <?php if ( sensei_quiz_has_questions() ): ?>
 
@@ -100,13 +90,6 @@
 
                         ?>
 
-                        <?php    // @todo deprecate
-                        // Question Type
-                        global $sensei_question_loop;
-                        $question_type = Sensei()->question->get_question_type( $sensei_question_loop['current_question']->ID );
-                        do_action( 'sensei_quiz_question_type', $question_type );
-                        ?>
-
                     </li>
 
                 <?php endwhile; ?>
@@ -146,10 +129,10 @@
      *
      * @since 1.9.0
      *
-     * @hooked
+     * @param integer $quiz_id
      *
      */
-    do_action( 'sensei_single_quiz_content_inside_after' );
+    do_action( 'sensei_single_quiz_content_inside_after', get_the_ID() );
 
     ?>
 

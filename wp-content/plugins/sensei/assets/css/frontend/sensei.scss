@@ -19,20 +19,36 @@ License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2
 /**
  * Functions
  */
+
+
 /**
  * Mixins
  */
-
 @import "../mixins";
+
+/**
+ * Base
+ */
+ .clearfix {
+      &:before, &:after {
+          content: "";
+          display: table;
+      }
+      &:after {
+          clear: both;
+      }
+}
 
 /* Font Awesome Icons */
 @font-face {
   font-family: 'FontAwesomeSensei';
   src: url('../../fonts/fontawesome-webfont.eot');
   src: url('../../fonts/fontawesome-webfont.eot?#iefix') format('embedded-opentype'),
-  url('../../fonts/fontawesome-webfont.woff') format('woff'),
-  url('../../fonts/fontawesome-webfont.ttf') format('truetype');
-  font-weight: normal;
+     url('../../fonts/fontawesome-webfont.woff2') format('woff2'),
+     url('../../fonts/fontawesome-webfont.woff') format('woff'),
+     url('../../fonts/fontawesome-webfont.ttf')  format('truetype'),
+     url('../../fonts/fontawesome-webfont.svg#svgFontName') format('svg');
+  font-weight: 400;
   font-style: normal;
 }
 
@@ -58,6 +74,7 @@ a.sensei-certificate-link {
   margin: 0 0 1.618em;
   padding: 0 0 1em;
   border-bottom: 1px solid #e2e2e2;
+  list-style: none;
   header h2  {
     margin: 0;
   }
@@ -556,6 +573,39 @@ section.entry span.course-price { padding-left: 10px; }
 }
 
 /* Course Archives */
+.sensei-ordering {
+  margin: 0 0 1em 0;
+}
+
+.sensei-course-filters {
+  margin: 0 0 2em 0;
+  padding: 0;
+    li {
+      float: left;
+      list-style: none;
+      .entry-content & {
+        margin: 0;
+      }
+        a {
+          display: block;
+          border: 2px solid #ddd;
+          margin-right: 5px;
+          padding: 0.5em 1em;
+          background: #eee;
+            &:hover {
+              background: #fff;
+              text-decoration: none;
+              border-color: #ccc;
+            }
+            &.active {
+              border-color: #ddd;
+              background: #fff;
+              cursor: default;
+            }
+        }
+    }
+}
+
 .course-container  {
   margin: 0 0 4.236em;
   .archive-header  {
@@ -745,6 +795,24 @@ section.entry span.course-price { padding-left: 10px; }
     .view-quiz  {
       float: right;
     }
+    a.next-lesson {
+      display: inline-block;
+      padding: 5px 20px 4px;
+      margin: -3px 0 0 1em;
+      @include border_radius(5px);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      float:right;
+      background: none;
+      color: darken($success, 10%);
+      border: 2px solid darken($success, 10%);
+      &:hover {
+        background: $success;
+        color: #fff;
+      }
+    }
   }
 }
 
@@ -835,11 +903,29 @@ section.entry span.course-price { padding-left: 10px; }
       margin-right: 150px;
     }
   }
+
+  /* Course Archives */
+  .sensei-ordering {
+    text-align: right;
+    float: right;
+    margin: 0;
+  }
 }
 
 .sensei-pagination{
   .page-numbers li{
     display: inline-block;
+  }
+}
+
+/**
+* sensei_user_course shortcode styles
+*/
+#sensei-user-courses {
+  #user-course-status-toggle {
+    a.active{
+      color: #D4D4D4;
+    }
   }
 }
 

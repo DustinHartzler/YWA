@@ -151,19 +151,29 @@ class Sensei_Templates {
         } elseif ( is_single() && get_post_type() == 'course' ) {
 
             if ( Sensei()->check_user_permissions( 'course-single' ) ) {
+
+                // possible backward compatible template include if theme overrides content-single-course.php
+                // this template was removed in 1.9.0 and code all moved into the main single-course.php file
+                self::locate_and_load_template_overrides( Sensei()->template_url . 'content-single-course.php', true );
+
                 $file 	= 'single-course.php';
                 $find[] = $file;
                 $find[] = Sensei()->template_url . $file;
+
             } else {
+
                 // No Permissions Page
-                $file 	= 'no-permissions.php';
-                $find[] = $file;
-                $find[] = Sensei()->template_url . $file;
+                return self::get_no_permission_template();
+
             } // End If Statement
 
         } elseif ( is_single() && get_post_type() == 'lesson' ) {
 
             if ( Sensei()->check_user_permissions( 'lesson-single' ) ) {
+
+                // possible backward compatible template include if theme overrides content-single-lesson.php
+                // this template was removed in 1.9.0 and code all moved into the main single-lesson.php file
+                self::locate_and_load_template_overrides( Sensei()->template_url . 'content-single-lesson.php', true );
 
                 $file 	= 'single-lesson.php';
                 $find[] = $file;
@@ -172,26 +182,34 @@ class Sensei_Templates {
             } else {
 
                 // No Permissions Page
-                $file 	= 'no-permissions.php';
-                $find[] = $file;
-                $find[] = Sensei()->template_url . $file;
+                return self::get_no_permission_template();
 
             } // End If Statement
 
         } elseif ( is_single() && get_post_type() == 'quiz' ) {
 
             if ( Sensei()->check_user_permissions( 'quiz-single' ) ) {
+
+                // possible backward compatible template include if theme overrides content-single-quiz.php
+                // this template was removed in 1.9.0 and code all moved into the main single-quiz.php file
+                self::locate_and_load_template_overrides( Sensei()->template_url . 'content-single-quiz.php' , true);
+
                 $file 	= 'single-quiz.php';
                 $find[] = $file;
                 $find[] = Sensei()->template_url . $file;
+
             } else {
+
                 // No Permissions Page
-                $file 	= 'no-permissions.php';
-                $find[] = $file;
-                $find[] = Sensei()->template_url . $file;
+                return self::get_no_permission_template();
+
             } // End If Statement
 
         } elseif ( is_single() && get_post_type() == 'sensei_message' ) {
+
+            // possible backward compatible template include if theme overrides content-single-message.php
+            // this template was removed in 1.9.0 and code all moved into the main single-message.php file
+            self::locate_and_load_template_overrides( Sensei()->template_url . 'content-single-message.php', true );
 
             $file 	= 'single-message.php';
             $find[] = $file;
@@ -200,6 +218,10 @@ class Sensei_Templates {
         } elseif ( is_post_type_archive( 'course' )
                     || is_page( Sensei()->get_page_id( 'courses' ) )
                     || is_tax( 'course-category' )) {
+
+            // possible backward compatible template include if theme overrides 'taxonomy-course-category'
+            // this template was removed in 1.9.0 and replaced by archive-course.php
+            self::locate_and_load_template_overrides( Sensei()->template_url . 'taxonomy-course-category.php');
 
             $file 	= 'archive-course.php';
             $find[] = $file;
@@ -212,6 +234,10 @@ class Sensei_Templates {
             $find[] = Sensei()->template_url . $file;
 
         } elseif( is_tax( 'lesson-tag' ) ) {
+
+            // possible backward compatible template include if theme overrides 'taxonomy-lesson-tag.php'
+            // this template was removed in 1.9.0 and replaced by archive-lesson.php
+            self::locate_and_load_template_overrides( Sensei()->template_url . 'taxonomy-lesson-tag.php' );
 
             $file 	= 'archive-lesson.php';
             $find[] = $file;
@@ -231,7 +257,15 @@ class Sensei_Templates {
             // Override for sites with static home page
             $wp_query->is_home = false;
 
-            $file 	= 'course-results.php';
+            $file = 'course-results.php';
+            $find[] = $file;
+            $find[] = Sensei()->template_url . $file;
+
+        }elseif( is_author()
+                 && Sensei_Teacher::is_a_teacher( get_query_var('author') )
+                 && ! user_can( get_query_var('author'), 'manage_options' ) ){
+
+            $file = 'teacher-archive.php';
             $find[] = $file;
             $find[] = Sensei()->template_url . $file;
 
@@ -249,25 +283,80 @@ class Sensei_Templates {
     } // End template_loader()
 
     /**
+     * This function loads the no-permissions template for users with no access
+     * if a Sensei template was loaded.
+     *
+     * This function doesn't determine the permissions. Permissions must be determined
+     * before loading this function as it only gets the template.
+     *
+     * This function also checks the user theme for overrides to ensure the right template
+     * file is returned.
+     *
+     * @since 1.9.0
+     */
+    public static function get_no_permission_template( ){
+
+        // possible backward compatible template loading
+        // this template was removed in 1.9.0 and code all moved into the no-permissions.php file
+        self::locate_and_load_template_overrides( Sensei()->template_url . 'content-no-permissions.php', true );
+
+        $file 	= 'no-permissions.php';
+        $find[] = $file;
+        $find[] = Sensei()->template_url . $file;
+
+        $template = locate_template( $find );
+        if ( ! $template ) $template = Sensei()->plugin_path() . '/templates/' . $file;
+
+        return $template;
+
+    }
+
+    /**
+     * This function is specifically created for loading template files from the theme.
+     *
+     * This function checks if the user has overwritten the templates like in their theme. If they have it in their theme it will load the header and the footer
+     * around the singular content file from their theme and exit.
+     *
+     * If none is found this function will do nothing. If a template is found this funciton
+     * will exit execution of the script an not continue.
+     *
+     * @since 1.9.0
+     * @param string $template
+     * @param bool $load_header_footer should the file be wrapped in between header and footer? Default: true
+     */
+    public static function locate_and_load_template_overrides( $template = '', $load_header_footer = false ){
+
+        $found_template = locate_template( array( $template ) );
+        if( $found_template ){
+
+            if( $load_header_footer ){
+
+                get_sensei_header();
+                include( $found_template );
+                get_sensei_footer();
+
+            }else{
+
+                include( $found_template );
+
+            }
+
+            exit;
+
+        }
+
+    }
+
+
+    /**
      * Hooks the deprecated archive content hook into the hook again just in
      * case other developers have used it.
      *
      * @deprecated since 1.9.0
      */
-    public static function deprecated_archive_hook(){
+    public static function deprecated_archive_course_content_hook(){
 
-        /**
-         * sensei_course_archive_main_content hook
-         *
-         * @deprecated since 1.9.0
-         *
-         * @hooked sensei_course_archive_main_content - 10 (outputs main course archive content loop)
-         */
-        if( has_action('sensei_course_archive_main_content') ){
-
-            _doing_it_wrong('sensei_course_archive_main_content', 'Sensei: This hook has been retired. Please use sensei_loop_course_before','1.9.0' );
-
-        }
+        sensei_do_deprecated_action( 'sensei_course_archive_main_content','1.9.0', 'sensei_loop_course_before' );
 
     }// end deprecated_archive_hook
 
@@ -278,6 +367,11 @@ class Sensei_Templates {
      * @param  WP_Post $post
      */
     public static function the_title( $post ){
+
+        // ID passed in
+        if( is_numeric( $post ) ){
+            $post = get_post( $post );
+        }
 
         /**
          * Filter the template html tag for the title
@@ -297,10 +391,11 @@ class Sensei_Templates {
         $title_classes = apply_filters('sensei_the_title_classes', $post->post_type . '-title' );
 
         $html= '';
-        $html .= '<a href="' . get_permalink( $post->ID ) . '" >';
         $html .= '<'. $title_html_tag .' class="'. $title_classes .'" >';
-        $html .= $post->post_title . '</'. $title_html_tag. '>';
+        $html .= '<a href="' . get_permalink( $post->ID ) . '" >';
+        $html .= $post->post_title ;
         $html .= '</a>';
+        $html .= '</'. $title_html_tag. '>';
         echo $html;
 
     }// end the title
@@ -435,7 +530,7 @@ class Sensei_Templates {
     public static function deprecate_sensei_lesson_course_signup_hook(){
 
         $lesson_course_id = get_post_meta( get_the_ID(), '_lesson_course', true );
-        $user_taking_course = WooThemes_Sensei_Utils::user_started_course( $lesson_course_id, get_current_user_id() );
+        $user_taking_course = Sensei_Utils::user_started_course( $lesson_course_id, get_current_user_id() );
 
         if(  !$user_taking_course ) {
 
@@ -460,7 +555,6 @@ class Sensei_Templates {
         }
 
     }// end deprecate_sensei_lesson_single_meta_hook
-
 
     /**
      * Deprecate the sensei lesson single title hook
@@ -492,6 +586,106 @@ class Sensei_Templates {
 
     }// end sensei_deprecate_lesson_single_main_content_hook
 
+    /**
+     * hook in the deprecated sensei_login_form hook for backwards
+     * compatibility
+     *
+     * @since 1.9.0
+     * @deprecated since 1.9.0
+     */
+    public static function deprecate_sensei_login_form_hook(){
 
+        sensei_do_deprecated_action( 'sensei_login_form', '1.9.0', 'sensei_login_form_before' );
 
+    } // end deprecate_sensei_login_form_hook
+
+    /**
+     * Fire the sensei_complete_course action.
+     *
+     * This is just a backwards compatible function to add the action
+     * to a template. This should not be used as the function from this
+     * hook will be added directly to my-courses page via one of the hooks there.
+     *
+     * @since 1.9.0
+     */
+    public static function  fire_sensei_complete_course_hook(){
+
+        do_action( 'sensei_complete_course' );
+
+    } //fire_sensei_complete_course_hook
+
+    /**
+     * Fire the frontend message hook
+     *
+     * @since 1.9.0
+     */
+    public static function  fire_frontend_messages_hook(){
+
+        do_action( 'sensei_frontend_messages' );
+
+    }// end sensei_complete_course_action
+
+    /**
+     * deprecate the sensei_before_user_course_content hook in favor
+     * of sensei_my_courses_content_inside_before.
+     *
+     * @deprected since 1.9.0
+     */
+    public static function  deprecate_sensei_before_user_course_content_hook(){
+
+        sensei_do_deprecated_action( 'sensei_before_user_course_content','1.9.0', 'sensei_my_courses_content_inside_before' , wp_get_current_user() );
+
+    }// deprecate_sensei_before_user_course_content_hook
+
+    /**
+     * deprecate the sensei_before_user_course_content hook in favor
+     * of sensei_my_courses_content_inside_after hook.
+     *
+     * @deprected since 1.9.0
+     */
+    public static function  deprecate_sensei_after_user_course_content_hook(){
+
+        sensei_do_deprecated_action( 'sensei_after_user_course_content','1.9.0', 'sensei_my_courses_content_inside_after' , wp_get_current_user() );
+
+    }// deprecate_sensei_after_user_course_content_hook
+
+    /**
+     * Deprecate the 2 main hooks on the archive message template
+     *
+     * @deprecated since 1.9.0
+     * @since 1.9.0
+     */
+    public static function deprecated_archive_message_hooks (){
+
+        sensei_do_deprecated_action('sensei_message_archive_main_content', '1.9.0', 'sensei_archive_before_message_loop OR sensei_archive_after_message_loop' );
+        sensei_do_deprecated_action('sensei_message_archive_header', '1.9.0', 'sensei_archive_before_message_loop' );
+
+    }
+
+    /**
+     * Run the sensei_complete_quiz for those still hooking
+     * into but deprecated it.
+     *
+     * @deprecated since 1.9.0
+     */
+    public static function deprecate_sensei_complete_quiz_action(){
+
+        sensei_do_deprecated_action( 'sensei_complete_quiz', '1.9.0', 'sensei_single_quiz_content_inside_before' );
+
+    }
+
+    /**
+     * Run the sensei_quiz_question_type action for those still hooing into it, but depreate
+     * it to provide user with a better alternative.
+     *
+     * @deprecated since 1.9.0
+     */
+    public static function deprecate_sensei_quiz_question_type_action(){
+
+        // Question Type
+        global $sensei_question_loop;
+        $question_type = Sensei()->question->get_question_type($sensei_question_loop['current_question']->ID);
+        sensei_do_deprecated_action('sensei_quiz_question_type', '1.9.0', 'sensei_quiz_question_inside_after', $question_type);
+
+    }
 }//end class

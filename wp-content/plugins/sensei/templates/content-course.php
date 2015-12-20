@@ -14,35 +14,37 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  */
 ?>
 
-<li <?php post_class( WooThemes_Sensei_Course::get_course_loop_class(), get_the_ID() ); ?> >
+<li <?php post_class(  WooThemes_Sensei_Course::get_course_loop_content_class() ); ?> >
+
+    <?php
+    /**
+     * This action runs before the sensei course content. It runs inside the sensei
+     * content-course.php template.
+     *
+     * @since 1.9
+     *
+     * @param integer $course_id
+     */
+    do_action( 'sensei_course_content_before', get_the_ID() );
+    ?>
 
     <section class="course-content">
-        <?php
-        /**
-         * sensei_{post_type}_content_before
-         * action that runs before the sensei {post_type} content. It runs inside the sensei
-         * content.php template. This applies to the specific post type that you've targeted.
-         *
-         * @since 1.9
-         * @param $post
-         */
-        do_action( 'sensei_course_content_before', get_post() );
-        ?>
 
         <section class="entry">
 
             <?php
             /**
-             * sensei_{$post_type}content_inside_before
-             *
-             * Fires just before the post content in the content.php file. This for the
-             * specific {$post_type}.
+             * Fires just before the course content in the content-course.php file.
              *
              * @since 1.9
              *
-             * @param WP_Post $post
+             * @param integer $course_id
+             *
+             * @hooked Sensei_Templates::the_title          - 5
+             * @hooked Sensei()->course->course_image       - 10
+             * @hooked  Sensei()->course->the_course_meta   - 20
              */
-            do_action('sensei_course_content_inside_before', get_post());
+            do_action('sensei_course_content_inside_before', get_the_ID() );
             ?>
 
             <p class="course-excerpt">
@@ -53,20 +55,33 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
             <?php
             /**
-             * sensei_{$post_type}content_inside_before
-             *
-             * Fires just after the post content in the content.php file. This for the
-             * specific {$post_type}.
+             * Fires just after the course content in the content-course.php file.
              *
              * @since 1.9
              *
-             * @param WP_Post $post
+             * @param integer $course_id
+             *
+             * @hooked  Sensei()->course->the_course_free_lesson_preview - 20
              */
-            do_action('sensei_course_content_inside_after', get_post());
+            do_action('sensei_course_content_inside_after', get_the_ID() );
             ?>
 
         </section> <!-- section .entry -->
 
     </section> <!-- section .course-content -->
+
+    <?php
+    /**
+     * Fires after the course block in the content-course.php file.
+     *
+     * @since 1.9
+     *
+     * @param integer $course_id
+     *
+     * @hooked  Sensei()->course->the_course_free_lesson_preview - 20
+     */
+    do_action('sensei_course_content_after', get_the_ID() );
+    ?>
+
 
 </li> <!-- article .(<?php esc_attr_e( join( ' ', get_post_class( array( 'course', 'post' ) ) ) ); ?>  -->

@@ -10,30 +10,52 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @category    Templates
  * @version     1.9.0
  */
+?>
 
-global $post, $current_user, $wp_query;
+<?php
+/**
+ * Executes before the Sensei my courses markup begins. This hook
+ * only fires whe a user is logged in. If you need to add
+ * something here for when users are logged out use `sensei_login_form_before`.
+ *
+ * @since 1.9.0
+ */
+do_action( 'sensei_my_courses_before' );
+?>
 
-// Get User Meta
-get_currentuserinfo();
+<section id="main-course" class="course-container">
 
-// Check if the user is logged in
-if ( is_user_logged_in() ) {
-	// Handle completion of a course
-	do_action( 'sensei_complete_course' );
-	?>
-	<section id="main-course" class="course-container">
-		<?php
+    <?php
+    /**
+     * Executes inside just before the Sensei my courses content. This hook
+     * only fires whe a user is logged in.
+     *
+     * @since 1.9.0
+     */
+    do_action( 'sensei_my_courses_content_inside_before' );
+    ?>
 
-		do_action( 'sensei_frontend_messages' );
+    <?php sensei_the_my_courses_content(); ?>
 
-		do_action( 'sensei_before_user_course_content', $current_user );
+    <?php
+    /**
+     * Executes inside just after the Sensei my courses content. This hook
+     * only fires whe a user is logged in.
+     *
+     * @since 1.9.0
+     */
+    do_action( 'sensei_my_courses_content_inside_after' );
+    ?>
 
-		echo Sensei()->course->load_user_courses_content( $current_user, true );
+</section>
 
-		do_action( 'sensei_after_user_course_content', $current_user );
-
-		?>
-	</section>
-<?php } else {
-	do_action( 'sensei_login_form' );
-} // End If Statement ?>
+<?php
+/**
+ * Executes after the Sensei my courses template markup ends. This hook
+ * only fires whe a user is logged in. If you need to add
+ * something here for when users are logged out use `sensei_login_form_after`.
+ *
+ * @since 1.9.0
+ */
+do_action( 'sensei_my_courses_after' );
+?>

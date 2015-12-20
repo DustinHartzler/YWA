@@ -54,14 +54,13 @@ class Sensei_Class_Lesson_Test extends WP_UnitTestCase {
             'None existing lesson or user should return false');
 
         $test_user_id = wp_create_user( 'studentPrerequisite', 'studentPrerequisite', 'studentPrerequisite@test.com' );
-        $test_lesson_id = $this->factory->get_lessons()[0];
-
-        $this->assertFalse( WooThemes_Sensei_Lesson::is_prerequisite_complete( $test_lesson_id, $test_user_id ),
-            'Users not taking lesson should return false.');
+        $test_lesson = $this->factory->get_lessons();
+        $test_lesson_id = $test_lesson[0];
 
         // truthy state
         $course_id = $this->factory->get_random_course_id();
-        $test_lesson_prerequisite_id = $this->factory->get_lessons()[1];
+        $lessons = $this->factory->get_lessons();
+        $test_lesson_prerequisite_id = $lessons[1];
 
         // add lesson to random course
         update_post_meta( $test_lesson_prerequisite_id, '_lesson_course', $course_id   );
@@ -70,12 +69,14 @@ class Sensei_Class_Lesson_Test extends WP_UnitTestCase {
         // setup prerequisite
         update_post_meta( $test_lesson_id,'_lesson_prerequisite', $test_lesson_prerequisite_id);
 
-        WooThemes_Sensei_Utils::user_start_lesson( $test_user_id ,$test_lesson_prerequisite_id, true );
+        Sensei_Utils::user_start_lesson( $test_user_id ,$test_lesson_prerequisite_id );
+        $this->assertFalse( WooThemes_Sensei_Lesson::is_prerequisite_complete( $test_lesson_id, $test_user_id ),
+            'Users that has NOT completeded prerequisite should return false.');
 
-        $this->assertTrue( WooThemes_Sensei_Lesson::is_prerequisite_complete( $test_lesson_id, $test_user_id ),
-            'Users on lesson that has completed prerequisite should return true.');
+        Sensei_Utils::user_start_lesson( $test_user_id, $test_lesson_prerequisite_id, true );
+        $this->assertTrue( Sensei_Lesson::is_prerequisite_complete( $test_lesson_id, $test_user_id ),
+            'Users that has completeded prerequisite should return true.');
 
     } // end testIsPreRequisiteComplete
-
 
 }// end class

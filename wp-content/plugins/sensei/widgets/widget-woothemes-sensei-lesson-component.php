@@ -11,19 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly.
  * @category Widgets
  * @author WooThemes
  * @since 1.0.0
- *
- * TABLE OF CONTENTS
- *
- * protected $woo_widget_cssclass
- * protected $woo_widget_description
- * protected $woo_widget_idbase
- * protected $woo_widget_title
- *
- * - __construct()
- * - widget()
- * - update()
- * - form()
- * - load_component()
  */
 class WooThemes_Sensei_Lesson_Component_Widget extends WP_Widget {
 	protected $woo_widget_cssclass;
@@ -169,7 +156,7 @@ class WooThemes_Sensei_Lesson_Component_Widget extends WP_Widget {
 	 * @return void
 	 */
 	protected function load_component ( $instance ) {
-		global $woothemes_sensei, $current_user;
+		global  $current_user;
 		// Get User Meta
 		get_currentuserinfo();
 		/*
@@ -202,7 +189,7 @@ class WooThemes_Sensei_Lesson_Component_Widget extends WP_Widget {
 		    		<?php do_action( 'sensei_lesson_image', $post_id, '100', '100', false, true ); ?>
 		    		<a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" title="<?php echo esc_attr( $post_title ); ?>"><?php echo $post_title; ?></a>
 		    		<br />
-		    		<?php if ( isset( $woothemes_sensei->settings->settings[ 'lesson_author' ] ) && ( $woothemes_sensei->settings->settings[ 'lesson_author' ] ) ) { ?>
+		    		<?php if ( isset( Sensei()->settings->settings[ 'lesson_author' ] ) && ( Sensei()->settings->settings[ 'lesson_author' ] ) ) { ?>
     					<span class="course-author"><?php _e( 'by ', 'woothemes-sensei' ); ?><a href="<?php echo esc_url( $author_link ); ?>" title="<?php echo esc_attr( $author_display_name ); ?>"><?php echo esc_html( $author_display_name ); ?></a></span>
     					<br />
     				<?php } // End If Statement ?>

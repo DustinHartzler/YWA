@@ -42,7 +42,7 @@ class WooThemes_Sensei_Email_Teacher_Completed_Course {
 	 * @return void
 	 */
 	function trigger( $learner_id = 0, $course_id = 0 ) {
-		global $woothemes_sensei, $sensei_email_data;
+		global  $sensei_email_data;
 
 		// Get learner user object
 		$this->learner = new WP_User( $learner_id );
@@ -53,7 +53,7 @@ class WooThemes_Sensei_Email_Teacher_Completed_Course {
 
 		// Get passed status
 		$passed = __( 'passed', 'woothemes-sensei' );
-		if( ! WooThemes_Sensei_Utils::sensei_user_passed_course( $course_id, $learner_id ) ) {
+		if( ! Sensei_Utils::sensei_user_passed_course( $course_id, $learner_id ) ) {
 			$passed = __( 'failed', 'woothemes-sensei' );
 		}
 
@@ -72,7 +72,7 @@ class WooThemes_Sensei_Email_Teacher_Completed_Course {
 		$this->recipient = stripslashes( $this->teacher->user_email );
 
 		// Send mail
-		$woothemes_sensei->emails->send( $this->recipient, $this->subject, $woothemes_sensei->emails->get_content( $this->template ) );
+		Sensei()->emails->send( $this->recipient, $this->subject, Sensei()->emails->get_content( $this->template ) );
 	}
 }
 

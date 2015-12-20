@@ -31,7 +31,7 @@ class Sensei_Class_Utils_Test extends WP_UnitTestCase {
      */
     public function testClassInstance() {
         //setup the test
-        global $woothemes_sensei;
+
 
         //test if the global sensei quiz class is loaded
         $this->assertTrue( class_exists( 'WooThemes_Sensei_Utils' ), 'Sensei Utils class constant is not loaded' );
@@ -177,5 +177,21 @@ class Sensei_Class_Utils_Test extends WP_UnitTestCase {
         $this->assertTrue( 3 == WooThemes_Sensei_Utils::round( 2.5 , 0 ) , '2.5 rounded with 0 precision should be 3' );
 
     }// testDeleteUserData
+
+    /**
+     * Test the array zip utility function
+     * @since 1.9.0
+     */
+    public function testArrayZipMerge(){
+
+        $this->assertTrue( method_exists( 'Sensei_Utils','array_zip_merge' ), 'Sensei_Utils::array_zip_merge does not exist.' );
+
+        // test if the function works
+        $array_1 = array( 1, 2, 3 );
+        $array_2 = array( 5, 6, 7, 8 ,9 );
+        $array_zipped = Sensei_Utils::array_zip_merge( $array_1, $array_2);
+        $expected = array( 1, 5, 2, 6, 3, 7, 8, 9 );
+        $this->assertEquals( $expected ,$array_zipped  );
+    }
 
 }// end test class

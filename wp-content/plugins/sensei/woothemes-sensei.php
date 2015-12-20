@@ -3,7 +3,7 @@
 Plugin Name: Sensei
 Plugin URI: http://www.woothemes.com/products/sensei/
 Description: A course management plugin that offers the smoothest platform for helping you teach anything.
-Version: 1.9-alpha
+Version: 1.9-beta
 Author: WooThemes
 Author URI: http://www.woothemes.com/
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -45,12 +45,12 @@ Domain path: /lang/
      */
     function Sensei(){
 
-        return WooThemes_Sensei::instance();
+        return Sensei_Main::instance();
 
     }
 
     // set the sensei version number
-    Sensei()->version = '1.9-alpha';
+    Sensei()->version = '1.9-beta';
 
     //backwards compatibility
     global $woothemes_sensei;
@@ -68,7 +68,7 @@ Domain path: /lang/
     */
     if(! is_admin() ){
 
-        require_once( 'includes/hooks/template-hooks.php' );
+        require_once( 'includes/hooks/template.php' );
 
     }
 
@@ -100,8 +100,10 @@ Domain path: /lang/
         Sensei()->updates->add_editor_caps();
         Sensei()->updates->assign_role_caps();
 
+        //Flush rules
+        add_action( 'activated_plugin' , array( 'Sensei_Main','activation_flush_rules' ), 10 );
 
         //Load the Welcome Screen
-        add_action( 'activated_plugin' , array( 'Sensei_Welcome','redirect' ) );
+        add_action( 'activated_plugin' , array( 'Sensei_Welcome','redirect' ), 20 );
 
     }// end activate_sensei

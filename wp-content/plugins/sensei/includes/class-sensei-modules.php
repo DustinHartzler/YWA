@@ -452,16 +452,16 @@ class Sensei_Core_Modules
 
     public function sensei_course_preview_titles($title, $lesson_id)
     {
-        global $post, $current_user, $woothemes_sensei;
+        global $post, $current_user;
 
         $course_id = $post->ID;
         $title_text = '';
 
-        if (method_exists('WooThemes_Sensei_Utils', 'is_preview_lesson') && WooThemes_Sensei_Utils::is_preview_lesson($lesson_id)) {
-            $is_user_taking_course = WooThemes_Sensei_Utils::sensei_check_for_activity(array('post_id' => $course_id, 'user_id' => $current_user->ID, 'type' => 'sensei_course_status'));
+        if (method_exists('Sensei_Utils', 'is_preview_lesson') && Sensei_Utils::is_preview_lesson($lesson_id)) {
+            $is_user_taking_course = Sensei_Utils::sensei_check_for_activity(array('post_id' => $course_id, 'user_id' => $current_user->ID, 'type' => 'sensei_course_status'));
             if (!$is_user_taking_course) {
                 if (method_exists('WooThemes_Sensei_Frontend', 'sensei_lesson_preview_title_text')) {
-                    $title_text = $woothemes_sensei->frontend->sensei_lesson_preview_title_text($course_id);
+                    $title_text = Sensei()->frontend->sensei_lesson_preview_title_text($course_id);
                     // Remove brackets for display here
                     $title_text = str_replace('(', '', $title_text);
                     $title_text = str_replace(')', '', $title_text);
@@ -482,7 +482,7 @@ class Sensei_Core_Modules
             if (has_term('', $this->taxonomy, $post->ID)) {
                 $module = $this->get_lesson_module($post->ID);
                 if( $module ) {
-                    $html .= ' ' . $separator . ' <a href="' . esc_url($module->url) . '" title="' . esc_attr(apply_filters('sensei_back_to_module_text', __('Back to the module', 'woothemes-sensei'))) . '">' . $module->name . '</a>';
+                    $html .= ' ' . $separator . ' <a href="' . esc_url($module->url) . '" title="' .  __('Back to the module', 'woothemes-sensei') . '">' . $module->name . '</a>';
                 }
             }
         }
@@ -490,7 +490,7 @@ class Sensei_Core_Modules
         if (is_tax($this->taxonomy)) {
             if (isset($_GET['course_id']) && 0 < intval($_GET['course_id'])) {
                 $course_id = intval($_GET['course_id']);
-                $html .= '<a href="' . esc_url(get_permalink($course_id)) . '" title="' . esc_attr(apply_filters('sensei_back_to_course_text', __('Back to the course', 'woothemes-sensei'))) . '">' . get_the_title($course_id) . '</a>';
+                $html .= '<a href="' . esc_url(get_permalink($course_id)) . '" title="' .  __('Back to the course', 'woothemes-sensei') . '">' . get_the_title($course_id) . '</a>';
             }
         }
         return $html;
@@ -503,31 +503,23 @@ class Sensei_Core_Modules
      * @param  string $template Default template
      * @return string           Modified template
      */
-    public function module_archive_template($template)
-    {
+    public function module_archive_template($template) {
 
-        $find = array('woothemes-sensei.php');
-        $file = '';
+        if ( ! is_tax($this->taxonomy) ) {
+            return $template;
+        }
 
-        if ( is_tax($this->taxonomy) ) {
+        $file = 'archive-lesson.php';
+        $find = array( $file, Sensei()->template_url . $file );
 
-            $file = 'taxonomy-module.php';
-            $find[] = $file;
-            $find[] = Sensei()->template_url . $file;
+        // locate the template file
+        $template = locate_template($find);
+        if (!$template) {
+
+            $template = Sensei()->plugin_path() . 'templates/' . $file;
 
         }
 
-        // Load the template file
-        if ($file) {
-
-            $template = locate_template($find);
-            if (!$template) {
-
-                $template = Sensei()->plugin_path() . 'templates/' . $file;
-
-            }
-
-        } // End If Statement
 
         return $template;
     }
@@ -542,13 +534,13 @@ class Sensei_Core_Modules
     public function module_archive_filter($query)
     {
         if (is_tax($this->taxonomy) && $query->is_main_query()) {
-            global $woothemes_sensei;
+
 
             // Limit to lessons only
             $query->set('post_type', 'lesson');
 
             // Set order of lessons
-            if (version_compare($woothemes_sensei->version, '1.6.0', '>=')) {
+            if (version_compare(Sensei()->version, '1.6.0', '>=')) {
                 $module_id = $query->queried_object_id;
                 $query->set('meta_key', '_order_module_' . $module_id);
                 $query->set('orderby', 'meta_value_num date');
@@ -803,7 +795,7 @@ class Sensei_Core_Modules
         $lesson_count = 0;
         $completed_count = 0;
         foreach ($lessons as $lesson_id) {
-            $completed = WooThemes_Sensei_Utils::user_completed_lesson($lesson_id, $user_id);
+            $completed = Sensei_Utils::user_completed_lesson($lesson_id, $user_id);
             ++$lesson_count;
             if ($completed) {
                 ++$completed_count;
@@ -1268,7 +1260,7 @@ class Sensei_Core_Modules
      */
     public function enqueue_styles()
     {
-        global $woothemes_sensei;
+
 
         wp_register_style($this->taxonomy . '-frontend', esc_url($this->assets_url) . 'css/modules-frontend.css', Sensei()->version );
         wp_enqueue_style($this->taxonomy . '-frontend');
@@ -1322,7 +1314,7 @@ class Sensei_Core_Modules
      * @return void
      */
     public function admin_enqueue_styles() {
-        global $woothemes_sensei;
+
 
         wp_register_style($this->taxonomy . '-sortable', esc_url($this->assets_url) . 'css/modules-admin.css','',Sensei()->version );
         wp_enqueue_style($this->taxonomy . '-sortable');
@@ -1355,6 +1347,15 @@ class Sensei_Core_Modules
      * @return void
      */
     public function load_course_module_content_template(){
+
+        // load backwards compatible template name if it exists in the users theme
+        $located_template= locate_template( Sensei()->template_url . 'single-course/course-modules.php' );
+        if( $located_template ){
+
+            Sensei_Templates::get_template( 'single-course/course-modules.php' );
+            return;
+
+        }
 
         Sensei_Templates::get_template( 'single-course/modules.php' );
 
@@ -1468,7 +1469,8 @@ class Sensei_Core_Modules
         //exit if there are no module on this course
         if( empty( $course_modules ) || ! is_array( $course_modules ) ){
 
-            return $non_module_lessons;
+            return  Sensei()->course->course_lessons( $course_id );
+
         }
 
         $terms = array();
@@ -1967,7 +1969,7 @@ class Sensei_Core_Modules
 
             $author = Sensei_Core_Modules::get_term_author( $term->slug );
 
-            if( ! user_can( $author, 'manage_options' ) ) {
+            if( ! user_can( $author, 'manage_options' ) && isset( $term->name ) ) {
                 $term->name = $term->name . ' (' . $author->display_name . ') ';
             }
 
