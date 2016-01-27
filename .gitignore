@@ -68,6 +68,4 @@ node_modules/
 wp-content/mu-plugins/custom-color.php
 wp-content/mu-plugins/custom-color.php
 
-wp-content/themes/ywe/config.codekit
-
-wp-content/themes/ywe/sass/.DS_Store
+.DS_Store
