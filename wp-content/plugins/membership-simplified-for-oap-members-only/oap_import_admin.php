@@ -1048,7 +1048,7 @@ jQuery(document).ready(function() {
 			<table>
         <tr class="_on_off_menuItemSetting">
               <td align="right" style="padding-right:0px!important;"> 
-			 <div style="padding:10px 0 0 10px;background-color:#efefef;width:100px;height:37px;text-align:center;">
+			 <div style="padding:10px 0 0 10px;width:100px;height:37px;text-align:center;">
 		  <?php
 		  global $wpdb;
 		  $global_count = $wpdb->get_var( "SELECT COUNT(option_name) FROM $wpdb->options where option_name='oapmp_on_off_menuitems'" );
@@ -1303,7 +1303,7 @@ jQuery(document).ready(function() {
 			<table>
         <tr class="_on_off_infoboxDownload">
               <td align="right" style="padding-right:0px!important;"> 
-			 <div style="padding:10px 0 0 10px;background-color:#efefef;width:100px;height:37px;text-align:center;">
+			 <div style="padding:10px 0 0 10px;width:100px;height:37px;text-align:center;">
 		  <?php
 		  
 		  $global_infobox_count = $wpdb->get_var( "SELECT COUNT(option_name) FROM $wpdb->options where option_name='oapmp_on_off_infobox_download'" );
@@ -1429,7 +1429,7 @@ jQuery(document).ready(function() {
 			<table>
         <tr class="_on_off_mainContent">
               <td align="right" style="padding-right:0px!important;"> 
-			 <div style="padding:10px 0 0 10px;background-color:#efefef;width:100px;height:37px;text-align:center;">
+			 <div style="padding:10px 0 0 10px;width:100px;height:37px;text-align:center;">
 		  <?php
 		  $global_maincontent_count = $wpdb->get_var( "SELECT COUNT(option_name) FROM $wpdb->options where option_name='oapmp_on_off_main_content'" );
 			
@@ -1761,7 +1761,7 @@ jQuery(document).ready(function() {
 			<td align="right"><table>
         <tr class="_on_off_advanceSetting">
               <td align="right" style="padding-right:0px!important;">
-		  <div style="padding:10px 0 0 10px;background-color:#efefef;width:100px;height:37px;text-align:center;">
+		  <div style="padding:10px 0 0 10px;width:100px;height:37px;text-align:center;">
 		  <?php
 		  global $wpdb;
 		  $global_count = $wpdb->get_var( "SELECT COUNT(option_name) FROM $wpdb->options where option_name='oapmp_on_off_advanceSetting'" );

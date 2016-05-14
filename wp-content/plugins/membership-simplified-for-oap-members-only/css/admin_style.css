@@ -34,7 +34,7 @@ DIV.possession
 	padding-top: 10px;
 	padding-bottom: 20px;
 	margin: 40px 0 0 0px;
-	background-color:#efefef;
+	background-color:#fff;
 }
 DIV.seperator
 {
@@ -55,7 +55,6 @@ DIV.seperator
 	padding-left: 30px;
 	padding-right: 30px;
 	border:none;
-	background-color:#efefef;
 }
 .oaplesson_page_manage_oap_options SELECT,
 .oaplesson_page_manage_oap_options INPUT

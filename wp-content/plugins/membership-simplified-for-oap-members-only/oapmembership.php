@@ -4,7 +4,7 @@ Plugin Name: Membership Simplified
 Plugin URI: http://membership.officeautopilot.com
 Description: Membership Simplified allows you to generate membership lessons with templated content to create a unified look and feel throughout your courses. It also provides the inner workings such as navigation options, a login widget, and tinymce buttons to use when protecting any post or page content. Additionally, it sits on top of PilotPress, thus allowing you to use videos from the video manager, downloadable files from the file manager, and much more. Super easy to setup and manage! (Requires an OfficeAutopilot account and PilotPress installed)
 Author: William.DeAngelis, ONTRAPORT
-Version: Beta 1.57
+Version: Beta 1.58
 Release date: 12/30/2014
 Author URI: http://membership.officeautopilot.com
 */

@@ -2,7 +2,7 @@
 Contributors: william.deangelis, OfficeAutopilot
 Tags: Membership Plugin, Membership, OfficeAutopilot, Moonray, Ontraport, Membership Simplified
 Requires at least: 3.0
-Tested up to: 3.9.2
+Tested up to: 4.5
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -46,6 +46,9 @@ For more help, please visit the help section under 'Membership Content' on the W
 
 
 == Changelog ==
+= Beta 1.58 =
+* Minor fix to address reordering of downloadable items.
+
 = Beta 1.57 =
 * Minor fix to address missing bullet points.
 
