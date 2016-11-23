@@ -384,6 +384,7 @@ abstract class WPCOM_JSON_API_Endpoint {
 		case 'safehtml' :
 			$return[$key] = wp_kses( (string) $value, wp_kses_allowed_html() );
 			break;
+		case 'zip' :
 		case 'media' :
 			if ( is_array( $value ) ) {
 				if ( isset( $value['name'] ) && is_array( $value['name'] ) ) {
@@ -1032,7 +1033,7 @@ abstract class WPCOM_JSON_API_Endpoint {
 			$last_name   = '';
 			$URL         = $author->comment_author_url;
 			$avatar_URL  = $this->api->get_avatar_url( $author );
-			$profile_URL = 'http://en.gravatar.com/' . md5( strtolower( trim( $email ) ) );
+			$profile_URL = 'https://en.gravatar.com/' . md5( strtolower( trim( $email ) ) );
 			$nice        = '';
 			$site_id     = -1;
 
@@ -1095,9 +1096,9 @@ abstract class WPCOM_JSON_API_Endpoint {
 			if ( defined( 'IS_WPCOM' ) && IS_WPCOM && ! $is_jetpack ) {
 				$active_blog = get_active_blog_for_user( $ID );
 				$site_id     = $active_blog->blog_id;
-				$profile_URL = "http://en.gravatar.com/{$login}";
+				$profile_URL = "https://en.gravatar.com/{$login}";
 			} else {
-				$profile_URL = 'http://en.gravatar.com/' . md5( strtolower( trim( $email ) ) );
+				$profile_URL = 'https://en.gravatar.com/' . md5( strtolower( trim( $email ) ) );
 				$site_id     = -1;
 			}
 
