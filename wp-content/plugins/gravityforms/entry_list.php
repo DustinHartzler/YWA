@@ -579,6 +579,34 @@ final class GF_Entry_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets the ordering for the entry list table.
+	 *
+	 * Also formats the query string to uppercase. If none is present, sets it to ascending.
+	 *
+	 * @since 2.0.3.6
+	 * @access public
+	 *
+	 * @return string The ordering to be used.
+	 */
+	public function get_order() {
+		return empty( $_GET['order'] ) ? 'ASC' : strtoupper( $_GET['order'] );
+	}
+
+	/**
+	 * Gets the column that list is ordered by.
+	 *
+	 * If none is set, defaults to 0 (the first column)
+	 *
+	 * @since 2.0.3.6
+	 * @access public
+	 *
+	 * @return int The column to be used.
+	 */
+	public function get_orderby() {
+		return empty( $_GET['orderby'] ) ? 0 : $_GET['orderby'];
+	}
+
+	/**
 	 * Performs the search and prepares the entries for display.
 	 */
 	function prepare_items() {
@@ -593,9 +621,9 @@ final class GF_Entry_List_Table extends WP_List_Table {
 
 		$search_criteria = $this->get_search_criteria();
 
-		$sort_direction = empty( $_GET['order'] ) ? 'ASC' : strtoupper( $_GET['order'] );
+		$sort_direction = $this->get_order();
 
-		$sort_field      = empty( $_GET['orderby'] ) ? 0 : $_GET['orderby'];
+		$sort_field = $this->get_orderby();
 
 		$sort_field_meta = RGFormsModel::get_field( $form, $sort_field );
 
@@ -720,7 +748,17 @@ final class GF_Entry_List_Table extends WP_List_Table {
 
 		$table_columns['column_selector'] = '<a title="' . esc_attr__( 'click to select columns to display', 'gravityforms' ) . '" href="' . trailingslashit( site_url( null, 'admin' ) ) . '?gf_page=select_columns&id=' . absint( $form_id ) . '&TB_iframe=true&height=365&width=600" class="thickbox entries_edit_icon"><i class="fa fa-cog"></i></a>';
 
-		return $table_columns;
+		/**
+		 * Allow the columns to be displayed in the entry list table to be overridden.
+		 *
+		 * @since 2.0.7.6
+		 *
+		 * @param array $table_columns The columns to be displayed in the entry list table.
+		 * @param int   $form_id       The ID of the form the entries to be listed belong to.
+		 */
+		$table_columns = apply_filters( 'gform_entry_list_columns', $table_columns, $form_id );
+
+		return apply_filters( 'gform_entry_list_columns_' . $form_id, $table_columns, $form_id );
 	}
 
 	/**
