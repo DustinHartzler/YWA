@@ -2,18 +2,15 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
- * Sensei Grading Overview List Table Class
+ * Admin Grading Overview Data Table in Sensei.
  *
- * All functionality pertaining to the Admin Grading Overview Data Table in Sensei.
- *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Assessment
+ * @author Automattic
  * @since 1.3.0
  */
 class Sensei_Grading_Main extends WooThemes_Sensei_List_Table {
-	public $user_id;
+
+    public $user_id;
 	public $course_id;
 	public $lesson_id;
 	public $view;
@@ -23,7 +20,6 @@ class Sensei_Grading_Main extends WooThemes_Sensei_List_Table {
 	/**
 	 * Constructor
 	 * @since  1.3.0
-	 * @return  void
 	 */
 	public function __construct ( $args = null ) {
 
@@ -253,7 +249,7 @@ class Sensei_Grading_Main extends WooThemes_Sensei_List_Table {
 			$grade = __( 'N/A', 'woothemes-sensei' );
 		}
 
-        $title = Sensei_Student::get_full_name( $item->user_id );
+        $title = Sensei_Learner::get_full_name( $item->user_id );
 
 		// QuizID to be deprecated
 		$quiz_id = get_post_meta( $item->comment_post_ID, '_lesson_quiz', true );
@@ -448,7 +444,7 @@ class Sensei_Grading_Main extends WooThemes_Sensei_List_Table {
 
 /**
  * Class WooThems_Sensei_Grading_Main
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Grading_Main extends Sensei_Grading_Main{}

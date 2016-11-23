@@ -2,14 +2,10 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
- * Sensei Analysis Course List Table Class
+ * Admin Analysis Course Data Table in Sensei.
  *
- * All functionality pertaining to the Admin Analysis Course Data Table in Sensei.
- *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Analytics
+ * @author Automattic
  * @since 1.2.0
  */
 class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
@@ -23,7 +19,6 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 	/**
 	 * Constructor
 	 * @since  1.2.0
-	 * @return  void
 	 */
 	public function __construct ( $course_id = 0, $user_id = 0 ) {
 		$this->course_id = intval( $course_id );
@@ -112,7 +107,6 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 					'started' => array( 'started', false ),
 					'completed' => array( 'completed', false ),
 					'user_status' => array( 'user_status', false ),
-//					'grade' => array( 'grade', false ),
 					'percent' => array( 'percent', false )
 				);
 				break;
@@ -311,7 +305,7 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 				$course_percent = get_comment_meta( $item->comment_ID, 'percent', true );
 
 				// Output users data
-				$user_name = Sensei_Student::get_full_name( $item->user_id );
+				$user_name = Sensei_Learner::get_full_name( $item->user_id );
 
 				if ( !$this->csv_output ) {
 
@@ -443,7 +437,7 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 
 						$grade_count = !empty( $lesson_grades->total ) ? $lesson_grades->total : 1;
 						$grade_total = !empty( $lesson_grades->meta_sum ) ? doubleval( $lesson_grades->meta_sum ) : 0;
-						$lesson_average_grade = abs( round( doubleval( $grade_total / $grade_count ), 2 ) );
+						$lesson_average_grade = Sensei_Utils::quotient_as_absolute_rounded_number( $grade_total, $grade_count, 2 );
 					}
 					// Output lesson data
 					if ( $this->csv_output ) {
@@ -530,7 +524,6 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 							'posts_per_page'      => $args['number'],
 							'offset'              => $args['offset'],
 							'meta_key'            => '_order_' . $this->course_id,
-//							'orderby'             => $args['orderby'],
 							'order'               => $args['order'],
 							'meta_query'          => array(
 								array(
@@ -632,7 +625,7 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 		$course = get_post( $this->course_id );
 		$report = sanitize_title( $course->post_title ) . '-' . $this->view . 's-overview';
 		if ( $this->user_id ) {
-            $user_name = Sensei_Student::get_full_name( $this->user_id );
+            $user_name = Sensei_Learner::get_full_name( $this->user_id );
 			$report = sanitize_title( $user_name  ) . '-' . $report;
 		}
 
@@ -647,7 +640,7 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 	/**
 	 * The text for the search button
 	 * @since  1.7.0
-	 * @return void
+	 * @return string $text
 	 */
 	public function search_button( $text = '' ) {
 		switch( $this->view ) {
@@ -668,7 +661,8 @@ class Sensei_Analysis_Course_List_Table extends WooThemes_Sensei_List_Table {
 
 /**
  * Class WooThemes_Sensei_Analysis_Course_List_Table
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
+ * @ignore
  */
 class WooThemes_Sensei_Analysis_Course_List_Table extends Sensei_Analysis_Course_List_Table {}

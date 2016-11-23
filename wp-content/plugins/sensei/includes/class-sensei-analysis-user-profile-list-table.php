@@ -2,17 +2,14 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
- * Sensei Analysis User Profile List Table Class
+ * Analysis User Profile Data Table in Sensei.
  *
- * All functionality pertaining to the Admin Analysis User Profile Data Table in Sensei.
+ * @package Analytics
+ * @author Automattic
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
  * @since 1.2.0
  */
-class Sensei_Analysis_User_Profile_List_Table extends WooThemes_Sensei_List_Table {
+class Sensei_Analysis_User_Profile_List_Table extends Sensei_List_Table {
 	public $user_id;
 	public $page_slug = 'sensei_analysis';
 
@@ -45,7 +42,6 @@ class Sensei_Analysis_User_Profile_List_Table extends WooThemes_Sensei_List_Tabl
 			'started' => __( 'Date Started', 'woothemes-sensei' ),
 			'completed' => __( 'Date Completed', 'woothemes-sensei' ),
 			'status' => __( 'Status', 'woothemes-sensei' ),
-//			'grade' => __( 'Grade', 'woothemes-sensei' ),
 			'percent' => __( 'Percent Complete', 'woothemes-sensei' ),
 		);
 		$columns = apply_filters( 'sensei_analysis_user_profile_columns', $columns );
@@ -63,7 +59,6 @@ class Sensei_Analysis_User_Profile_List_Table extends WooThemes_Sensei_List_Tabl
 			'started' => array( 'started', false ),
 			'completed' => array( 'completed', false ),
 			'status' => array( 'status', false ),
-//			'grade' => array( 'grade', false ),
 			'percent' => array( 'percent', false )
 		);
 		$columns = apply_filters( 'sensei_analysis_user_profile_columns_sortable', $columns );
@@ -306,17 +301,17 @@ class Sensei_Analysis_User_Profile_List_Table extends WooThemes_Sensei_List_Tabl
 	/**
 	 * The text for the search button
 	 * @since  1.7.0
-	 * @return void
+	 * @return string
 	 */
 	public function search_button( $text = '' ) {
-		return __( 'Search Courses', 'woothemes-sensei' );;
+		return __( 'Search Courses', 'woothemes-sensei' );
 	}
 
 } // End Class
 
 /**
  * Class WooThemes_Sensei_Analysis_User_Profile_List_Table
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Analysis_User_Profile_List_Table extends WooThemes_Sensei_List_Table {}

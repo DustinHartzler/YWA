@@ -6,10 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the post types and taxonomies in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Core
+ * @author Automattic
+ *
  * @since 1.0.0
  */
 class Sensei_PostTypes {
@@ -202,7 +201,6 @@ class Sensei_PostTypes {
 	 */
 	public function setup_lesson_post_type () {
 
-
 		$supports_array = array( 'title', 'editor', 'excerpt', 'thumbnail', 'page-attributes' );
 		$allow_comments = false;
 		if ( isset( Sensei()->settings->settings[ 'lesson_comments' ] ) ) {
@@ -250,7 +248,6 @@ class Sensei_PostTypes {
 	 * @return void
 	 */
 	public function setup_quiz_post_type () {
-
 
 		$args = array(
 		    'labels' => $this->create_post_type_labels(
@@ -370,7 +367,6 @@ class Sensei_PostTypes {
 	 */
 	public function setup_sensei_message_post_type () {
 
-
 		if( ! isset( Sensei()->settings->settings['messages_disable'] ) || ! Sensei()->settings->settings['messages_disable'] ) {
 
 			$args = array(
@@ -378,7 +374,7 @@ class Sensei_PostTypes {
 			    'public' => true,
 			    'publicly_queryable' => true,
 			    'show_ui' => true,
-			    'show_in_menu' => 'sensei',
+			    'show_in_menu' => 'admin.php?page=sensei',
 			    'show_in_nav_menus' => true,
 			    'query_var' => true,
 			    'exclude_from_search' => true,
@@ -452,6 +448,7 @@ class Sensei_PostTypes {
 	 * @return void
 	 */
 	public function setup_quiz_type_taxonomy () {
+
 		// "Quiz Types" Custom Taxonomy
 		$labels = array(
 			'name' => _x( 'Quiz Types', 'taxonomy general name', 'woothemes-sensei' ),
@@ -487,6 +484,7 @@ class Sensei_PostTypes {
 	 * @return void
 	 */
 	public function setup_question_type_taxonomy () {
+
 		// "Question Types" Custom Taxonomy
 		$labels = array(
 			'name' => _x( 'Question Types', 'taxonomy general name', 'woothemes-sensei' ),
@@ -621,6 +619,9 @@ class Sensei_PostTypes {
 	 * @return array            An array of the labels to be used
 	 */
 	private function create_post_type_labels ( $singular, $plural, $menu ) {
+
+		$lower_case_plural =  function_exists( 'mb_strtolower' ) ? mb_strtolower( $plural, 'UTF-8') :  strtolower( $plural );
+
 		$labels = array(
 		    'name' => sprintf( _x( '%s', 'post type general name', 'woothemes-sensei' ), $plural ),
 		    'singular_name' => sprintf( _x( '%s', 'post type singular name', 'woothemes-sensei' ), $singular ),
@@ -631,8 +632,8 @@ class Sensei_PostTypes {
 		    'all_items' => sprintf( __( 'All %s', 'woothemes-sensei' ), $plural ),
 		    'view_item' => sprintf( __( 'View %s', 'woothemes-sensei' ), $singular ),
 		    'search_items' => sprintf( __( 'Search %s', 'woothemes-sensei' ), $plural ),
-		    'not_found' =>  sprintf( __( 'No %s found', 'woothemes-sensei' ), mb_strtolower( $plural, 'UTF-8') ),
-		    'not_found_in_trash' => sprintf( __( 'No %s found in Trash', 'woothemes-sensei' ), mb_strtolower( $plural, 'UTF-8') ),
+		    'not_found' =>  sprintf( __( 'No %s found', 'woothemes-sensei' ), $lower_case_plural ) ,
+		    'not_found_in_trash' => sprintf( __( 'No %s found in Trash', 'woothemes-sensei' ),  $lower_case_plural ),
 		    'parent_item_colon' => '',
 		    'menu_name' => sprintf( __( '%s', 'woothemes-sensei' ), $menu )
 		  );
@@ -796,7 +797,7 @@ class Sensei_PostTypes {
 
 /**
  * Class WooThemes_Sensei_PostTypes
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_PostTypes extends Sensei_PostTypes{}

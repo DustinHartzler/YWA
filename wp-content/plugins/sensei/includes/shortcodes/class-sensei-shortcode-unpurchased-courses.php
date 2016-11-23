@@ -7,10 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * This class is loaded int WP by the shortcode loader class.
  *
  * @class Sensei_Shortcode_Unpurchased_Courses
+ *
+ * @package Content
+ * @subpackage Shortcode
+ * @author Automattic
+ *
  * @since 1.9.0
- * @package Sensei
- * @category Shortcodes
- * @author 	WooThemes
  */
 class Sensei_Shortcode_Unpurchased_Courses implements Sensei_Shortcode_Interface {
 
@@ -129,13 +131,13 @@ class Sensei_Shortcode_Unpurchased_Courses implements Sensei_Shortcode_Interface
             $anchor_before = '<a href="' . esc_url( sensei_user_login_url() ) . '" >';
             $anchor_after = '</a>';
             $notice = sprintf(
-                __('You must be logged in to view the non-purchased courses. Click here to %slogin%s.'),
+                __('You must be logged in to view the non-purchased courses. Click here to %slogin%s.', 'woothemes-sensei' ),
                 $anchor_before,
                 $anchor_after
             );
 
             Sensei()->notices->add_notice( $notice, 'info' );
-            Sensei()->notices->print_notices();
+            Sensei()->notices->maybe_print_notices();
 
             return '';
 
@@ -147,7 +149,7 @@ class Sensei_Shortcode_Unpurchased_Courses implements Sensei_Shortcode_Interface
         $wp_query = $this->query;
 
         ob_start();
-        Sensei()->notices->print_notices();
+        Sensei()->notices->maybe_print_notices();
         Sensei_Templates::get_template('loop-course.php');
         $shortcode_output =  ob_get_clean();
 

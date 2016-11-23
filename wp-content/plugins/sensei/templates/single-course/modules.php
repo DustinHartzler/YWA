@@ -46,10 +46,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                  * are no modules to show.
                  *
                  * @since 1.9.0
+                 * @since 1.9.7 Added the module ID to the parameters.
                  *
                  * @hooked Sensei()->modules->course_modules_title - 20
+                 *
+                 * @param int sensei_get_the_module_id() Module ID.
                  */
-                do_action('sensei_single_course_modules_inside_before');
+                do_action( 'sensei_single_course_modules_inside_before', sensei_get_the_module_id() );
 
                 ?>
 
@@ -69,6 +72,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
                 <section class="entry">
 
+                    <?php sensei_the_module_status(); ?>
+
                     <section class="module-lessons">
 
                         <header>
@@ -81,11 +86,19 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
                             <?php while( sensei_module_has_lessons() ): the_post(); ?>
 
-                                <li class="' . $status . '">
+                                <li class="<?php sensei_the_lesson_status_class();?>">
 
                                     <a href="<?php the_permalink(); ?>" title="<?php the_title_attribute() ?>" >
 
                                         <?php the_title(); ?>
+
+	                                    <?php
+	                                    $course_id = Sensei()->lesson->get_course_id( get_the_ID() );
+	                                    if ( Sensei_Utils::is_preview_lesson( get_the_ID() ) && ! Sensei_Utils::user_started_course( $course_id, get_current_user_id() )  ) { ?>
+
+	                                        <span class="preview-label"><?php _e( 'Free Preview', 'woothemes-sensei' ); ?></span>
+
+                                        <?php } ?>
 
                                     </a>
 
@@ -108,9 +121,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                  * This hook will not trigger if there are no modules to show.
                  *
                  * @since 1.9.0
+                 * @since 1.9.7 Added the module ID to the parameters.
                  *
+                 * @param int sensei_get_the_module_id() Module ID.
                  */
-                do_action('sensei_single_course_modules_inside_after');
+                do_action( 'sensei_single_course_modules_inside_after', sensei_get_the_module_id() );
 
                 ?>
 

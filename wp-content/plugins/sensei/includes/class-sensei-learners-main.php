@@ -6,13 +6,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the Admin Learners Overview Data Table in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Assessment
+ * @author Automattic
+ *
  * @since 1.3.0
  */
 class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
+
 	public $course_id = 0;
 	public $lesson_id = 0;
 	public $view = 'courses';
@@ -21,7 +21,6 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
 	/**
 	 * Constructor
 	 * @since  1.6.0
-	 * @return  void
 	 */
 	public function __construct ( $course_id = 0, $lesson_id = 0 ) {
 		$this->course_id = intval( $course_id );
@@ -212,11 +211,19 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
      *
 	 * @param object $item The current item
      *
-     * @return void
+     * @return array $column_data
 	 */
 	protected function get_row_data( $item ) {
 		global $wp_version;
 
+		if( ! $item ) {
+			return array(
+				'title' => __( 'No results found', 'woothemes-sensei' ),
+				'num_learners' => '',
+				'updated' => '',
+				'actions' => '',
+			);
+		}
 		switch ( $this->view ) {
 			case 'learners' :
 
@@ -248,7 +255,7 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
 
 				}
 
-                $title = Sensei_Student::get_full_name( $user_activity->user_id );
+                $title = Sensei_Learner::get_full_name( $user_activity->user_id );
 				$a_title = sprintf( __( 'Edit &#8220;%s&#8221;' ), $title );
 
                 /**
@@ -303,7 +310,7 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
 				}
 
 				$column_data = apply_filters( 'sensei_learners_main_column_data', array(
-						'title' => '<strong><a class="row-title" href="' . admin_url( 'post.php?action=edit&post=' . $item->ID ) . '" title="' . esc_attr( $a_title ) . '">' . $title . '</a></strong>',
+						'title' => '<strong><a class="row-title" href="' . esc_url( add_query_arg( array( 'page' => 'sensei_learners', 'course_id' => $item->ID, 'view' => 'learners' ), admin_url( 'admin.php') ) )  . '" title="' . esc_attr( $a_title ) . '">' . $title . '</a></strong>',
 						'num_learners' => $course_learners,
 						'updated' => $item->post_modified,
 						'actions' => '<a class="button" href="' . esc_url( add_query_arg( array( 'page' => $this->page_slug, 'course_id' => $item->ID, 'view' => 'learners' ), admin_url( 'admin.php' ) ) ) . '">' . __( 'Manage learners', 'woothemes-sensei' ) . '</a> ' . $grading_action,
@@ -634,7 +641,7 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
 	/**
 	 * The text for the search button
 	 * @since  1.7.0
-	 * @return void
+	 * @return string $text
 	 */
 	public function search_button( $text = '' ) {
 
@@ -659,7 +666,7 @@ class Sensei_Learners_Main extends WooThemes_Sensei_List_Table {
 
 /**
  * Class WooThemes_Sensei_Learners_Main
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Learners_Main extends Sensei_Learners_Main {}

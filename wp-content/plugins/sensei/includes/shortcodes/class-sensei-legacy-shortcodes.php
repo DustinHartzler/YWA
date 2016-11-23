@@ -7,6 +7,13 @@
  * version 1.9
  *
  * These shortcodes will soon be deprecated.
+ *
+ * @package Content
+ * @subpackage Shortcode
+ * @author Automattic
+ *
+ * @since		1.6.0
+ *
  */
 class Sensei_Legacy_Shortcodes {
 
@@ -51,7 +58,7 @@ class Sensei_Legacy_Shortcodes {
      */
     public static function paid_courses( $atts, $content = null ) {
 
-        return self::generate_shortcode_courses( 'Paid Courses', 'paidcourses' );
+        return self::generate_shortcode_courses( __( 'Paid Courses', 'woothemes-sensei' ), 'paidcourses' );
 
     } // End paid_courses()
 
@@ -66,7 +73,7 @@ class Sensei_Legacy_Shortcodes {
      */
     public static function featured_courses( $atts, $content = null ) {
 
-        return self::generate_shortcode_courses( 'Featured Courses', 'featuredcourses' );
+        return self::generate_shortcode_courses( __( 'Featured Courses', 'woothemes-sensei' ), 'featuredcourses' );
 
     } // End featured_courses()
 
@@ -80,7 +87,7 @@ class Sensei_Legacy_Shortcodes {
      */
     public static function free_courses( $atts, $content = null ) {
 
-        return self::generate_shortcode_courses( 'Free Courses', 'freecourses' );
+        return self::generate_shortcode_courses( __( 'Free Courses', 'woothemes-sensei' ), 'freecourses' );
 
     } // End free_courses()
 
@@ -94,7 +101,7 @@ class Sensei_Legacy_Shortcodes {
      */
     public static function new_courses( $atts, $content = null ) {
 
-        return self::generate_shortcode_courses( 'New Courses', 'newcourses' );
+        return self::generate_shortcode_courses( __( 'New Courses', 'woothemes-sensei' ), 'newcourses' );
 
     } // End new_courses()
 
@@ -312,7 +319,8 @@ class Sensei_Legacy_Shortcodes {
     public static function the_course( $course_id ){
 
         // Get meta data
-        $course =  get_post( $course_id );
+        $course_data = get_post( $course_id );
+        $course =  apply_filters( 'sensei_courses_shortcode_course_data', $course_data );
         $user_info = get_userdata( absint( $course->post_author ) );
         $author_link = get_author_posts_url( absint( $course->post_author ) );
         $author_display_name = $user_info->display_name;
@@ -324,8 +332,8 @@ class Sensei_Legacy_Shortcodes {
 
         <article class="<?php echo esc_attr( join( ' ', get_post_class( array( 'course', 'post' ), $course_id ) ) ); ?>">
             <?php
-            // so that legacy shortcodes work with thir party plugins that wants to hook in
-            do_action('sensei_course_content_before',$course );
+            // so that legacy shortcodes work with the party plugins that wants to hook in
+            do_action('sensei_course_content_before',$course->ID );
             ?>
             <div class="course-content">
 

@@ -6,10 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the teacher role.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Users
+ * @author Automattic
  * @since 1.0.0
  */
 class Sensei_Teacher {
@@ -85,8 +83,8 @@ class Sensei_Teacher {
         add_filter( 'request', array( $this, 'restrict_media_library' ), 10, 1 );
         add_filter( 'ajax_query_attachments_args', array( $this, 'restrict_media_library_modal' ), 10, 1 );
 
-        // update lesson owner to course teacher when saved
-        add_action( 'save_post',  array( $this, 'update_lesson_teacher' ) );
+        // update lesson owner to course teacher before insert
+        add_filter( 'wp_insert_post_data',  array( $this, 'update_lesson_teacher' ), '99', 2 );
 
         // If a Teacher logs in, redirect to /wp-admin/
         add_filter( 'wp_login', array( $this, 'teacher_login_redirect') , 10, 2 );
@@ -368,7 +366,7 @@ class Sensei_Teacher {
     public static function update_course_modules_author( $course_id ,$new_teacher_id ){
 
         if( empty( $course_id ) || empty( $new_teacher_id ) ){
-            return false;
+            return;
         }
 
         $terms_selected_on_course = wp_get_object_terms( $course_id, 'module' );
@@ -830,8 +828,8 @@ class Sensei_Teacher {
         }
 
         // load the email class
-        include('emails/class-woothemes-sensei-teacher-new-course-assignment.php');
-        $email = new Teacher_New_Course_Assignment();
+        include('emails/class-sensei-email-teacher-new-course-assignment.php');
+        $email = new Sensei_Email_Teacher_New_Course_Assignment();
         $email->trigger( $teacher_id, $course_id );
 
         return true;
@@ -850,7 +848,7 @@ class Sensei_Teacher {
 
         $course_id = $post->ID;
 
-        if( 'course' != get_post_type( $course_id ) || 'auto-draft' == get_post_status( $course_id )
+        if( 'publish'== $old_status || 'course' != get_post_type( $course_id ) || 'auto-draft' == get_post_status( $course_id )
             || 'trash' == get_post_status( $course_id ) || 'draft' == get_post_status( $course_id ) ) {
 
             return false;
@@ -877,9 +875,11 @@ class Sensei_Teacher {
         $recipient = get_option('admin_email', true);
 
         // don't send if the course is created by admin
-        if( $recipient == $teacher->user_email ){
-            return;
+        if( $recipient == $teacher->user_email || current_user_can( 'manage_options' )){
+            return false;
         }
+
+        do_action('sensei_before_mail', $recipient);
 
         /**
          * Filter the email Header for the admin-teacher-new-course-created template
@@ -925,6 +925,8 @@ class Sensei_Teacher {
 
         // Send mail
         Sensei()->emails->send( $recipient, $subject , Sensei()->emails->get_content( $template ) );
+
+        do_action('sensei_after_sending_email');
 
     }// end notify admin of course creation
 
@@ -1338,29 +1340,29 @@ class Sensei_Teacher {
      *
      * @param int $lesson_id
      */
-    public function update_lesson_teacher( $lesson_id ){
+    public function update_lesson_teacher( $data, $postarr = array() ){
 
-        if( 'lesson'!= get_post_type() ){
-            return;
+        if( 'lesson' != $data['post_type'] ){
+            return $data;
         }
 
-        // this should only run once per request cycle
-        remove_action( 'save_post',  array( $this, 'update_lesson_teacher' ) );
+        $lesson_id = isset( $postarr['ID'] ) ? $postarr['ID'] : null;
+
+        if ( empty( $lesson_id ) || ! $lesson_id ) {
+          return $data;
+        }
 
         $course_id = Sensei()->lesson->get_course_id( $lesson_id );
 
         if(  empty( $course_id ) || ! $course_id ){
-            return;
+            return $data;
         }
 
         $course = get_post( $course_id );
 
-        $lesson_update_args= array(
-            'ID' => $lesson_id ,
-            'post_author' => $course->post_author
-        );
-        wp_update_post( $lesson_update_args );
+        $data['post_author'] = $course->post_author;
 
+        return $data;
     } // end update_lesson_teacher
 
     /**
@@ -1502,10 +1504,10 @@ class Sensei_Teacher {
      * @since 1.8.7
      * @access public
      * @parameters obj $clauses
-     * @return obj $clauses
+     * @return WP_Comment_Query  $clauses
      */
 
-    public function restrict_comment_moderation($clauses) {
+    public function restrict_comment_moderation ( $clauses ) {
 
         global $pagenow;
 

@@ -6,10 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the Admin Grading in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Assessment
+ * @author Automattic
+ *
  * @since 1.3.0
  */
 class Sensei_Grading {
@@ -41,7 +40,6 @@ class Sensei_Grading {
 			add_action( 'admin_init', array( $this, 'admin_process_grading_submission' ) );
 
 			add_action( 'admin_notices', array( $this, 'add_grading_notices' ) );
-//			add_action( 'sensei_grading_notices', array( $this, 'sensei_grading_notices' ) );
 		} // End If Statement
 
 		// Ajax functions
@@ -75,7 +73,6 @@ class Sensei_Grading {
 	 * @return void
 	 */
 	public function enqueue_scripts () {
-
 
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
@@ -220,7 +217,6 @@ class Sensei_Grading {
 		?>
 		<div id="poststuff" class="sensei-grading-wrap user-profile">
 			<div class="sensei-grading-main">
-				<?php // do_action( 'sensei_grading_notices' ); ?>
 				<?php $sensei_grading_user_profile->display(); ?>
 			</div>
 		</div>
@@ -232,16 +228,13 @@ class Sensei_Grading {
 	/**
 	 * Outputs Grading general headers
 	 * @since  1.3.0
+     * @param array $args
 	 * @return void
 	 */
 	public function grading_headers( $args = array( 'nav' => 'default' ) ) {
 
-
 		$function = 'grading_' . $args['nav'] . '_nav';
 		$this->$function();
-		?>
-			<p class="powered-by-woo"><?php _e( 'Powered by', 'woothemes-sensei' ); ?><a href="http://www.woothemes.com/" title="WooThemes"><img src="<?php echo Sensei()->plugin_url; ?>assets/images/woothemes.png" alt="WooThemes" /></a></p>
-		<?php
 		do_action( 'sensei_grading_after_headers' );
 	} // End grading_headers()
 
@@ -265,14 +258,14 @@ class Sensei_Grading {
 	 * @return void
 	 */
 	public function grading_default_nav() {
+
 		global  $wp_version;
 
-		$title = sprintf( '<a href="%s">%s</a>', esc_url(add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ) ), esc_html( $this->name ) );
+		$title = $this->name;
 		if ( isset( $_GET['course_id'] ) ) { 
 			$course_id = intval( $_GET['course_id'] );
 			if ( version_compare($wp_version, '4.1', '>=') ) {
-				$url = add_query_arg( array( 'page' => $this->page_slug, 'course_id' => $course_id ), admin_url( 'admin.php' ) );
-				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
+				$title .= '<span class="course-title">&gt;&nbsp;&nbsp;'.get_the_title( $course_id ).'</span>';
 			}
 			else {
 				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;%s</span>', get_the_title( $course_id ) ); 
@@ -284,12 +277,12 @@ class Sensei_Grading {
 		}
 		if ( isset( $_GET['user_id'] ) && 0 < intval( $_GET['user_id'] ) ) {
 
-            $user_name = Sensei_Student::get_full_name( $_GET['user_id'] );
+            $user_name = Sensei_Learner::get_full_name( $_GET['user_id'] );
 			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_name . '</span>';
 
 		} // End If Statement
 		?>
-			<h2><?php echo apply_filters( 'sensei_grading_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_grading_nav_title', $title ); ?></h1>
 		<?php
 	} // End grading_default_nav()
 
@@ -301,7 +294,7 @@ class Sensei_Grading {
 	public function grading_user_quiz_nav() {
 		global  $wp_version;
 
-		$title = sprintf( '<a href="%s">%s</a>', add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ), esc_html( $this->name ) );
+		$title =  $this->name;
 		if ( isset( $_GET['quiz_id'] ) ) { 
 			$quiz_id = intval( $_GET['quiz_id'] );
 			$lesson_id = get_post_meta( $quiz_id, '_quiz_lesson', true );
@@ -318,7 +311,7 @@ class Sensei_Grading {
 		}
 		if ( isset( $_GET['user'] ) && 0 < intval( $_GET['user'] ) ) {
 
-            $user_name = Sensei_Student::get_full_name( $_GET['user'] );
+            $user_name = Sensei_Learner::get_full_name( $_GET['user'] );
 			$title .= '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;' . $user_name . '</span>';
 
 		} // End If Statement
@@ -599,17 +592,12 @@ class Sensei_Grading {
         if( $_POST['all_questions_graded'] == 'yes' ) {
 
             // set the users total quiz grade
-			if ( 0 < intval( $quiz_grade_total ) ) {
-            $grade = abs( round( ( doubleval( $quiz_grade ) * 100 ) / ( $quiz_grade_total ), 2 ) );
-			}
-			else {
-				$grade = 0;
-			}
+			$grade = Sensei_Utils::quotient_as_absolute_rounded_percentage( $quiz_grade, $quiz_grade_total, 2 );
             Sensei_Utils::sensei_grade_quiz( $quiz_id, $grade, $user_id );
 
             // Duplicating what Frontend->sensei_complete_quiz() does
             $pass_required = get_post_meta( $quiz_id, '_pass_required', true );
-            $quiz_passmark = abs( round( doubleval( get_post_meta( $quiz_id, '_quiz_passmark', true ) ), 2 ) );
+            $quiz_passmark = Sensei_Utils::as_absolute_rounded_number( get_post_meta( $quiz_id, '_quiz_passmark', true ), 2 );
             $lesson_metadata = array();
             if ( $pass_required ) {
                 // Student has reached the pass mark and lesson is complete
@@ -779,15 +767,8 @@ class Sensei_Grading {
 
         // Only if the whole quiz was autogradable do we set a grade
         if ( $quiz_autogradable ) {
-
             $quiz_total = Sensei_Utils::sensei_get_quiz_total( $quiz_id );
-			// Check for zero total from grades
-			if ( 0 < $quiz_total ) {
-            $grade = abs( round( ( doubleval( $grade_total ) * 100 ) / ( $quiz_total ), 2 ) );
-			}
-			else {
-				$grade = 0;
-			}
+			$grade = Sensei_Utils::quotient_as_absolute_rounded_percentage( $grade_total, $quiz_total, 2 );
             Sensei_Utils::sensei_grade_quiz( $quiz_id, $grade, $user_id, $quiz_grade_type );
 
         } else {
@@ -986,11 +967,126 @@ class Sensei_Grading {
 
     }
 
+    /**
+     * Counts the lessons that have been graded manually and automatically
+     *
+     * @since 1.9.0
+     * @return int $number_of_graded_lessons
+     */
+    public static function get_graded_lessons_count(){
+
+        global $wpdb;
+
+        $comment_query_piece[ 'select']  = "SELECT   COUNT(*) AS total";
+        $comment_query_piece[ 'from']    = " FROM {$wpdb->comments}  INNER JOIN {$wpdb->commentmeta}  ON ( {$wpdb->comments}.comment_ID = {$wpdb->commentmeta}.comment_id ) ";
+        $comment_query_piece[ 'where']   = " WHERE {$wpdb->comments}.comment_type IN ('sensei_lesson_status') AND ( {$wpdb->commentmeta}.meta_key = 'grade')";
+        $comment_query_piece[ 'orderby'] = " ORDER BY {$wpdb->comments}.comment_date_gmt DESC ";
+
+        $comment_query = $comment_query_piece['select'] . $comment_query_piece['from'] . $comment_query_piece['where'] . $comment_query_piece['orderby'];
+        $number_of_graded_lessons = intval( $wpdb->get_var( $comment_query, 0, 0 ) );
+
+        return $number_of_graded_lessons;
+    }
+
+    /**
+     * Add together all the graded lesson grades
+     *
+     * @since 1.9.0
+     * @return double $sum_of_all_grades
+     */
+    public static function get_graded_lessons_sum(){
+
+        global $wpdb;
+
+        $comment_query_piece[ 'select']  = "SELECT SUM({$wpdb->commentmeta}.meta_value) AS meta_sum";
+        $comment_query_piece[ 'from']    = " FROM {$wpdb->comments}  INNER JOIN {$wpdb->commentmeta}  ON ( {$wpdb->comments}.comment_ID = {$wpdb->commentmeta}.comment_id ) ";
+        $comment_query_piece[ 'where']   = " WHERE {$wpdb->comments}.comment_type IN ('sensei_lesson_status') AND ( {$wpdb->commentmeta}.meta_key = 'grade')";
+        $comment_query_piece[ 'orderby'] = " ORDER BY {$wpdb->comments}.comment_date_gmt DESC ";
+
+        $comment_query = $comment_query_piece['select'] . $comment_query_piece['from'] . $comment_query_piece['where'] . $comment_query_piece['orderby'];
+        $sum_of_all_grades = intval( $wpdb->get_var( $comment_query, 0, 0 ) );
+
+        return $sum_of_all_grades;
+
+    }
+
+    /**
+     * Get the sum of all grades for the given user.
+     *
+     * @since 1.9.0
+     * @param $user_id
+     * @return double
+     */
+    public static function get_user_graded_lessons_sum( $user_id ){
+        global $wpdb;
+
+        $clean_user_id = esc_sql( $user_id);
+        $comment_query_piece[ 'select']  = "SELECT SUM({$wpdb->commentmeta}.meta_value) AS meta_sum";
+        $comment_query_piece[ 'from']    = " FROM {$wpdb->comments}  INNER JOIN {$wpdb->commentmeta}  ON ( {$wpdb->comments}.comment_ID = {$wpdb->commentmeta}.comment_id ) ";
+        $comment_query_piece[ 'where']   = " WHERE {$wpdb->comments}.comment_type IN ('sensei_lesson_status') AND ( {$wpdb->commentmeta}.meta_key = 'grade') AND {$wpdb->comments}.user_id = {$clean_user_id} ";
+        $comment_query_piece[ 'orderby'] = " ORDER BY {$wpdb->comments}.comment_date_gmt DESC ";
+
+        $comment_query = $comment_query_piece['select'] . $comment_query_piece['from'] . $comment_query_piece['where'] . $comment_query_piece['orderby'];
+        $sum_of_all_grades = intval( $wpdb->get_var( $comment_query, 0, 0 ) );
+
+        return $sum_of_all_grades;
+    }
+
+    /**
+     * Get the sum of all user grades for the given lesson.
+     *
+     * @since 1.9.0
+     *
+     * @param int lesson_id
+     * @return double
+     */
+    public static function get_lessons_users_grades_sum( $lesson_id ){
+
+        global $wpdb;
+
+        $clean_lesson_id = esc_sql( $lesson_id);
+        $comment_query_piece[ 'select']  = "SELECT SUM({$wpdb->commentmeta}.meta_value) AS meta_sum";
+        $comment_query_piece[ 'from']    = " FROM {$wpdb->comments}  INNER JOIN {$wpdb->commentmeta}  ON ( {$wpdb->comments}.comment_ID = {$wpdb->commentmeta}.comment_id ) ";
+        $comment_query_piece[ 'where']   = " WHERE {$wpdb->comments}.comment_type IN ('sensei_lesson_status') AND ( {$wpdb->commentmeta}.meta_key = 'grade') AND {$wpdb->comments}.comment_post_ID = {$clean_lesson_id} ";
+        $comment_query_piece[ 'orderby'] = " ORDER BY {$wpdb->comments}.comment_date_gmt DESC ";
+
+        $comment_query = $comment_query_piece['select'] . $comment_query_piece['from'] . $comment_query_piece['where'] . $comment_query_piece['orderby'];
+        $sum_of_all_grades = intval( $wpdb->get_var( $comment_query, 0, 0 ) );
+
+        return $sum_of_all_grades;
+
+    }//get_lessons_user_grades_sum
+
+    /**
+     * Get the sum of all user grades for the given course.
+     *
+     * @since 1.9.0
+     *
+     * @param int $course_id
+     * @return double
+     */
+    public static function get_course_users_grades_sum( $course_id ){
+
+        global $wpdb;
+
+        $clean_course_id = esc_sql( $course_id);
+        $comment_query_piece[ 'select']  = "SELECT SUM({$wpdb->commentmeta}.meta_value) AS meta_sum";
+        $comment_query_piece[ 'from']    = " FROM {$wpdb->comments}  INNER JOIN {$wpdb->commentmeta}  ON ( {$wpdb->comments}.comment_ID = {$wpdb->commentmeta}.comment_id ) ";
+        $comment_query_piece[ 'where']   = " WHERE {$wpdb->comments}.comment_type IN ('sensei_course_status') AND ( {$wpdb->commentmeta}.meta_key = 'percent') AND {$wpdb->comments}.comment_post_ID = {$clean_course_id} ";
+        $comment_query_piece[ 'orderby'] = " ORDER BY {$wpdb->comments}.comment_date_gmt DESC ";
+
+        $comment_query = $comment_query_piece['select'] . $comment_query_piece['from'] . $comment_query_piece['where'] . $comment_query_piece['orderby'];
+        $sum_of_all_grades = intval( $wpdb->get_var( $comment_query, 0, 0 ) );
+
+        return $sum_of_all_grades;
+
+    }//get_lessons_user_grades_sum
+
 } // End Class
 
 /**
  * Class WooThemes_Sensei_Grading
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Grading extends Sensei_Grading{}

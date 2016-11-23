@@ -227,7 +227,7 @@ jQuery(document).ready( function($) {
  	}
 
  	/**
- 	 * Save rnadom question order for quiz
+ 	 * Save random question order for quiz
  	 *
  	 * @since 1.5.0
  	 * access public
@@ -633,8 +633,7 @@ jQuery(document).ready( function($) {
 	 						jQuery( '#lesson-course-actions' ).show();
 							jQuery( '#lesson-course-details' ).addClass( 'hidden' );
 							jQuery( '#lesson-course-options' ).append(jQuery( '<option></option>' ).attr( 'value' , response ).text(  jQuery( '#course-title' ).attr( 'value' ) ) );
-							jQuery( '#lesson-course-options' ).val( response );
-							jQuery( '#lesson-course-options' ).trigger( 'chosen:updated' );
+							jQuery( '#lesson-course-options' ).val( response).trigger("change");;
 	 					} else {
 	 						// TODO - course creation fail message
 	 					}
@@ -1299,7 +1298,7 @@ jQuery(document).ready( function($) {
 
 	jQuery( '#add-question-main' ).on( 'click', '.add_wrong_answer_option', function() {
 		var question_counter = jQuery( this ).attr( 'rel' );
-		var answer_count = jQuery( this ).closest( 'div.multiple-choice-answers' ).find( '.wrong_answer_count' ).text();
+		var answer_count = jQuery('input[name="question_wrong_answers[]"]').length-1;
 		answer_count++;
 		var html = '<label class="answer" for="question_' + question_counter + '_wrong_answer_' + answer_count + '"><span>' + woo_localized_data.wrong_colon + '</span> <input type="text" id="question_' + question_counter + '_wrong_answer_' + answer_count + '" name="question_wrong_answers[]" value="" size="25" class="question_answer widefat" /> <a class="remove_answer_option"></a></label>';
 		jQuery( this ).closest( 'div' ).before( html );
@@ -1307,7 +1306,7 @@ jQuery(document).ready( function($) {
 
 	jQuery( '#add-question-main' ).on( 'click', '.add_right_answer_option', function() {
 		var question_counter = jQuery( this ).attr( 'rel' );
-		var answer_count = jQuery( this ).closest( 'div.multiple-choice-answers' ).find( '.right_answer_count' ).text();
+		var answer_count = jQuery('input[name="question_right_answers[]"]').length-1;
 		answer_count++;
 		var html = '<label class="answer" for="question_' + question_counter + '_right_answer_' + answer_count + '"><span>' + woo_localized_data.right_colon + '</span> <input type="text" id="question_' + question_counter + '_right_answer_' + answer_count + '" name="question_right_answers[]" value="" size="25" class="question_answer widefat" /> <a class="remove_answer_option"></a></label>';
 		jQuery( this ).closest( 'div' ).before( html );

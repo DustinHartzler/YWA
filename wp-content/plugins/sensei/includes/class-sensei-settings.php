@@ -6,10 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the settings in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Core
+ * @author Automattic
+ *
  * @since 1.0.0
  */
 class Sensei_Settings extends Sensei_Settings_API {
@@ -18,7 +17,6 @@ class Sensei_Settings extends Sensei_Settings_API {
 	 * Constructor.
 	 * @access public
 	 * @since 1.0.0
-	 * @return void
 	 */
 	public function __construct () {
 	    parent::__construct(); // Required in extended classes.
@@ -57,6 +55,20 @@ class Sensei_Settings extends Sensei_Settings_API {
         }
 
         return false;
+    }
+
+    /**
+     * @since 1.9.0
+     *
+     * @param $setting
+     * @param $new_value
+     */
+    public function set( $setting, $new_value ){
+    	
+        $settings = get_option( $this->token, array() );
+		$settings[ $setting ] = $new_value;
+		return update_option( $this->token,$settings );
+
     }
 
 	/**
@@ -202,6 +214,14 @@ class Sensei_Settings extends Sensei_Settings_API {
 		$fields['js_disable'] = array(
 								'name' => __( 'Disable Sensei Javascript', 'woothemes-sensei' ),
 								'description' => __( 'Prevent the frontend javascript from loading. This affects the progress bars and the My Courses tabs.', 'woothemes-sensei' ),
+								'type' => 'checkbox',
+								'default' => false,
+								'section' => 'default-settings'
+								);
+
+		$fields['sensei_video_embed_html_sanitization_disable'] = array(
+								'name' => __( 'Disable HTML security', 'woothemes-sensei' ),
+								'description' => __( 'Allow all kind of HTML tags in Video Embed. Security Caution: Enabling this indicates a risk of XSS attacks!', 'woothemes-sensei' ),
 								'type' => 'checkbox',
 								'default' => false,
 								'section' => 'default-settings'
@@ -557,27 +577,11 @@ class Sensei_Settings extends Sensei_Settings_API {
 								'required' => 1
 								);
 
-		if ( Sensei_WC::is_woocommerce_active() ) {
+		if ( Sensei_WC::is_woocommerce_present() ) {
 			// WooCommerce Settings
     		$fields['woocommerce_enabled'] = array(
 									'name' => __( 'Enable WooCommerce Courses', 'woothemes-sensei' ),
 									'description' => __( 'Use WooCommerce to sell Courses by linking a Product to a Course.', 'woothemes-sensei' ),
-									'type' => 'checkbox',
-									'default' => true,
-									'section' => 'woocommerce-settings'
-									);
-
-			$fields['course_archive_free_enable'] = array(
-									'name' => __( 'Free Courses Panel', 'woothemes-sensei' ),
-									'description' => __( 'Output the Free Courses Panel on the Course Archive Page.', 'woothemes-sensei' ),
-									'type' => 'checkbox',
-									'default' => true,
-									'section' => 'woocommerce-settings'
-									);
-
-			$fields['course_archive_paid_enable'] = array(
-									'name' => __( 'Paid Courses Panel', 'woothemes-sensei' ),
-									'description' => __( 'Output the Paid Courses Panel on the Course Archive Page.', 'woothemes-sensei' ),
 									'type' => 'checkbox',
 									'default' => true,
 									'section' => 'woocommerce-settings'
@@ -691,7 +695,7 @@ class Sensei_Settings extends Sensei_Settings_API {
 
 /**
  * Class WooThemes_Sensei_Settings
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Settings extends Sensei_Settings{}

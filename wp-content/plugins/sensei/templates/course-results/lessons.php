@@ -31,7 +31,7 @@ global $course;
 
     </header>
 
-    <article class="<?php  esc_attr_e( join( ' ', get_post_class( array( 'course', 'post' ), $course->ID ) ) ); ?> ">
+    <article class="<?php echo esc_attr( join( ' ', get_post_class( array( 'course', 'post' ), $course->ID ) ) ); ?> ">
 
         <?php
 
@@ -39,12 +39,17 @@ global $course;
         $modules = Sensei()->modules->get_course_modules( intval( $course->ID ) );
 
         // List modules with lessons
+        $course_has_lessons_in_modules = false;
         foreach( $modules as $module ) {
 
             $lessons_query = Sensei()->modules->get_lessons_query( $course->ID, $module->term_id );
             $lessons = $lessons_query->get_posts();
 
-            if( count( $lessons ) > 0 ) { ?>
+            if( count( $lessons ) > 0 ) {
+
+	            $course_has_lessons_in_modules = true;
+
+	            ?>
 
                 <h3> <?php echo $module->name; ?></h3>
 
@@ -65,10 +70,10 @@ global $course;
                     ?>
                     <h2>
 
-                        <a href="<?php esc_url_raw( get_permalink( $lesson->ID ) ); ?>"
-                           title="<?php esc_attr_e( sprintf( __( 'Start %s', 'woothemes-sensei' ), $lesson->post_title ) ); ?>">
+                        <a href="<?php echo esc_url_raw( get_permalink( $lesson->ID ) ); ?>"
+                           title="<?php echo esc_attr_e( sprintf( __( 'Start %s', 'woothemes-sensei' ), $lesson->post_title ) ); ?>">
 
-                            <?php esc_html_e( $lesson->post_title ); ?>
+                            <?php echo esc_html( $lesson->post_title ); ?>
 
                         </a>
 
@@ -94,7 +99,12 @@ global $course;
 
 			<h3>
 
-                <?php _e( 'Other Lessons', 'woothemes-sensei' ); ?>
+                <?php
+                // lesson title will already appear above
+                if ( $course_has_lessons_in_modules ) {
+	                _e( 'Other Lessons', 'woothemes-sensei' );
+                }
+                ?>
 
             </h3>
 
@@ -106,22 +116,25 @@ global $course;
                 if ( $has_questions ) {
                     $lesson_status = Sensei_Utils::user_lesson_status( $lesson->ID, get_current_user_id());
                     // Get user quiz grade
-                    $lesson_grade = get_comment_meta( $lesson_status->comment_ID, 'grade', true );
-                    if ( $lesson_grade ) {
-                        $lesson_grade .= '%';
-                    }
+	                $lesson_grade = '';
+	                if( ! empty( $lesson_status ) ) {
+		                $lesson_grade = get_comment_meta( $lesson_status->comment_ID, 'grade', true );
+		                if ( $lesson_grade ) {
+			                $lesson_grade .= '%';
+		                }
+	                }
                 }
                 ?>
 
                 <h2>
 
-                    <a href="<?php esc_url_raw( get_permalink( $lesson->ID ) ) ?>" title="<?php esc_attr_e( sprintf( __( 'Start %s', 'woothemes-sensei' ), $lesson->post_title ) ) ?>" >
+                    <a href="<?php echo esc_url_raw( get_permalink( $lesson->ID ) ) ?>" title="<?php esc_attr_e( sprintf( __( 'Start %s', 'woothemes-sensei' ), $lesson->post_title ) ) ?>" >
 
                         <?php esc_html_e( sprintf( __( '%s', 'woothemes-sensei' ), $lesson->post_title ) ); ?>
 
                     </a>
 
-                    <span class="lesson-grade"><?php echo  $lesson_grade; ?> '</span>
+                    <span class="lesson-grade"><?php echo  $lesson_grade; ?></span>
 
                 </h2>
 

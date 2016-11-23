@@ -6,10 +6,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the quiz post type in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Assessment
+ * @author Automattic
+ *
  * @since 1.0.0
  */
  class Sensei_Quiz {
@@ -27,69 +26,66 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 		$this->file = $file;
         $this->token = 'quiz';
 		$this->meta_fields = array( 'quiz_passmark', 'quiz_lesson', 'quiz_type', 'quiz_grade_type', 'pass_required','enable_quiz_reset' );
-		add_action( 'save_post', array( $this, 'update_author' ));
+		add_action( 'save_post', array( $this, 'update_after_lesson_change' ));
 
 		// listen to the reset button click
 		add_action( 'template_redirect', array( $this, 'reset_button_click_listener'  ) );
 
         // fire the complete quiz button submit for grading action
-        add_action( 'sensei_complete_quiz', array( $this, 'user_quiz_submit_listener' ) );
+        add_action( 'sensei_single_quiz_content_inside_before', array( $this, 'user_quiz_submit_listener' ) );
 
 		// fire the save user answers quiz button click responder
-		add_action( 'sensei_complete_quiz', array( $this, 'user_save_quiz_answers_listener' ) );
+		add_action( 'sensei_single_quiz_content_inside_before', array( $this, 'user_save_quiz_answers_listener' ) );
 
         // fire the load global data function
-        add_action( 'sensei_complete_quiz', array( $this, 'load_global_quiz_data' ), 80 );
+        add_action( 'sensei_single_quiz_content_inside_before', array( $this, 'load_global_quiz_data' ), 80 );
 
         add_action( 'template_redirect', array ( $this, 'quiz_has_no_questions') );
 
+		// remove post when lesson is permanently deleted
+		add_action( 'delete_post', array( $this, 'maybe_delete_quiz' ) );
 
     } // End __construct()
 
 	/**
-	* Update the quiz author when the lesson post type is save
+	* Update the quiz data when the lesson is changed
 	*
 	* @param int $post_id
 	* @return void
 	*/
-	public function update_author( $post_id ){
-
+	public function update_after_lesson_change( $post_id ){
 
 		// If this isn't a 'lesson' post, don't update it.
-        // if this is a revision don't save it
-	    if ( isset( $_POST['post_type'] ) && 'lesson' != $_POST['post_type']
-            || wp_is_post_revision( $post_id ) ) {
+		// if this is a revision don't save it
+		if ( ! isset( $_POST['post_type'] )
+		     || 'lesson' !== $_POST['post_type']
+			|| wp_is_post_revision( $post_id ) ) {
+				return;
+		}
 
-                return;
+		// Get the lesson author id to be use late.
+		$saved_lesson           = get_post( $post_id );
+		$new_lesson_author_id = $saved_lesson->post_author;
 
-        }
-	    // get the lesson author id to be use late
-	    $saved_post = get_post( $post_id );
-	    $new_lesson_author_id =  $saved_post->post_author;
+		// Get the lessons quiz.
+		$quiz_id = Sensei()->lesson->lesson_quizzes( $post_id );
+		if ( ! $quiz_id ) {
+			return;
+		}
 
-	    //get the lessons quiz
-		$lesson_quizzes = Sensei()->lesson->lesson_quizzes( $post_id );
-	    foreach ( (array) $lesson_quizzes as $quiz_item ) {
+		// Setup the quiz items new author value.
+		$my_post = array(
+			  'ID'          => $quiz_id,
+			  'post_author' => $new_lesson_author_id,
+			  'post_name' => $saved_lesson->post_name,
+		);
 
-	    	if( ! $quiz_item ) {
-	    		continue;
-	    	}
+		// Remove the action so that it doesn't fire again.
+		remove_action( 'save_post', array( $this, 'update_author' ) );
 
-		    // setup the quiz items new author value
-			$my_post = array(
-			      'ID'           => $quiz_item,
-			      'post_author' =>  $new_lesson_author_id
-			);
-
-            // remove the action so that it doesn't fire again
-            remove_action( 'save_post', array( $this, 'update_author' ));
-
-			// Update the post into the database
-		  	wp_update_post( $my_post );
-	    }
-
-	    return;
-	}// end update_author
+		// Update the post into the database.
+		wp_update_post( $my_post );
+	}
 
 
 	/**
@@ -142,7 +138,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         self::save_user_answers( $quiz_answers, $_FILES , $lesson_id  , get_current_user_id() );
 
         // remove the hook as it should only fire once per click
-        remove_action( 'sensei_complete_quiz', 'user_save_quiz_answers_listener' );
+        remove_action( 'sensei_single_quiz_content_inside_before', 'user_save_quiz_answers_listener' );
 
     } // end user_save_quiz_answers_listener
 
@@ -177,7 +173,6 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 		}
 
-
         // start the lesson before saving the data in case the user has not started the lesson
         $activity_logged = Sensei_Utils::sensei_start_lesson( $lesson_id, $user_id );
 
@@ -193,6 +188,16 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
             // save transient to make retrieval faster
             $transient_key = 'sensei_answers_'.$user_id.'_'.$lesson_id;
             set_transient( $transient_key, $prepared_answers, 10 * DAY_IN_SECONDS );
+
+			//ensure these questions are saved for the user
+			//if saved they should not be overwritten on save
+			// only through reset can they be removed
+			$questions_asked_csv = get_comment_meta( $activity_logged, 'questions_asked', true );
+			if( empty( $questions_asked_csv ) ){
+				$questions_asked_csv = implode( ',', array_keys( $quiz_answers ) );
+				update_comment_meta( $activity_logged, 'questions_asked', $questions_asked_csv );
+			}
+
 
             // update the message showed to user
             Sensei()->frontend->messages = '<div class="sensei-message note">' . __( 'Quiz Saved Successfully.', 'woothemes-sensei' )  . '</div>';
@@ -313,6 +318,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         global $post, $current_user;
         $lesson_id = $this->get_lesson_id( $post->ID );
         $quiz_answers = $_POST[ 'sensei_question' ];
+        $lesson_quiz_questions = Sensei()->lesson->lesson_quiz_questions( $post->ID );
+
+        // Get question keys
+        $quiz_questions = array_fill_keys( wp_list_pluck( $lesson_quiz_questions, 'ID' ), null);
+
+        // Merge user answers and question ids with no value
+        $quiz_answers = $quiz_answers + $quiz_questions;
 
         self::submit_answers_for_grading( $quiz_answers, $_FILES ,  $lesson_id  , $current_user->ID );
 
@@ -348,7 +360,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
         $pass_required = get_post_meta( $post->ID, '_pass_required', true );
 
         // Get quiz pass mark
-        $quiz_passmark = abs( round( doubleval( get_post_meta( $post->ID, '_quiz_passmark', true ) ), 2 ) );
+        $quiz_passmark = Sensei_Utils::as_absolute_rounded_number( get_post_meta( $post->ID, '_quiz_passmark', true ), 2 );
 
         // Get latest quiz answers and grades
         $lesson_id = Sensei()->quiz->get_lesson_id( $post->ID );
@@ -376,14 +388,14 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
         // Build frontend data object for backwards compatibility
         // using this is no longer recommended
-        $this->data->user_quiz_grade = $user_quiz_grade;// Sensei_Quiz::get_user_quiz_grade( $lesson_id, get_current_user_id() );
+        $this->data->user_quiz_grade = $user_quiz_grade;
         $this->data->quiz_passmark = $quiz_passmark;
         $this->data->quiz_lesson = $quiz_lesson_id;
-        $this->data->quiz_grade_type = $quiz_grade_type; // get_post_meta( $quiz_id, '_quiz_grade_type', true );
+        $this->data->quiz_grade_type = $quiz_grade_type;
         $this->data->user_lesson_end = $user_lesson_end;
-        $this->data->user_lesson_complete = $user_lesson_complete; //Sensei_Utils::user_completed_lesson( $lesson_id, get_current_user_id() );
+        $this->data->user_lesson_complete = $user_lesson_complete;
         $this->data->lesson_quiz_questions = $lesson_quiz_questions;
-        $this->data->reset_quiz_allowed = $reset_allowed; // Sensei_Quiz::is_reset_allowed( $lesson_id );
+        $this->data->reset_quiz_allowed = $reset_allowed;
 
     } // end load_global_quiz_data
 
@@ -500,7 +512,9 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
         // Run any action on quiz/lesson reset (previously this didn't occur on resetting a quiz, see resetting a lesson in sensei_complete_lesson()
         do_action( 'sensei_user_lesson_reset', $user_id, $lesson_id );
-        Sensei()->frontend->messages = '<div class="sensei-message note">' . __( 'Quiz Reset Successfully.', 'woothemes-sensei' ) . '</div>';
+	    if( ! is_admin() ) {
+		    Sensei()->notices->add_notice( __( 'Quiz Reset Successfully.', 'woothemes-sensei' ) , 'info');
+	    }
 
         return ( $deleted_answers && $deleted_grades ) ;
 
@@ -554,14 +568,18 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
          $pass_required = get_post_meta( $quiz_id, '_pass_required', true );
 
          // Get the minimum percentage need to pass this quiz
-         $quiz_pass_percentage = abs( round( doubleval( get_post_meta( $quiz_id, '_quiz_passmark', true ) ), 2 ) );
+         $quiz_pass_percentage = Sensei_Utils::as_absolute_rounded_number( get_post_meta( $quiz_id, '_quiz_passmark', true ), 2 );
 
          // Handle Quiz Questions asked
          // This is to ensure we save the questions that we've asked this user and that this can't be change unless
          // the quiz is reset by admin or user( user: only if the setting is enabled ).
          // get the questions asked when when the quiz questions were generated for the user : Sensei_Lesson::lesson_quiz_questions
          $user_lesson_status = Sensei_Utils::user_lesson_status( $lesson_id, $user_id );
-         $questions_asked = get_comment_meta( $user_lesson_status->comment_ID, 'questions_asked', true );
+		if ( ! isset( $user_lesson_status->comment_ID ) ) {
+			$user_lesson_status_id = Sensei_Utils::user_start_lesson( $user_id, $lesson_id );
+			$user_lesson_status = get_comment( $user_lesson_status_id );
+		}
+         $questions_asked = isset(  $user_lesson_status->comment_ID ) ? get_comment_meta( $user_lesson_status->comment_ID, 'questions_asked', true ): array();
          if( empty( $questions_asked ) ){
 
              $questions_asked = array_keys( $quiz_answers );
@@ -659,7 +677,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
       * @param int $question_id
       * @param int  $user_id ( optional )
       *
-      * @return bool $answers_submitted
+      * @return bool|null $answers_submitted
       */
      public function get_user_question_answer( $lesson_id, $question_id, $user_id = 0 ){
 
@@ -686,7 +704,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
              $comment =  Sensei_Utils::sensei_check_for_activity( array( 'post_id' => $question_id, 'user_id' => $user_id, 'type' => 'sensei_user_answer' ), true );
 
              if( ! isset( $comment->comment_content ) ){
-                 return false;
+                 return NULL;
              }
 
              return maybe_unserialize( base64_decode( $comment->comment_content ) );
@@ -1044,7 +1062,6 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
      public function quiz_has_no_questions() {
 
-
          if( ! is_singular( 'quiz' ) )  {
              return;
          }
@@ -1091,10 +1108,11 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
       * Filter the single title and add the Quiz to it.
       *
       * @param string $title
-      * @param int $id title post id
+      * @param int $post_id title post id
+      *
       * @return string $quiz_title
       */
-     public static function single_quiz_title( $title, $post_id ){
+     public static function single_quiz_title( $title, $post_id = 0 ){
 
          if( 'quiz' == get_post_type( $post_id ) ){
 
@@ -1200,8 +1218,13 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
         $lesson_id =  Sensei()->quiz->get_lesson_id( $quiz_id );
         $status = Sensei_Utils::sensei_user_quiz_status_message( $lesson_id , get_current_user_id() );
-        echo '<div class="sensei-message ' . $status['box_class'] . '">' . $status['message'] . '</div>';
+        $message = '<div class="sensei-message ' . $status['box_class'] . '">' . $status['message'] . '</div>';
 
+        if ( !empty( Sensei()->frontend->messages ) ) {
+          $message .= Sensei()->frontend->messages;
+        }
+
+        echo $message;
     }
 
      /**
@@ -1227,7 +1250,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
          global $post, $current_user;
 
-         $lesson_id = (int) get_post_meta( $post->ID, '_quiz_lesson', true );
+	     $lesson_id = Sensei()->quiz->get_lesson_id( $post->ID );
          $lesson_course_id = (int) get_post_meta( $lesson_id, '_lesson_course', true );
          $lesson_prerequisite = (int) get_post_meta( $lesson_id, '_lesson_prerequisite', true );
          $show_actions = true;
@@ -1236,7 +1259,16 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
          //setup quiz grade
          $user_quiz_grade = '';
          if( ! empty( $user_lesson_status  ) ){
-             $user_quiz_grade = get_comment_meta( $user_lesson_status->comment_ID, 'grade', true );
+
+	         // user lesson status can return as an array.
+	         if ( is_array( $user_lesson_status ) ) {
+		         $comment_ID = $user_lesson_status[0]->comment_ID;
+
+	         } else {
+		         $comment_ID = $user_lesson_status->comment_ID;
+	         }
+
+	         $user_quiz_grade = get_comment_meta( $comment_ID, 'grade', true );
          }
 
 
@@ -1326,13 +1358,49 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
      }
 
+	 /**
+	  * @param $lesson_id
+	  *
+	  * @return bool
+	  */
+	 public static function is_pass_required( $lesson_id ) {
+
+		 $quiz_id = Sensei()->lesson->lesson_quizzes( $lesson_id );
+
+         $reset_allowed = get_post_meta( $quiz_id, '_pass_required', true );
+         //backwards compatibility
+         if( 'on' == $reset_allowed ) {
+	         $reset_allowed = 1;
+         }
+
+         return (bool) $reset_allowed;
+	 }
+
+	 /**
+	  * @since 1.9.5
+	  *
+	  * @param integer $post_id of the post being permanently deleted
+	  */
+	 public function maybe_delete_quiz( $post_id ){
+
+		 $quiz_id = Sensei()->lesson->lesson_quizzes( $post_id );
+
+		 if ( empty( $quiz_id ) || 'lesson' != get_post_type( $post_id ) ) {
+			 return;
+		 }
+
+		 wp_delete_post( $quiz_id );
+
+
+	 }
+
  } // End Class WooThemes_Sensei_Quiz
 
 
 
 /**
  * Class WooThemes_Sensei_Quiz
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Quiz extends Sensei_Quiz{}

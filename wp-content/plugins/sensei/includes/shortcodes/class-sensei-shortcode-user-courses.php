@@ -16,10 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  *
  * @class Sensei_Shortcode_User_Courses
+ *
+ * @package Content
+ * @subpackage Shortcode
+ * @author Automattic
+ *
  * @since 1.9.0
- * @package Sensei
- * @category Classes
- * @author 	WooThemes
  */
 class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
 
@@ -62,6 +64,8 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
     public function __construct( $attributes, $content, $shortcode ){
 
         if(!  is_user_logged_in() ) {
+            // show the login form
+            Sensei()->frontend->sensei_login_form();
             return;
         }
 
@@ -206,7 +210,7 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
 
                 <?php _e( 'You have no active courses.', 'woothemes-sensei' ); ?>
 
-                <a href="<?php esc_attr_e( Sensei_Course::get_courses_page_url() ); ?>">
+                <a href="<?php echo esc_attr( Sensei_Course::get_courses_page_url() ); ?>">
 
                     <?php  _e( 'Start a Course!', 'woothemes-sensei' ); ?>
 
@@ -238,12 +242,23 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
 
         $this->attach_shortcode_hooks();
 
+	    // mostly hooks added for legacy and backwards compatiblity sake
+	    do_action( 'sensei_my_courses_before' );
+	    do_action( 'sensei_before_user_course_content', get_current_user() );
+
         ob_start();
         echo '<section id="sensei-user-courses">';
+
         Sensei_Messages::the_my_messages_link();
+	    do_action( 'sensei_my_courses_content_inside_before' );
         Sensei_Templates::get_template('loop-course.php');
+	    do_action( 'sensei_my_courses_content_inside_after' );
         Sensei_Templates::get_template('globals/pagination.php');
         echo '</section>';
+
+	    // mostly hooks added for legacy and backwards compatiblity sake
+	    do_action( 'sensei_after_user_course_content', get_current_user() );
+	    do_action( 'sensei_my_courses_after' );
 
         $shortcode_output =  ob_get_clean();
 
@@ -300,9 +315,9 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
      *
      * @param $course
      */
-    public function attach_course_progress( $course ){
+    public function attach_course_progress( $course_id ){
 
-        $percentage = Sensei()->course->get_completion_percentage( $course->ID, get_current_user_id() );
+        $percentage = Sensei()->course->get_completion_percentage( $course_id, get_current_user_id() );
         echo Sensei()->course->get_progress_meter( $percentage );
 
     }// attach_course_progress
@@ -313,11 +328,11 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
      *
      * Prints out the course action buttons
      *
-     * @param $course
+     * @param integer $course_id
      */
-    public function attach_course_buttons( $course ){
+    public function attach_course_buttons( $course_id ){
 
-        Sensei()->course->the_course_action_buttons( $course );
+        Sensei()->course->the_course_action_buttons( get_post( $course_id ) );
 
     }// attach_course_buttons
 
@@ -352,8 +367,8 @@ class Sensei_Shortcode_User_Courses implements Sensei_Shortcode_Interface {
     public function course_toggle_actions(){ ?>
 
         <section id="user-course-status-toggle">
-            <a id="sensei-user-courses-active-action" href=""><?php _e('Active Courses'); ?></a>
-            <a id="sensei-user-courses-complete-action" href=""><?php _e('Completed Courses'); ?></a>
+			<a id="sensei-user-courses-active-action" href=""><?php _e( 'Active Courses', 'woothemes-sensei' ); ?></a>
+			<a id="sensei-user-courses-complete-action" href=""><?php _e( 'Completed Courses', 'woothemes-sensei' ); ?></a>
         </section>
 
 

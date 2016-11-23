@@ -58,9 +58,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
                     <?php
                     /**
-                     * Output all course lessons. If none found for this course
-                     * a notice will be displayed. What is displayed
-                     * is manipulated via a
+                     * Display the lesson excerpt
                      */
                     the_excerpt();
                     ?>
@@ -81,14 +79,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
             </article>
 
-        <?php
-        // end course lessons loop
-        endwhile;
-        ?>
-
-    <?php else: ?>
-
-        <?php _e('Sorry, this course has no lessons yet.','woothemes-sensei'); ?>
+        <?php endwhile; // end course lessons loop  ?>
 
     <?php endif; ?>
 

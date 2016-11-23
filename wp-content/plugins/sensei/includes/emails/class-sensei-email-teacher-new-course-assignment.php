@@ -5,26 +5,21 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-if (  class_exists( 'Teacher_New_Course_Assignment' ) ){
+if (  class_exists('Sensei_Email_Teacher_New_Course_Assignment') ){
     return;
 }
-
-/**
- * Return a new instance of this files class
- */
-return new Teacher_New_Course_Assignment();
 
 /**
  * Teacher Started Course
  *
  * An email sent to the teacher when one of their students starts a course.
  *
- * @class 		WooThemes_Sensei_Email_Teacher_Started_Course
- * @version		1.6.0
- * @package		Sensei/Classes/Emails
- * @author 		WooThemes
+ * @package Users
+ * @author Automattic
+ *
+ * @since		1.6.0
  */
-class Teacher_New_Course_Assignment {
+class Sensei_Email_Teacher_New_Course_Assignment {
 
 	var $template;
 	var $subject;
@@ -41,8 +36,6 @@ class Teacher_New_Course_Assignment {
 	function __construct() {
 
         $this->template = 'teacher-new-course-assignment';
-		$this->subject = apply_filters( 'sensei_email_subject', sprintf( __( '[%1$s] You have been assigned to a course', 'woothemes-sensei' ), get_bloginfo( 'name' ) ), $this->template );
-		$this->heading = apply_filters( 'sensei_email_heading', __( 'Course assigned to you', 'woothemes-sensei' ), $this->template );
         return;
 	}
 
@@ -59,8 +52,11 @@ class Teacher_New_Course_Assignment {
 
 		$this->teacher = new WP_User( $teacher_id );
         $this->recipient = stripslashes( $this->teacher->user_email );
-        $this->subject = __( 'New course assigned to you', 'woothemes-sensei' );
-
+        do_action('sensei_before_mail', $this->recipient);
+				
+		$this->heading = apply_filters( 'sensei_email_heading', __( 'Course assigned to you', 'woothemes-sensei' ), $this->template );
+        $this->subject = apply_filters( 'sensei_email_subject', __( 'New course assigned to you', 'woothemes-sensei' ), $this->template );
+ 
         //course edit link
         $course_edit_link = admin_url('post.php?post=' . $course_id . '&action=edit' );
 
@@ -78,5 +74,12 @@ class Teacher_New_Course_Assignment {
 
 		// Send mail
 		Sensei()->emails->send( $this->recipient, $this->subject, Sensei()->emails->get_content( $this->template ) );
+
+		do_action('sensei_after_sending_email');
 	}
 }
+
+/**
+ * Return a new instance of this files class
+ */
+return new Sensei_Email_Teacher_New_Course_Assignment();

@@ -2,14 +2,10 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
- * Sensei Analysis Class
- *
  * All functionality pertaining to the Admin Analysis in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Analytics
+ * @author Automattic
  * @since 1.0.0
  */
 class Sensei_Analysis {
@@ -22,7 +18,6 @@ class Sensei_Analysis {
 	 * Constructor
 	 * @since  1.0.0
 	 * @param string $file
-	 * @return  void
 	 */
 	public function __construct ( $file ) {
 		$this->name = __('Analysis', 'woothemes-sensei');
@@ -34,8 +29,9 @@ class Sensei_Analysis {
 			add_action( 'admin_menu', array( $this, 'analysis_admin_menu' ), 10);
 			add_action( 'analysis_wrapper_container', array( $this, 'wrapper_container'  ) );
 			if ( isset( $_GET['page'] ) && ( $_GET['page'] == $this->page_slug ) ) {
-				add_action( 'admin_print_scripts', array( $this, 'enqueue_scripts' ) );
+
 				add_action( 'admin_print_styles', array( $this, 'enqueue_styles' ) );
+
 			}
 
 			add_action( 'admin_init', array( $this, 'report_download_page' ) );
@@ -61,19 +57,6 @@ class Sensei_Analysis {
 		}
 
 	} // End analysis_admin_menu()
-
-	/**
-	 * enqueue_scripts function.
-	 *
-	 * @description Load in JavaScripts where necessary.
-	 * @access public
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function enqueue_scripts () {
-		// None for now
-
-	} // End enqueue_scripts()
 
 	/**
 	 * enqueue_styles function.
@@ -119,7 +102,7 @@ class Sensei_Analysis {
 	 */
 	public function load_data_object( $name = '', $data = 0, $optional_data = null ) {
 		// Load Analysis data
-		$object_name = 'WooThemes_Sensei_Analysis_' . $name . '_List_Table';
+		$object_name = 'Sensei_Analysis_' . $name . '_List_Table';
 		if ( is_null($optional_data) ) {
 			$sensei_analysis_object = new $object_name( $data );
 		} else {
@@ -363,7 +346,7 @@ class Sensei_Analysis {
 	 */
 	public function render_stats_box( $title, $data ) {
 		?><div class="postbox">
-			<h3><span><?php echo $title; ?></span></h3>
+			<h2><span><?php echo $title; ?></span></h2>
 			<div class="inside">
 				<p class="stat"><?php echo $data; ?></p>
 			</div>
@@ -379,21 +362,8 @@ class Sensei_Analysis {
 
 		$function = 'analysis_' . $args['nav'] . '_nav';
 		$this->$function();
-		?>
-			<p class="powered-by-woo">
-
-                <?php _e( 'Powered by', 'woothemes-sensei' ); ?>
-
-                <a href="http://www.woothemes.com/" title="WooThemes">
-
-                    <img src="<?php echo Sensei()->plugin_url; ?>assets/images/woothemes.png" alt="WooThemes" />
-
-                </a>
-
-            </p>
-
-		<?php
 		do_action( 'sensei_analysis_after_headers' );
+
 	} // End analysis_headers()
 
 	/**
@@ -417,24 +387,11 @@ class Sensei_Analysis {
 	 */
 	public function analysis_default_nav() {
 
-		$title = sprintf( '<a href="%s">%s</a>', esc_url( add_query_arg( array( 'page' => $this->page_slug ), admin_url( 'admin.php' ) ) ), esc_html( $this->name ) );
-		$view = isset($_GET['view']) ? esc_html( $_GET['view'] ) : '';
-		switch ( $view ) { 
-			case 'courses' :
-				$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;%s</span>', __( 'Courses', 'woothemes-sensei' ) );
-				break;
-
-			case 'lessons' :
-				$title .= sprintf( '&nbsp;&nbsp;<span class="lesson-title">&gt;&nbsp;&nbsp;%s</span>', __( 'Lessons', 'woothemes-sensei' ) );
-				break;
-
-			case 'users' :
-			default :
-				$title .= sprintf( '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;%s</span>', __( 'Learners', 'woothemes-sensei' ) );
-				break;
-		}
+		$title = $this->name;
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1>
+				<?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?>
+			</h1>
 		<?php
 	} // End analysis_default_nav()
 
@@ -450,12 +407,12 @@ class Sensei_Analysis {
 
 			$user_id = intval( $_GET['user_id'] );
 			$url = esc_url( add_query_arg( array( 'page' => $this->page_slug, 'user' => $user_id ), admin_url( 'admin.php' ) ) );
-            $user_name = Sensei_Student::get_full_name( $user_id );
+            $user_name = Sensei_Learner::get_full_name( $user_id );
 			$title .= sprintf( '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, $user_name );
 
 		} // End If Statement
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h1>
 		<?php
 	} // End analysis_user_profile_nav()
 
@@ -471,7 +428,7 @@ class Sensei_Analysis {
 			$user_id = intval( $_GET['user_id'] );
 			$user_data = get_userdata( $user_id );
 			$url = add_query_arg( array( 'page' => $this->page_slug, 'user_id' => $user_id ), admin_url( 'admin.php' ) );
-            $user_name = Sensei_Student::get_full_name( $user_id );
+            $user_name = Sensei_Learner::get_full_name( $user_id );
             $title .= sprintf( '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', $url, $user_name );
 			$title .= sprintf( '&nbsp;&nbsp;<span class="user-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), $user_data->display_name );
 		} // End If Statement
@@ -481,7 +438,7 @@ class Sensei_Analysis {
 			$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
 		}
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h1>
 		<?php
 	} // End analysis_user_course_nav()
 
@@ -499,7 +456,7 @@ class Sensei_Analysis {
 			$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>',esc_url( $url ), get_the_title( $course_id ) );
 		}
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h1>
 		<?php
 	} // End analysis_course_nav()
 
@@ -517,7 +474,7 @@ class Sensei_Analysis {
 			$title .= sprintf( '&nbsp;&nbsp;<span class="course-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $course_id ) );
 		}
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h1>
 		<?php
 	} // End analysis_course_users_nav()
 
@@ -538,7 +495,7 @@ class Sensei_Analysis {
 			$title .= sprintf( '&nbsp;&nbsp;<span class="lesson-title">&gt;&nbsp;&nbsp;<a href="%s">%s</a></span>', esc_url( $url ), get_the_title( $lesson_id ) );
 		}
 		?>
-			<h2><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h2>
+			<h1><?php echo apply_filters( 'sensei_analysis_nav_title', $title ); ?></h1>
 		<?php
 	} // End analysis_lesson_users_nav()
 
@@ -669,7 +626,7 @@ class Sensei_Analysis {
 
 /**
  * Class WooThemes_Sensei_Analysis
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Analysis extends Sensei_Analysis {}

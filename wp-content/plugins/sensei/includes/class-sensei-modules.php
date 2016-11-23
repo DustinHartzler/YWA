@@ -7,9 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *
  * Sensei Module Functionality
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Administration
+ * @package Content
+ * @author Automattic
+ *
  * @since 1.8.0
  */
 class Sensei_Core_Modules
@@ -74,8 +74,8 @@ class Sensei_Core_Modules
         // Manage module taxonomy archive page
         add_filter('template_include', array($this, 'module_archive_template'), 10);
         add_action('pre_get_posts', array($this, 'module_archive_filter'), 10, 1);
-        add_filter('sensei_lessons_archive_text', array($this, 'module_archive_title'));
-        add_action('sensei_content_lesson_inside_before', array($this, 'module_archive_description'), 11);
+        add_filter('sensei_lessons_archive_text', array($this, 'module_archive_title') );
+        add_action('sensei_loop_lesson_inside_before', array($this, 'module_archive_description'), 30 );
         add_action('sensei_pagination', array($this, 'module_navigation_links'), 11);
         add_filter('body_class', array($this, 'module_archive_body_class'));
 
@@ -347,6 +347,9 @@ class Sensei_Core_Modules
     public function save_module_course($module_id)
     {
 
+	    if( isset( $_POST['action'] ) && 'inline-save-tax' == $_POST['action'] ) {
+		    return;
+	    }
         // Get module's existing courses
         $args = array(
             'post_type' => 'course',
@@ -585,6 +588,9 @@ class Sensei_Core_Modules
      */
     public function module_archive_description()
     {
+	    //ensure this only shows once on the archive.
+	    remove_action( 'sensei_loop_lesson_before', array( $this,'module_archive_description' ), 30 );
+
         if (is_tax($this->taxonomy)) {
 
             $module = get_queried_object();
@@ -1169,8 +1175,12 @@ class Sensei_Core_Modules
         $modules = wp_get_post_terms($lesson_id, $this->taxonomy);
 
         //check if error returned
-        if( empty( $modules ) || isset( $modules['errors']  ) ){
+        if(    empty( $modules )
+            || is_wp_error( $modules )
+            || isset( $modules['errors'] ) ){
+
             return false;
+
         }
 
        // get the last item in the array there should be only be 1 really.
@@ -1198,58 +1208,62 @@ class Sensei_Core_Modules
 
     }
 
-    /**
-     * Get ordered array of all modules in course
-     *
-     * @since 1.8.0
-     *
-     * @param  integer $course_id ID of course
-     * @return array              Ordered array of module taxonomy term objects
-     */
-    public function get_course_modules($course_id = 0)
-    {
-        $course_id = intval($course_id);
-        if (0 < $course_id) {
+	/**
+	 * Get ordered array of all modules in course
+	 *
+	 * @since 1.8.0
+	 *
+	 * @param  integer $course_id ID of course
+	 * @return array              Ordered array of module taxonomy term objects
+	 */
+	public function get_course_modules($course_id = 0) {
 
-            // Get modules for course
-            $modules = wp_get_post_terms($course_id, $this->taxonomy);
+		$course_id = intval($course_id);
+		if ( empty(  $course_id ) ) {
+			return array();
+		}
 
-            // Get custom module order for course
-            $order = $this->get_course_module_order($course_id);
+		// Get modules for course
+		$modules = wp_get_post_terms( $course_id, $this->taxonomy );
 
-            // Sort by custom order if custom order exists
-            if ($order) {
-                $ordered_modules = array();
-                $unordered_modules = array();
-                foreach ($modules as $module) {
-                    $order_key = array_search($module->term_id, $order);
-                    if ($order_key !== false) {
-                        $ordered_modules[$order_key] = $module;
-                    } else {
-                        $unordered_modules[] = $module;
-                    }
-                }
+		// Get custom module order for course
+		$order = $this->get_course_module_order($course_id);
 
-                // Order modules correctly
-                ksort($ordered_modules);
+		if ( ! $order) {
+			return $modules;
+		}
 
-                // Append modules that have not yet been ordered
-                if (count($unordered_modules) > 0) {
-                    $ordered_modules = array_merge($ordered_modules, $unordered_modules);
-                }
+		// Sort by custom order
+		$ordered_modules = array();
+		$unordered_modules = array();
+		foreach ( $modules as $module ) {
+			$order_key = array_search($module->term_id, $order);
+			if ($order_key !== false) {
+				$ordered_modules[$order_key] = $module;
+			} else {
+				$unordered_modules[] = $module;
+			}
+		}
 
-            } else {
+		// Order modules correctly
+		ksort( $ordered_modules );
 
-                $ordered_modules = $modules;
+		// Append modules that have not yet been ordered
+		if ( count($unordered_modules) > 0 ) {
+			$ordered_modules = array_merge($ordered_modules, $unordered_modules);
+		}
 
-            }
+		// remove order key but maintain order
+		$ordered_modules_with_keys_in_sequence = array();
+		foreach ( $ordered_modules as $key => $module ) {
 
-            return $ordered_modules;
+			$ordered_modules_with_keys_in_sequence[] = $module;
 
-        }
+		}
 
-        return false;
-    }
+		return $ordered_modules_with_keys_in_sequence;
+
+	}
 
     /**
      * Load frontend CSS
@@ -1258,12 +1272,21 @@ class Sensei_Core_Modules
      *
      * @return void
      */
-    public function enqueue_styles()
-    {
+    public function enqueue_styles() {
+    	
+    	$disable_styles = false;
+		if ( isset( Sensei()->settings->settings[ 'styles_disable' ] ) ) {
+			$disable_styles = Sensei()->settings->settings[ 'styles_disable' ];
+		} // End If Statement
+		
+		// Add filter for theme overrides
+		$disable_styles = apply_filters( 'sensei_disable_styles', $disable_styles );
+		
+		if ( ! $disable_styles ) {
+	        wp_register_style($this->taxonomy . '-frontend', esc_url($this->assets_url) . 'css/modules-frontend.css', Sensei()->version );
+    	    wp_enqueue_style($this->taxonomy . '-frontend');
+		}
 
-
-        wp_register_style($this->taxonomy . '-frontend', esc_url($this->assets_url) . 'css/modules-frontend.css', Sensei()->version );
-        wp_enqueue_style($this->taxonomy . '-frontend');
     }
 
     /**
@@ -1284,7 +1307,9 @@ class Sensei_Core_Modules
             'edit-tags.php',
             'course_page_module-order',
             'post-new.php',
-            'post.php'
+            'post.php',
+	        'term.php',
+
         ) );
 
         if ( ! in_array( $hook, $script_on_pages_white_list ) ) {
@@ -1295,7 +1320,7 @@ class Sensei_Core_Modules
 
         wp_enqueue_script( 'sensei-chosen', Sensei()->plugin_url . 'assets/chosen/chosen.jquery' . $suffix . '.js', array( 'jquery' ), Sensei()->version , true);
         wp_enqueue_script( 'sensei-chosen-ajax', Sensei()->plugin_url . 'assets/chosen/ajax-chosen.jquery' . $suffix . '.js', array( 'jquery', 'sensei-chosen' ), Sensei()->version , true );
-        wp_enqueue_script( $this->taxonomy . '-admin', esc_url( $this->assets_url ) . 'js/modules-admin' . $suffix . '.js', array( 'jquery', 'sensei-chosen', 'sensei-chosen-ajax', 'jquery-ui-sortable', 'select2' ), Sensei()->version, true );
+        wp_enqueue_script( $this->taxonomy . '-admin', esc_url( $this->assets_url ) . 'js/modules-admin' . $suffix . '.js', array( 'jquery', 'sensei-chosen', 'sensei-chosen-ajax', 'jquery-ui-sortable', 'sensei-core-select2' ), Sensei()->version, true );
 
         // localized module data
         $localize_modulesAdmin = array(
@@ -1314,7 +1339,6 @@ class Sensei_Core_Modules
      * @return void
      */
     public function admin_enqueue_styles() {
-
 
         wp_register_style($this->taxonomy . '-sortable', esc_url($this->assets_url) . 'css/modules-admin.css','',Sensei()->version );
         wp_enqueue_style($this->taxonomy . '-sortable');
@@ -1518,21 +1542,23 @@ class Sensei_Core_Modules
      * Register the modules taxonomy
      *
      * @since 1.8.0
+     * @since 1.9.7 Added `not_found` label.
      */
     public function setup_modules_taxonomy(){
 
         $labels = array(
-            'name' => __('Modules', 'woothemes-sensei'),
-            'singular_name' => __('Module', 'woothemes-sensei'),
-            'search_items' => __('Search Modules', 'woothemes-sensei'),
-            'all_items' => __('All Modules', 'woothemes-sensei'),
-            'parent_item' => __('Parent Module', 'woothemes-sensei'),
-            'parent_item_colon' => __('Parent Module:', 'woothemes-sensei'),
-            'edit_item' => __('Edit Module', 'woothemes-sensei'),
-            'update_item' => __('Update Module', 'woothemes-sensei'),
-            'add_new_item' => __('Add New Module', 'woothemes-sensei'),
-            'new_item_name' => __('New Module Name', 'woothemes-sensei'),
-            'menu_name' => __('Modules', 'woothemes-sensei'),
+            'name'              => __( 'Modules',           'woothemes-sensei' ),
+            'singular_name'     => __( 'Module',            'woothemes-sensei' ),
+            'search_items'      => __( 'Search Modules',    'woothemes-sensei' ),
+            'all_items'         => __( 'All Modules',       'woothemes-sensei' ),
+            'parent_item'       => __( 'Parent Module',     'woothemes-sensei' ),
+            'parent_item_colon' => __( 'Parent Module:',    'woothemes-sensei' ),
+            'edit_item'         => __( 'Edit Module',       'woothemes-sensei' ),
+            'update_item'       => __( 'Update Module',     'woothemes-sensei' ),
+            'add_new_item'      => __( 'Add New Module',    'woothemes-sensei' ),
+            'new_item_name'     => __( 'New Module Name',   'woothemes-sensei' ),
+            'menu_name'         => __( 'Modules',           'woothemes-sensei' ),
+            'not_found'         => __( 'No modules found.', 'woothemes-sensei' ),
         );
 
         /**

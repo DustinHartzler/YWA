@@ -2,14 +2,11 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
- * Sensei Course Results Class
- *
  * All functionality pertaining to the course results pages in Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Core
- * @author WooThemes
+ * @package Views
+ * @author Automattic
+ *
  * @since 1.4.0
  */
 class Sensei_Course_Results {
@@ -30,7 +27,12 @@ class Sensei_Course_Results {
 
 		// Setup permalink structure for course results
 		add_action( 'init', array( $this, 'setup_permastruct' ) );
+
+		// Support older WordPress theme (< 4.4)
 		add_filter( 'wp_title', array( $this, 'page_title' ), 10, 2 );
+
+		// Support newer WordPress theme (>= 4.4)
+		add_filter( 'document_title_parts', array( $this, 'page_title' ), 10, 2 );
 
 		// Load course results
 		add_action( 'sensei_course_results_content_inside_before', array( $this, 'deprecate_course_result_info_hook' ), 10 );
@@ -52,7 +54,7 @@ class Sensei_Course_Results {
 
 	/**
 	 * Adding page title for course results page
-	 * @param  string $title Original title
+	 * @param  mixed  $title Original title
 	 * @param  string $sep   Seeparator string
 	 * @return string        Modified title
 	 */
@@ -60,7 +62,12 @@ class Sensei_Course_Results {
 		global $wp_query;
 		if( isset( $wp_query->query_vars['course_results'] ) ) {
 			$course = get_page_by_path( $wp_query->query_vars['course_results'], OBJECT, 'course' );
-			$title = __( 'Course Results: ', 'woothemes-sensei' ) . $course->post_title . ' ' . $sep . ' ';
+			$modified_title = __( 'Course Results: ', 'woothemes-sensei' ) . $course->post_title . ' ' . $sep . ' ';
+			if ( is_array( $title ) ) {
+				$title['title'] = $modified_title;
+			} else {
+				$title = $modified_title;
+			}
 		}
 		return $title;
 	}
@@ -112,8 +119,7 @@ class Sensei_Course_Results {
 
 		global $course;
 
-		$course_status = Sensei_Utils::sensei_user_course_status_message( $course->ID, get_current_user_id());
-		echo '<div class="sensei-message ' . $course_status['box_class'] . '">' . $course_status['message'] . '</div>';
+		Sensei_Utils::sensei_user_course_status_message( $course->ID, get_current_user_id());
 
 		sensei_do_deprecated_action( 'sensei_course_results_lessons','1.9.','sensei_course_results_content_inside_after', $course );
 
@@ -208,7 +214,7 @@ class Sensei_Course_Results {
 
 /**
  * Class WooThemes_Sensei_Course_Results
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Course_Results extends Sensei_Course_Results{}

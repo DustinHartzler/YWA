@@ -113,7 +113,7 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 		$prerequisite_complete = sensei_check_prerequisite_course( $course_id );
 
 		if ( $prerequisite_complete ) {
-		?><form method="POST" action="<?php echo esc_url( get_permalink() ); ?>">
+		?><form method="POST" action="<?php echo esc_url( get_permalink( $course_id ) ); ?>">
 
     			<input type="hidden" name="<?php echo esc_attr( 'woothemes_sensei_start_course_noonce' ); ?>" id="<?php echo esc_attr( 'woothemes_sensei_start_course_noonce' ); ?>" value="<?php echo esc_attr( wp_create_nonce( 'woothemes_sensei_start_course_noonce' ) ); ?>" />
 
@@ -159,18 +159,30 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 	 */
 	function sensei_simple_course_price( $post_id ) {
 
-		//WooCommerce Pricing
-        if ( Sensei_WC::is_woocommerce_active() ) {
-    	    $wc_post_id = get_post_meta( $post_id, '_course_woocommerce_product', true );
-    	    if ( 0 < $wc_post_id ) {
-    	    	// Get the product
-    	    	$product = Sensei()->sensei_get_woocommerce_product_object( $wc_post_id );
+		global $wp_the_query;
 
-    	    	if ( isset( $product ) && !empty( $product )  &&  $product->is_purchasable() && $product->is_in_stock() && !sensei_check_if_product_is_in_cart( $wc_post_id ) ) { ?>
-    	    		<span class="course-price"><?php echo $product->get_price_html(); ?></span>
-    	    	<?php } // End If Statement
-    	    } // End If Statement
-    	} // End If Statement
+		// check for the my courses shortcode
+		if ( strpos( $wp_the_query->post->post_content, 'sensei_user_courses' ) || strpos( $wp_the_query->post->post_content, 'usercourses' ) ) {
+			return;
+		}
+
+		$wc_post_id = get_post_meta( $post_id, '_course_woocommerce_product', true );
+        if ( ! Sensei_WC::is_woocommerce_active() || empty( $wc_post_id ) || false  ) {
+			return;
+        }
+
+        // Get the product
+        $product = Sensei_WC::get_product_object( $wc_post_id );
+
+        if ( isset( $product ) && !empty( $product )  &&  $product->is_purchasable()
+             && $product->is_in_stock() && !sensei_check_if_product_is_in_cart( $wc_post_id ) ) { ?>
+
+            <span class="course-price">
+	            <?php echo $product->get_price_html(); ?>
+            </span>
+
+        <?php } // End If Statement
+
 	} // End sensei_simple_course_price()
 
 	/**
@@ -178,7 +190,7 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 	 *
 	 * @access public
 	 * @param array $widget_args (default: array())
-	 * @return void
+	 * @return array
 	 */
 	function sensei_recent_comments_widget_filter( $widget_args = array() ) {
 		if ( ! isset( $widget_args['post_type'] ) ) $widget_args['post_type'] = array( 'post', 'page' );
@@ -190,7 +202,7 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 	 * sensei_course_archive_filter function.
 	 *
 	 * @access public
-	 * @param array $query ( default: array ( ) )
+	 * @param WP_Query $query ( default: array ( ) )
 	 * @return void
 	 */
 	function sensei_course_archive_filter( $query ) {
@@ -250,39 +262,43 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 
             $modules = Sensei()->modules->get_course_modules( intval( $lesson_course_id ) );
 
-            foreach( (array) $modules as $module ) {
+            if( !empty( $modules )  ){
+                foreach( (array) $modules as $module ) {
 
-                $args = array(
-                    'post_type' => 'lesson',
-                    'post_status' => 'publish',
-                    'posts_per_page' => -1,
-                    'meta_query' => array(
-                        array(
-                            'key' => '_lesson_course',
-                            'value' => intval( $lesson_course_id ),
-                            'compare' => '='
-                        )
-                    ),
-                    'tax_query' => array(
-                        array(
-                            'taxonomy' => Sensei()->modules->taxonomy,
-                            'field' => 'id',
-                            'terms' => intval( $module->term_id )
-                        )
-                    ),
-                    'meta_key' => '_order_module_' . $module->term_id,
-                    'orderby' => 'meta_value_num date',
-                    'order' => 'ASC',
-                    'suppress_filters' => 0
-                );
+                    $args = array(
+                        'post_type' => 'lesson',
+                        'post_status' => 'publish',
+                        'posts_per_page' => -1,
+                        'meta_query' => array(
+                            array(
+                                'key' => '_lesson_course',
+                                'value' => intval( $lesson_course_id ),
+                                'compare' => '='
+                            )
+                        ),
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => Sensei()->modules->taxonomy,
+                                'field' => 'id',
+                                'terms' => intval( $module->term_id )
+                            )
+                        ),
+                        'meta_key' => '_order_module_' . $module->term_id,
+                        'orderby' => 'meta_value_num date',
+                        'order' => 'ASC',
+                        'suppress_filters' => 0
+                    );
 
-                $lessons = get_posts( $args );
-                if ( 0 < count( $lessons ) ) {
-                    foreach ($lessons as $lesson_item){
-                        $all_lessons[] = $lesson_item->ID;
-                    } // End For Loop
-                } // End If Statement
-            }
+                    $lessons = get_posts( $args );
+                    if ( 0 < count( $lessons ) ) {
+                        foreach ($lessons as $lesson_item){
+                            $all_lessons[] = $lesson_item->ID;
+                        } // End For Loop
+                    } // End If Statement
+
+                }//end for each
+
+            }// end if empty modules
 
             $args = array(
                 'post_type' => 'lesson',
@@ -365,7 +381,7 @@ if ( ! defined( 'ABSPATH' ) ){ exit; } // Exit if accessed directly
 */
 function sensei_has_user_completed_prerequisite_lesson( $current_lesson_id, $user_id ) {
 
-    return WooThemes_Sensei_Lesson::is_pre_requisite_complete( $current_lesson_id, $user_id );
+    return WooThemes_Sensei_Lesson::is_prerequisite_complete( $current_lesson_id, $user_id );
 
 } // End sensei_has_user_completed_prerequisite_lesson()
 
@@ -388,24 +404,9 @@ function sensei_has_user_completed_prerequisite_lesson( $current_lesson_id, $use
  * @return bool
  *
  */
-function sensei_have_modules( $course_post_id = '' ){
+function sensei_have_modules(  ){
 
-	global $post, $wp_query, $sensei_modules_loop;
-
-	// set the current course to be the global post again
-	wp_reset_query();
-	$post = $wp_query->post;
-
-	if( empty( $course_post_id ) ){
-
-		$course_id = $post->ID;
-
-	}
-
-	// doesn't apply to none course post types
-	if( ! sensei_is_a_course( $course_id )  ){
-		return false;
-	}
+	global $sensei_modules_loop;
 
 	// check the current item compared to the total number of modules
 	if( $sensei_modules_loop[ 'current' ] + 1 > $sensei_modules_loop[ 'total' ]  ){
@@ -519,7 +520,7 @@ function sensei_module_has_lessons(){
  */
 function sensei_the_module_title_attribute(){
 
-	esc_attr_e( sensei_get_the_module_title() );
+	echo esc_attr( sensei_get_the_module_title() );
 
 }
 
@@ -595,6 +596,107 @@ function sensei_the_module_title(){
 
 }
 
+/**
+ * Give the current user's lesson progress status
+ * Used in the module loop on the courses page
+ *
+ * @since 1.9.0
+ * @return string
+ */
+function sensei_get_the_module_status(){
+
+	if( ! is_user_logged_in() ){
+		return '';
+	}
+
+    global $sensei_modules_loop;
+    $module_title = $sensei_modules_loop['current_module']->name;
+    $module_term_id = $sensei_modules_loop['current_module']->term_id;
+    $course_id = $sensei_modules_loop['course_id'];
+    $module_progress = Sensei()->modules->get_user_module_progress( $module_term_id, $course_id, get_current_user_id() );
+
+    $module_status =  '';
+    if ( $module_progress && $module_progress > 0) {
+
+        $module_status = __('Completed', 'woothemes-sensei');
+
+        if ($module_progress < 100) {
+
+            $module_status = __('In progress', 'woothemes-sensei');
+
+        }
+
+    }
+
+	if ( empty( $module_status ) ){
+		return '';
+	}
+
+	$status_class = strtolower( str_replace( ' ', '-', $module_status  ) );
+    $module_status_html = '<p class="status module-status ' . $status_class . '">'
+                            . $module_status
+                            . '</p>';
+
+    /**
+     * Filter the module status.
+     *
+     * This fires within the sensei_get_the_module_status function.
+     *
+     * @since 1.9.0
+     *
+     * @param $module_status_html
+     * @param $module_term_id
+     * @param $course_id
+     */
+    return apply_filters( 'sensei_the_module_status_html',  $module_status_html , $module_term_id, $course_id );
+
+}
+
+/**
+ * Print out the current module status
+ * @since 1.9.0
+ */
+function sensei_the_module_status(){
+
+    echo sensei_get_the_module_status();
+
+}
+
+/**
+ * Get the module ID.
+ * This must be used within the Sensei module loop.
+ *
+ * @since 1.9.7
+ *
+ * @return int $id Module ID.
+ */
+function sensei_get_the_module_id() {
+	global $sensei_modules_loop;
+
+	$module_term_id = $sensei_modules_loop['current_module']->term_id;
+
+	/**
+	 * Filter the module ID.
+	 *
+	 * This fires within the sensei_get_the_module_id function.
+	 *
+	 * @since 1.9.7
+	 *
+	 * @param int $module_term_id Module ID.
+	 */
+	return apply_filters( 'sensei_the_module_id', $module_term_id );
+}
+
+/**
+ * Print out the current module ID
+ * @since 1.9.7
+ */
+function sensei_the_module_id(){
+
+	echo sensei_get_the_module_id();
+
+}
+
 /************************
  *
  * Single Quiz Functions
@@ -647,7 +749,6 @@ function sensei_setup_the_question(){
     $index = $sensei_question_loop['current'];
     $sensei_question_loop['current_question'] =  $sensei_question_loop['questions'][ $index ] ;
 
-
 }// end sensei_setup_the_question
 
 /**
@@ -693,7 +794,7 @@ function sensei_the_question_class(){
 
     }// end foreach
 
-    esc_attr_e( trim( $html_classes ) );
+    echo esc_attr( trim( $html_classes ) );
 
 }
 
@@ -741,6 +842,12 @@ function sensei_can_user_view_lesson( $lesson_id = '', $user_id = ''  ){
         $lesson_id = get_the_ID();
 
     }
+
+	if ( 'quiz'== get_post_type( get_the_ID() ) ){
+
+		$lesson_id = Sensei()->quiz->get_lesson_id( get_the_ID() );
+
+	}
 
     if( empty( $user_id ) ){
 
@@ -817,9 +924,6 @@ function sensei_the_single_lesson_meta(){
     $lesson_course_id = absint( get_post_meta( get_the_ID(), '_lesson_course', true ) );
     $is_preview = Sensei_Utils::is_preview_lesson( get_the_ID() );
 
-    // Get User Meta
-    get_currentuserinfo();
-
     // Complete Lesson Logic
     do_action( 'sensei_complete_lesson' );
     // Check that the course has been started
@@ -865,6 +969,15 @@ function sensei_the_single_lesson_meta(){
  */
 function get_sensei_header(){
 
+	/**
+	 * Allow user to stop the output of
+	 * get_sensei_header which also includes a call to get_header.
+	 * @since 1.9.5 introduced
+	 */
+	if ( ! apply_filters( 'sensei_show_main_header', true ) ) {
+		return;
+	}
+
     if ( ! defined( 'ABSPATH' ) ) exit;
 
     get_header();
@@ -889,6 +1002,15 @@ function get_sensei_header(){
  * @since 1.9.0
  */
 function get_sensei_footer(){
+
+	/**
+	 * Allow user to stop the output of
+	 * get_sensei_footer which also includes a call to get_header.
+	 * @since 1.9.5 introduced
+	 */
+	if ( ! apply_filters( 'sensei_show_main_footer', true ) ) {
+		return;
+	}
 
     /**
      * sensei_pagination hook
@@ -949,7 +1071,6 @@ function the_no_permissions_message( $post_id ){
      * @param $no_permissions_message
      */
     echo apply_filters( 'sensei_the_no_permissions_message', Sensei()->permissions_message['message'] , $post_id );
-
 }
 
 /**
@@ -1079,4 +1200,50 @@ function sensei_courses_per_row(){
 
     echo Sensei_Course::get_loop_number_of_columns();
 
+}
+
+/**
+ * Wrapper function for Sensei_Templates::get_template( $template_name, $args, $path )
+ *
+ * @since 1.9.0
+ * @param $template_name
+ * @param $args
+ * @param $path
+ */
+function sensei_get_template( $template_name, $args, $path ){
+
+    Sensei_Templates::get_template( $template_name, $args, $path );
+
+}
+
+/**
+ * Returns the lesson status class
+ *
+ * must be used in the loop.
+ * @since 1.9.0
+ *
+ * @return string $status_class
+ */
+function get_the_lesson_status_class(){
+
+    $status_class = '';
+    $lesson_completed = Sensei_Utils::user_completed_lesson( get_the_ID(), get_current_user_id() );
+
+    if ( $lesson_completed ) {
+        $status_class = 'completed';
+    }
+
+    return  $status_class;
+
+}// end get_the_lesson_status_class
+/**
+ * Outputs the lesson status class
+ *
+ * must be used in the lesson loop
+ *
+ * @since 1.9.0
+ */
+function sensei_the_lesson_status_class(){
+
+    echo get_the_lesson_status_class();
 }

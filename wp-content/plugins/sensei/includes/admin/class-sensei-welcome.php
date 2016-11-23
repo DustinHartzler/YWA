@@ -1,26 +1,18 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly
+}
+
 /**
- * Sensei Welcome Page Class
- *
  * Shows a feature overview for the new version (major)
  *
  * Adapted from code in EDD (Copyright (c) 2012, Pippin Williamson) and WooCommerce and WP
  *
- * @author      WooThemes
- * @category    Admin
- * @package     Sensei/Admin
+ * @package Views
+ * @author Automattic
+ *
  * @version     1.8.0
 */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
-}
-
-/**
- * Sensei_Welcome class
- *
- * @since 1.8.0
- */
 class Sensei_Welcome {
 
 	/**
@@ -90,20 +82,26 @@ class Sensei_Welcome {
 
             <div class="feature-section two-col">
 						<div class="col">
-				<div class="media-container">
-										<img src="https://docs.woothemes.com/wp-content/uploads/2015/12/Screen-Shot-2015-12-01-at-15.25.24.png">
-									</div>
-				<h3>New Sensei Shortcodes</h3>
-				<p>Display your Sensei courses, teachers and messages wherever you want them with a selection of new shortcodes, giving you much more control over the display of your Sensei content.</p>
-			</div>
+							<div class="media-container">
+								<img src="https://docs.woothemes.com/wp-content/uploads/2015/12/Screen-Shot-2015-12-01-at-15.25.24.png">
+							</div>
+						</div>
 						<div class="col">
-				<div class="media-container">
-										<img src="https://docs.woothemes.com/wp-content/uploads/2015/12/language.jpg">
-									</div>
-				<h3>Sensei in Your Language</h3>
-				<p>Language packs can now be downloaded directly from the dashboard, enabling one-click translation updates.</p>
+							<h3>New Sensei Shortcodes</h3>
+							<p>Display your Sensei courses, teachers and messages wherever you want them with a selection of new shortcodes, giving you much more control over the display of your Sensei content.</p>
+						</div>
 			</div>
-					</div>
+			<div class="feature-section two-col">
+						<div class="col">
+							<div class="media-container">
+								<img src="https://docs.woothemes.com/wp-content/uploads/2015/12/language.jpg">
+							</div>
+						</div>
+						<div class="col">
+							<h3>Sensei in Your Language</h3>
+							<p>Language packs can now be downloaded directly from the dashboard, enabling one-click translation updates.</p>
+						</div>
+			</div>
 
             <div class="feature-section three-col">
 						<div class="col">
@@ -241,11 +239,6 @@ class Sensei_Welcome {
 				line-height: 1.4;
 			}
 
-            p.sensei-actions a.button-primary {
-                background: #42A2CE;
-                border-color: #849DAD;
-            }
-
             p.sensei-actions .twitter-share-button {
 				margin-top: -3px;
 				margin-left: 3px;
@@ -270,7 +263,7 @@ class Sensei_Welcome {
 		);
 		shuffle( $tweets );
 		?>
-		<h1><?php printf( __( 'Welcome to Sensei %s', 'woothemes-sensei' ), $major_version ); ?></h1>
+		<h1><?php printf( __( 'Welcome to Sensei', 'woothemes-sensei' ) ); ?></h1>
 
 		<div class="about-text sensei-about-text">
 			<?php
@@ -282,7 +275,7 @@ class Sensei_Welcome {
 					$message = __( 'Thanks for installing!', 'woothemes-sensei' );
 				}
 
-				printf( __( '%s We hope you enjoy using Sensei %s.', 'woothemes-sensei' ), $message, $major_version );
+				printf( __( '%s We hope you enjoy using Sensei.', 'woothemes-sensei' ), $message );
 			?>
 		</div>
 
@@ -296,8 +289,8 @@ class Sensei_Welcome {
         </div>
 
 		<p class="sensei-actions">
-			<a href="<?php echo admin_url('admin.php?page=woothemes-sensei-settings'); ?>" class="button button-primary"><?php _e( 'Settings', 'woothemes-sensei' ); ?></a>
-			<a href="<?php echo esc_url( apply_filters( 'sensei_docs_url', 'http://docs.woothemes.com/documentation/plugins/sensei/', 'woothemes-sensei' ) ); ?>" class="docs button button-primary"><?php _e( 'Docs', 'woothemes-sensei' ); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=woothemes-sensei-settings'); ?>" class="button"><?php _e( 'Settings', 'woothemes-sensei' ); ?></a>
+			<a href="<?php echo esc_url( apply_filters( 'sensei_docs_url', 'http://docs.woothemes.com/documentation/plugins/sensei/', 'woothemes-sensei' ) ); ?>" class="docs button"><?php _e( 'Docs', 'woothemes-sensei' ); ?></a>
 			<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.woothemes.com/products/sensei" data-text="<?php echo esc_attr( $tweets[0] ); ?>" data-via="WooThemes" data-size="large">Tweet</a>
 			<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 		</p>

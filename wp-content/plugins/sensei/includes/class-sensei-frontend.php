@@ -6,16 +6,16 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  *
  * All functionality pertaining to the frontend of Sensei.
  *
- * @package WordPress
- * @subpackage Sensei
- * @category Frontend
- * @author WooThemes
+ * @package Core
+ * @author Automattic
+ *
  * @since 1.0.0
  */
 class Sensei_Frontend {
 
 	public $messages;
 	public $data;
+	public $allowed_html;
 
 	/**
 	 * Constructor.
@@ -23,14 +23,26 @@ class Sensei_Frontend {
 	 */
 	public function __construct () {
 
+		$this->allowed_html = array(
+			'embed'  => array(),
+			'iframe' => array(
+				'width'           => array(),
+				'height'          => array(),
+				'src'             => array(),
+				'frameborder'     => array(),
+				'allowfullscreen' => array(),
+			),
+			'video'  => Sensei_Wp_Kses::get_video_html_tag_allowed_attributes()
+		);
+
 		// Template output actions
 		add_action( 'sensei_before_main_content', array( $this, 'sensei_output_content_wrapper' ), 10 );
 		add_action( 'sensei_after_main_content', array( $this, 'sensei_output_content_wrapper_end' ), 10 );
 		add_action( 'sensei_lesson_archive_lesson_title', array( $this, 'sensei_lesson_archive_lesson_title' ), 10 );
 
 		// 1.2.1
-		add_action( 'sensei_complete_lesson', array( $this, 'sensei_complete_lesson' ) );
-		add_action( 'init', array( $this, 'sensei_complete_course' ), 5 );
+		add_action( 'wp_head', array( $this, 'sensei_complete_lesson' ), 10 );
+		add_action( 'wp_head', array( $this, 'sensei_complete_course' ), 10 );
 		add_action( 'sensei_frontend_messages', array( $this, 'sensei_frontend_messages' ) );
 		add_action( 'sensei_lesson_video', array( $this, 'sensei_lesson_video' ), 10, 1 );
 		add_action( 'sensei_complete_lesson_button', array( $this, 'sensei_complete_lesson_button' ) );
@@ -44,7 +56,6 @@ class Sensei_Frontend {
 		add_action( 'sensei_lesson_meta', array( $this, 'sensei_lesson_meta' ), 10 );
 		add_action( 'sensei_single_course_content_inside_before', array( $this, 'sensei_course_start' ), 10 );
 
-		// add_filter( 'get_comments_number', array( $this, 'sensei_lesson_comment_count' ), 1 );
 		add_filter( 'the_title', array( $this, 'sensei_lesson_preview_title' ), 10, 2 );
 
 		//1.6.2
@@ -157,7 +168,6 @@ class Sensei_Frontend {
 	 */
 	public function enqueue_styles () {
 
-
 		$disable_styles = false;
 		if ( isset( Sensei()->settings->settings[ 'styles_disable' ] ) ) {
 			$disable_styles = Sensei()->settings->settings[ 'styles_disable' ];
@@ -190,7 +200,6 @@ class Sensei_Frontend {
 	 */
 	function sensei_get_template_part( $slug, $name = '' ) {
 
-        _deprecated_function( 'class-woothemes-sensei-frontend.php', '1.9.0', 'Sensei_Templates::get_part' );
         Sensei_Templates::get_part( $slug, $name );
 
 	} // End sensei_get_template_part()
@@ -506,7 +515,7 @@ class Sensei_Frontend {
      * sensei_single_title output for single page title
      * @since  1.1.0
      * @return void
-     * @deprecate
+     * @deprecated
      */
     function the_single_title() {
 
@@ -870,18 +879,22 @@ class Sensei_Frontend {
 *
  */
 	public function sensei_frontend_messages() {
-		Sensei()->notices->print_notices();
+		Sensei()->notices->maybe_print_notices();
 	} // End sensei_frontend_messages()
 
 	public function sensei_lesson_video( $post_id = 0 ) {
-		if ( 0 < intval( $post_id ) ) {
+		if ( 0 < intval( $post_id ) && sensei_can_user_view_lesson( $post_id ) ) {
 			$lesson_video_embed = get_post_meta( $post_id, '_lesson_video_embed', true );
 			if ( 'http' == substr( $lesson_video_embed, 0, 4) ) {
         		// V2 - make width and height a setting for video embed
-        		$lesson_video_embed = wp_oembed_get( esc_url( $lesson_video_embed )/*, array( 'width' => 100 , 'height' => 100)*/ );
+        		$lesson_video_embed = wp_oembed_get( esc_url( $lesson_video_embed ) );
         	} // End If Statement
+
+		$lesson_video_embed = do_shortcode( html_entity_decode( $lesson_video_embed ) );
+		$lesson_video_embed = Sensei_Wp_Kses::maybe_sanitize( $lesson_video_embed, $this->allowed_html );
+
         	if ( '' != $lesson_video_embed ) {
-        	?><div class="video"><?php echo html_entity_decode($lesson_video_embed); ?></div><?php
+				?><div class="video"><?php echo $lesson_video_embed; ?></div><?php
         	} // End If Statement
         } // End If Statement
 	} // End sensei_lesson_video()
@@ -890,6 +903,12 @@ class Sensei_Frontend {
 		global  $post;
 
 		$quiz_id = 0;
+
+		//make sure user is taking course
+		$course_id = Sensei()->lesson->get_course_id( $post->ID );
+		if( ! Sensei_Utils::user_started_course( $course_id, get_current_user_id() ) ){
+			return;
+		}
 
 		// Lesson quizzes
 		$quiz_id = Sensei()->lesson->lesson_quizzes( $post->ID );
@@ -1054,7 +1073,7 @@ class Sensei_Frontend {
 	public function sensei_login_form() {
 		?>
 		<div id="my-courses">
-			<?php Sensei()->notices->print_notices(); ?>
+			<?php Sensei()->notices->maybe_print_notices(); ?>
 			<div class="col2-set" id="customer_login">
 
 				<div class="col-1">
@@ -1081,17 +1100,17 @@ class Sensei_Frontend {
 
 						<p class="form-row form-row-wide">
 							<label for="sensei_reg_username"><?php _e( 'Username', 'woothemes-sensei' ); ?> <span class="required">*</span></label>
-							<input type="text" class="input-text" name="sensei_reg_username" id="sensei_reg_username" value="<?php if ( ! empty( $_POST['sensei_reg_username'] ) ) esc_attr_e( $_POST['sensei_reg_username'] ); ?>" />
+							<input type="text" class="input-text" name="sensei_reg_username" id="sensei_reg_username" value="<?php if ( ! empty( $_POST['sensei_reg_username'] ) ) echo esc_attr( $_POST['sensei_reg_username'] ); ?>" />
 						</p>
 
 						<p class="form-row form-row-wide">
 							<label for="sensei_reg_email"><?php _e( 'Email address', 'woothemes-sensei' ); ?> <span class="required">*</span></label>
-							<input type="email" class="input-text" name="sensei_reg_email" id="sensei_reg_email" value="<?php if ( ! empty( $_POST['sensei_reg_email'] ) ) esc_attr_e( $_POST['sensei_reg_email'] ); ?>" />
+							<input type="email" class="input-text" name="sensei_reg_email" id="sensei_reg_email" value="<?php if ( ! empty( $_POST['sensei_reg_email'] ) ) echo esc_attr( $_POST['sensei_reg_email'] ); ?>" />
 						</p>
 
 						<p class="form-row form-row-wide">
 							<label for="sensei_reg_password"><?php _e( 'Password', 'woothemes-sensei' ); ?> <span class="required">*</span></label>
-							<input type="password" class="input-text" name="sensei_reg_password" id="sensei_reg_password" value="<?php if ( ! empty( $_POST['sensei_reg_password'] ) ) esc_attr_e( $_POST['sensei_reg_password'] ); ?>" />
+							<input type="password" class="input-text" name="sensei_reg_password" id="sensei_reg_password" value="<?php if ( ! empty( $_POST['sensei_reg_password'] ) ) echo esc_attr( $_POST['sensei_reg_password'] ); ?>" />
 						</p>
 
 						<!-- Spam Trap -->
@@ -1251,7 +1270,12 @@ class Sensei_Frontend {
 		global $post;
 
 		if( is_search() && in_array( $post->post_type, array( 'course', 'lesson' ) ) ) {
-			$content = '<p class="course-excerpt">' . the_excerpt( ) . '</p>';
+
+			// Prevent infinite loop, because wp_trim_excerpt calls the_content filter again
+			remove_filter( 'the_content', array( $this, 'sensei_search_results_excerpt' ) );
+
+			// Don't echo the excerpt
+			$content = '<p class="course-excerpt">' . get_the_excerpt( ) . '</p>';
 		}
 
 		return $content;
@@ -1272,7 +1296,7 @@ class Sensei_Frontend {
 			} else {
 				// Than its real product set it's id to item_id
 				$item_id = $item['product_id'];
-			} 
+			}
 
             if ( $item_id > 0 ) {
 
@@ -1469,10 +1493,11 @@ class Sensei_Frontend {
 
 				$items = $order->get_items();
 				foreach( $items as $item ) {
+
                     $product = wc_get_product( $item['product_id'] );
 
                     // handle product bundles
-                    if( $product->is_type('bundle') ){
+                    if( is_object( $product ) &&  $product->is_type('bundle') ){
 
                         $bundled_product = new WC_Product_Bundle( $product->id );
                         $bundled_items = $bundled_product->get_bundled_items();
@@ -1549,7 +1574,6 @@ class Sensei_Frontend {
 	 */
 	function sensei_handle_login_request( ) {
 
-
 		// Check that it is a sensei login request and if it has a valid nonce
 	    if(  isset( $_REQUEST['form'] ) && 'sensei-login' == $_REQUEST['form'] ) {
 
@@ -1558,10 +1582,8 @@ class Sensei_Frontend {
 		    	return;
 		    }
 
-
 		    //get the page where the sensei log form is located
 		    $referrer = $_REQUEST['_wp_http_referer'];
-		    //$redirect = $_REQUEST['_sensei_redirect'];
 
 		    if ( ( isset( $_REQUEST['log'] ) && !empty( $_REQUEST['log'] ) )
 		    	 && ( isset( $_REQUEST['pwd'] ) && !empty( $_REQUEST['pwd'] ) ) ){
@@ -1598,7 +1620,8 @@ class Sensei_Frontend {
 				$creds['remember'] = isset( $_REQUEST['rememberme'] ) ? true : false ;
 
 				//attempt logging in with the given details
-				$user = wp_signon( $creds, false );
+			    $secure_cookie = is_ssl() ? true : false;
+			    $user = wp_signon( $creds, $secure_cookie );
 
 				if ( is_wp_error($user) ){ // on login failure
                     wp_redirect( esc_url_raw( add_query_arg('login', 'failed', $referrer) ) );
@@ -1650,7 +1673,7 @@ class Sensei_Frontend {
 		global 	 $current_user;
 		// check the for the sensei specific registration requests
 		if( !isset( $_POST['sensei_reg_username'] ) && ! isset( $_POST['sensei_reg_email'] ) && !isset( $_POST['sensei_reg_password'] )){
-			// exit functionas this is not a sensei registration request
+			// exit if this is not a sensei registration request
 			return ;
 		}
 		// check for spam throw cheating huh
@@ -1684,7 +1707,7 @@ class Sensei_Frontend {
 		// Check the e-mail address
 		$email_error_notice = '';
 		if ( $new_user_email == '' ) {
-			$email_error_notice = __( '<strong>ERROR</strong>: Please type your e-mail address.' );
+			$email_error_notice = __( '<strong>ERROR</strong>: Please enter an email address.' );
 		} elseif ( ! is_email( $new_user_email ) ) {
 			$email_error_notice = __( '<strong>ERROR</strong>: The email address isn&#8217;t correct.' );
 		} elseif ( email_exists( $new_user_email ) ) {
@@ -1701,14 +1724,14 @@ class Sensei_Frontend {
 
 		// exit on email address error
 		if( empty( $new_user_password ) ){
-			Sensei()->notices->add_notice(  __( '<strong>ERROR</strong>: The password field may not be empty, please enter a secure password.' )  , 'alert');
+			Sensei()->notices->add_notice(  __( '<strong>ERROR</strong>: The password field is empty.' )  , 'alert');
 			return;
 		}
 
 		// register user
 		$user_id = wp_create_user( $new_user_name, $new_user_password, $new_user_email );
 		if ( ! $user_id || is_wp_error( $user_id ) ) {
-			Sensei()->notices->add_notice( sprintf( __( '<strong>ERROR</strong>: Couldn\'t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ), get_option( 'admin_email' ) ), 'alert');
+			Sensei()->notices->add_notice( sprintf( __( '<strong>ERROR</strong>: Couldn&#8217;t register you&hellip; please contact the <a href="mailto:%s">webmaster</a> !' ), get_option( 'admin_email' ) ), 'alert');
 		}
 
 		// notify the user
@@ -1739,8 +1762,7 @@ class Sensei_Frontend {
 	 */
 	public function login_message_process(){
 
-
-		    // setup the message variables
+            // setup the message variables
 			$message = '';
 
 			//only output message if the url contains login=failed and login=emptyfields
@@ -1780,7 +1802,7 @@ class Sensei_Frontend {
 
 /**
  * Class WooThemes_Sensei_Frontend
- * for backward compatibility
+ * @ignore only for backward compatibility
  * @since 1.9.0
  */
 class WooThemes_Sensei_Frontend extends Sensei_Frontend{}

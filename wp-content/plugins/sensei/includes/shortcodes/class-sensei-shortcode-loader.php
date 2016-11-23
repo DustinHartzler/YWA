@@ -9,8 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) exit; // security check
  * in this function, the functions load_shortcode will be called and it will
  * instantiate the correct shortcode handling class as it was registered.
  *
- * @package Sensei
- * @category Shortcodes
+ *
+ * @package Content
+ * @subpackage Shortcode
+ * @author Automattic
+ *
  * @since 1.9.0
  */
 class Sensei_Shortcode_Loader{
@@ -40,8 +43,6 @@ class Sensei_Shortcode_Loader{
 
         // add sensei body class for shortcodes
         add_filter( 'body_class', array( $this, 'possibly_add_body_class' ));
-
-        // array( $this, 'add_body_class')
 
     }
 

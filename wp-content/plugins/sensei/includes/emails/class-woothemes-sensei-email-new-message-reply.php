@@ -9,42 +9,66 @@ if ( ! class_exists( 'WooThemes_Sensei_Email_New_Message_Reply' ) ) :
  *
  * An email sent to the a user when they receive a reply to the private message.
  *
- * @class 		WooThemes_Sensei_Email_New_Message_Reply
- * @version		1.6.0
- * @package		Sensei/Classes/Emails
- * @author 		WooThemes
+ * @package Users
+ * @author Automattic
+ *
+ * @since		1.6.0
  */
 class WooThemes_Sensei_Email_New_Message_Reply {
 
-	var $template;
+    /**
+     * @var string
+     */
+    var $template;
+
+    /**
+     * @var string
+     */
 	var $subject;
-	var $heading;
+
+    /**
+     * @var string
+     */
+    var $heading;
+
+    /**
+     * @var string
+     */
 	var $recipient;
+
 	var $original_sender;
 	var $original_receiver;
 	var $commenter;
+
+    /**
+     * @var WP_Post
+     */
 	var $message;
+
+    /**
+     * @var WP_Comment
+     */
 	var $comment;
 
 	/**
 	 * Constructor
 	 *
 	 * @access public
-	 * @return void
 	 */
 	function __construct() {
 		$this->template = 'new-message-reply';
-		$this->subject = apply_filters( 'sensei_email_subject', sprintf( __( '[%1$s] You have a new message', 'woothemes-sensei' ), get_bloginfo( 'name' ) ), $this->template );
-		$this->heading = apply_filters( 'sensei_email_heading', __( 'You have received a reply to your private message', 'woothemes-sensei' ), $this->template );
 	}
 
 	/**
 	 * trigger function.
 	 *
-	 * @access public
+     * @param WP_Comment $comment
+     * @param string $message
+     *
 	 * @return void
 	 */
-	function trigger( $comment, $message ) {
+	function trigger ( $comment, $message ) {
+
 		global  $sensei_email_data;
 
 		$this->comment = $comment;
@@ -57,6 +81,19 @@ class WooThemes_Sensei_Email_New_Message_Reply {
 
 		$original_receiver = get_post_meta( $this->message->ID, '_receiver', true );
 		$this->original_receiver = get_user_by( 'login', $original_receiver );
+
+		// Set recipient
+		if( $this->commenter->user_login == $original_sender ) {
+			$this->recipient = stripslashes( $this->original_receiver->user_email );
+		} else {
+			$this->recipient = stripslashes( $this->original_sender->user_email );
+		}
+		
+		do_action('sensei_before_mail', $this->recipient);
+		
+		$this->subject = apply_filters( 'sensei_email_subject', sprintf( __( '[%1$s] You have a new message', 'woothemes-sensei' ), get_bloginfo( 'name' ) ), $this->template );
+		$this->heading = apply_filters( 'sensei_email_heading', __( 'You have received a reply to your private message', 'woothemes-sensei' ), $this->template );
+ 
 
 		$content_type = get_post_meta( $this->message->ID, '_posttype', true );
 		$content_id = get_post_meta( $this->message->ID, '_post', true );
@@ -82,15 +119,11 @@ class WooThemes_Sensei_Email_New_Message_Reply {
 			'content_type'		=> $content_type,
 		), $this->template );
 
-		// Set recipient
-		if( $this->commenter->user_login == $original_sender ) {
-			$this->recipient = stripslashes( $this->original_receiver->user_email );
-		} else {
-			$this->recipient = stripslashes( $this->original_sender->user_email );
-		}
 
 		// Send mail
 		Sensei()->emails->send( $this->recipient, $this->subject, Sensei()->emails->get_content( $this->template ) );
+
+		do_action('sensei_after_sending_email');
 	}
 }
 
