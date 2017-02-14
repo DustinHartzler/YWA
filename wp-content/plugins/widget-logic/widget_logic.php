@@ -3,7 +3,7 @@
 Plugin Name:    Widget Logic
 Plugin URI:     http://wordpress.org/extend/plugins/widget-logic/
 Description:    Control widgets with WP's conditional tags is_home etc
-Version:        5.7.1
+Version:        5.7.2
 Author:         wpchefgadget, alanft
 
 Text Domain:   widget-logic
@@ -46,8 +46,9 @@ function widget_logic_init()
 	{
 		if ( get_option('widget_logic_version') != WIDGET_LOGIC_VERSION )
 			widget_logic_activate();
-
-		if ( !file_exists(WP_PLUGIN_DIR.'/limit-login-attempts-reloaded') && current_user_can('install_plugins')  )
+		
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.2', '>=' ) && !file_exists(WP_PLUGIN_DIR.'/limit-login-attempts-reloaded') && current_user_can('install_plugins')  )
 		{
 			$alert = (array)get_option( 'wpchefgadget_alert', array() );
 			if ( empty( $alert['limit-login-attempts'] ) )
