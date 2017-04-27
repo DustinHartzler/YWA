@@ -3,7 +3,7 @@
 Plugin Name:    Widget Logic
 Plugin URI:     http://wordpress.org/extend/plugins/widget-logic/
 Description:    Control widgets with WP's conditional tags is_home etc
-Version:        5.7.2
+Version:        5.7.4
 Author:         wpchefgadget, alanft
 
 Text Domain:   widget-logic
@@ -35,13 +35,6 @@ function widget_logic_init()
 {
     load_plugin_textdomain( 'widget-logic', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
-    /*
-    	if ( ! )
-		return;
-
-	if (  )
-		return;
-    */
 	if ( is_admin() )
 	{
 		if ( get_option('widget_logic_version') != WIDGET_LOGIC_VERSION )
@@ -113,6 +106,8 @@ function widget_logic_ajax_update_callback($instance, $new_instance, $old_instan
 	{
 		$wl_options[$widget_id]=trim($_POST[$widget_id.'-widget_logic']);
 		update_option('widget_logic', $wl_options);
+		
+		unset( $_POST[$widget_id.'-widget_logic'], $_REQUEST[$widget_id.'-widget_logic'] );
 	}
 	return $instance;
 }
@@ -308,23 +303,6 @@ function widget_logic_extra_control()
 	}
 	// output our extra widget logic field
 	echo "<p><label for='".$id_disp."-widget_logic'>". __('Widget logic:','widget-logic'). " <textarea class='widefat' type='text' name='".$id_disp."-widget_logic' id='".$id_disp."-widget_logic' >".$value."</textarea></label></p>";
-	if ( !empty($wl_options['widget_logic-options-show_errors']) && trim($value) && version_compare( PHP_VERSION, '7.0', '>=' ) )
-	{
-		$test = '$result = ('.trim(stripslashes($wl_options[$id ])).'); return true;';
-		try {
-			eval($test);
-		} catch ( Error $e )
-		{
-			?>
-			<div class="notice notice-error inline">
-				<p>
-					The code triggered a PHP error. It might still work on the front-end though b/c of different code environment.
-					<br><code><?php esc_html_e($e->getMessage()) ?></code>
-				</p>
-			</div>
-			<?php
-		}
-	}
 }
 
 
@@ -372,22 +350,28 @@ function widget_logic_filter_sidebars_widgets($sidebars_widgets)
 
 			if (stristr($wl_value,"return")===false)
 				$wl_value="return (" . $wl_value . ");";
-
-			$save = ini_get('display_errors');
+			
+			$show_errors = !empty($wl_options['widget_logic-options-show_errors']) && current_user_can('manage_options');
+			
+			if ( $show_errors )
+				$save = ini_get('display_errors');
 			try {
-				if ( !empty($wl_options['widget_logic-options-show_errors']) && current_user_can('manage_options') )
+				if ( $show_errors )
 					ini_set( 'display_errors', 'On' );
 
 				if (!eval($wl_value))
 					unset($sidebars_widgets[$widget_area][$pos]);
 
-				ini_set( 'display_errors', $save );
+				if ( $show_errors )
+					ini_set( 'display_errors', $save );
 			}
 			catch ( Error $e ) {
 				if ( current_user_can('manage_options') && !empty($wl_options['widget_logic-options-show_errors']) )
 					trigger_error( 'Invalid Widget Logic: '.$e->getMessage(), E_USER_WARNING );
 
-				ini_set( 'display_errors', $save );
+				if ( $show_errors )
+					ini_set( 'display_errors', $save );
+				
 				continue;
 			}
 
