@@ -3,7 +3,7 @@
 /*
 Provides an easy to use interface for communicating with the iThemes Sync server.
 Written by Chris Jean for iThemes.com
-Version 1.1.2
+Version 1.2.0
 
 Version History
 	1.0.0 - 2013-10-01 - Chris Jean
@@ -16,6 +16,8 @@ Version History
 		Changed the reported WordPress version from using $wp_version to Ithemes_Sync_Functions::get_wordpress_version().
 	1.1.2 - 2014-06-26 - Chris Jean
 		Changed the WordPress version used to generate the salted password from using $wp_version to Ithemes_Sync_Functions::get_wordpress_version().
+	1.2.0 - 2014-09-30 - Chris Jean
+		Added new password hashing via the iThemes_Credentials class.
 */
 
 
@@ -104,18 +106,21 @@ class Ithemes_Sync_Server {
 	}
 	
 	public static function request( $action, $query = array(), $data = array() ) {
-		if ( isset( $data['auth_token'] ) )
+		if ( isset( $data['auth_token'] ) ) {
 			$data['iterations'] = self::$password_iterations;
+		}
 		
-		
+		require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
 		$default_query = array(
-			'wp'        => Ithemes_Sync_Functions::get_wordpress_version(),
-			'site'      => get_bloginfo( 'url' ),
-			'timestamp' => time(),
+			'wp'           => Ithemes_Sync_Functions::get_wordpress_version(),
+			'site'         => get_bloginfo( 'url' ),
+			'timestamp'    => time(),
+			'auth_version' => '2',
 		);
 		
-		if ( is_multisite() )
+		if ( is_multisite() ) {
 			$default_query['ms'] = 1;
+		}
 		
 		$query = array_merge( $default_query, $query );
 		$query['action'] = $action;
@@ -139,14 +144,14 @@ class Ithemes_Sync_Server {
 		
 		$patch_enabled = $GLOBALS['ithemes-sync-settings']->get_option( 'use_ca_patch' );
 		
-		
 		if ( $patch_enabled ) {
 			$response = self::do_patched_post( $request, $remote_post_args );
 			
-			if ( is_wp_error( $response ) )
+			if ( is_wp_error( $response ) ) {
 				$response = wp_remote_post( self::$secure_server_url . $request, $remote_post_args );
-			else
+			} else {
 				$options['use_ca_patch'] = true;
+			}
 		}
 		else {
 			$response = wp_remote_post( self::$secure_server_url . $request, $remote_post_args );
@@ -154,8 +159,9 @@ class Ithemes_Sync_Server {
 			if ( is_wp_error( $response ) ) {
 				$response = self::do_patched_post( $request, $remote_post_args );
 				
-				if ( ! is_wp_error( $response ) )
+				if ( ! is_wp_error( $response ) ) {
 					$options['use_ca_patch'] = true;
+				}
 			}
 		}
 		
@@ -166,23 +172,25 @@ class Ithemes_Sync_Server {
 			$options['use_ca_patch'] = false;
 		}
 		
-		
 		$GLOBALS['ithemes-sync-settings']->update_options( $options );
 		
-		
-		if ( is_wp_error( $response ) )
+		if ( is_wp_error( $response ) ) {
 			return $response;
-		if ( 200 != $response['response']['code'] )
+		}
+		if ( 200 != $response['response']['code'] ) {
 			return new WP_Error( 'ithemes-sync-server-failed-request', $response['response']['message'] );
+		}
 		
 		
 		$body = json_decode( $response['body'], true );
 		
-		if ( ! is_array( $body ) )
+		if ( ! is_array( $body ) ) {
 			return new WP_Error( 'ithemes-sync-server-unknown-response', __( 'An unrecognized server response format was received from the iThemes Sync server.', 'it-l10n-ithemes-sync' ) );
+		}
 		
-		if ( ! empty( $body['error'] ) )
+		if ( ! empty( $body['error'] ) ) {
 			return new WP_Error( $body['error']['type'], $body['error']['message'] );
+		}
 		
 		
 		return $body;
@@ -197,10 +205,13 @@ class Ithemes_Sync_Server {
 	}
 	
 	private static function get_password_hash( $username, $password ) {
-		require_once( ABSPATH . 'wp-includes/class-phpass.php');
+		require_once( ABSPATH . 'wp-includes/class-phpass.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/class-ithemes-credentials.php' );
+		
+		$password = iThemes_Credentials::get_password_hash( $username, $password );
 		
 		$salted_password = $password . $username . get_bloginfo( 'url' ) . Ithemes_Sync_Functions::get_wordpress_version();
-		$salted_password = substr( $salted_password, 0, max( strlen( $password ), 72 ) );
+		$salted_password = substr( $salted_password, 0, max( strlen( $password ), 512 ) );
 		
 		$hasher = new PasswordHash( self::$password_iterations, true );
 		$auth_token = $hasher->HashPassword( $salted_password );
@@ -211,10 +222,11 @@ class Ithemes_Sync_Server {
 	public static function add_ca_patch_to_curl_opts( $handle ) {
 		$url = curl_getinfo( $handle, CURLINFO_EFFECTIVE_URL );
 		
-		if ( ! preg_match( '/^' . preg_quote( self::$secure_server_url, '/' ) . '/', $url ) )
+		if ( ! preg_match( '/^' . preg_quote( self::$secure_server_url, '/' ) . '/', $url ) ) {
 			return;
+		}
 		
-		curl_setopt( $handle, CURLOPT_CAINFO, dirname( __FILE__ ) . '/ca/roots.crt' );
+		curl_setopt( $handle, CURLOPT_CAINFO, $GLOBALS['ithemes_sync_path'] . '/ca/roots.crt' );
 	}
 	
 	public static function enable_ssl_ca_patch() {

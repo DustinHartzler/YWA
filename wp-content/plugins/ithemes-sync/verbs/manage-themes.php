@@ -85,8 +85,11 @@ class Ithemes_Sync_Verb_Manage_themes extends Ithemes_Sync_Verb {
 		if ( ! is_string( $theme ) ) {
 			return new WP_Error( 'invalid-argument', 'The activate argument only accepts a string representing a single theme.' );
 		}
-		
-		return switch_theme( $theme );
+		switch_theme( $theme );
+		$new_theme = wp_get_theme( $theme );
+		$result['data']['name']    = $new_theme->get( 'Name' );
+		$result['data']['version'] = $new_theme->get( 'Version' );
+		return $result;
 	}
 	
 	private function get_enabled_themes() {
@@ -122,7 +125,7 @@ class Ithemes_Sync_Verb_Manage_themes extends Ithemes_Sync_Verb {
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		require_once( ABSPATH . 'wp-admin/includes/theme.php' );
-		require_once( dirname( dirname( __FILE__ ) ) . '/upgrader-skin.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/upgrader-skin.php' );
 		
 		$upgrader = new Theme_Upgrader( new Ithemes_Sync_Upgrader_Skin() );
 		
@@ -136,7 +139,6 @@ class Ithemes_Sync_Verb_Manage_themes extends Ithemes_Sync_Verb {
 				$result = $upgrader->install( $theme );
 			} else {
 				$api = themes_api( 'theme_information', array( 'slug' => $theme, 'fields' => array( 'sections' => false, 'tags' => false ) ) );
-				
 				if ( is_wp_error( $api ) ) {
 					$result = $api;
 				} else {
@@ -153,7 +155,8 @@ class Ithemes_Sync_Verb_Manage_themes extends Ithemes_Sync_Verb {
 				$results[$theme]['result'] = $result;
 				
 				$theme_info = $upgrader->theme_info();
-				
+				$results[$theme]['name'] = $theme_info->get( 'Name' );
+				$results[$theme]['version'] = $theme_info->get( 'Version' );
 				if ( is_object( $theme_info ) && is_callable( array( $theme_info, 'get_stylesheet' ) ) ) {
 					$results[$theme]['slug'] = basename( $theme_info->get_stylesheet() );
 				} else if ( isset( $upgrader->result ) && ! empty( $upgrader->result['destination_name'] ) ) {
@@ -167,7 +170,6 @@ class Ithemes_Sync_Verb_Manage_themes extends Ithemes_Sync_Verb {
 		}
 		
 		Ithemes_Sync_Functions::refresh_theme_updates();
-		
 		
 		return $results;
 	}

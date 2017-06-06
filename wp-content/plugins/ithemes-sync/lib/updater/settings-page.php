@@ -581,7 +581,7 @@ class Ithemes_Updater_Settings_Page {
 		<h3 class="subtitle"><?php _e( 'Unrecognized Products', 'it-l10n-ithemes-sync' ); ?></h3>
 		
 		<p><?php _e( 'The following products were not recognized by the licensing system. This can be due to a bug in the product code, a temporary server issue, or because the product is no longer supported.', 'it-l10n-ithemes-sync' ); ?></p>
-		<p><?php printf( __( 'Please check this page again at a later time to see if the problem resolves itself. If the product remains, please contact <a href="%s">iThemes support</a> and provide them with the details given below.', 'it-l10n-ithemes-sync' ), 'http://ithemes.com/forum/' ); ?></p>
+		<p><?php printf( __( 'Please check this page again at a later time to see if the problem resolves itself. If the product remains, please contact <a href="%s">iThemes support</a> and provide them with the details given below.', 'it-l10n-ithemes-sync' ), 'http://ithemes.com/support/' ); ?></p>
 		
 		<table class="ithemes-updater-listing widefat">
 			<thead>

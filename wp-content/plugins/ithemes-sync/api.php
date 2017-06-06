@@ -3,7 +3,7 @@
 /*
 Simple API for managing verbs for Sync.
 Written by Chris Jean for iThemes.com
-Version 1.4.0
+Version 1.4.1
 
 Version History
 	1.0.0 - 2013-10-01 - Chris Jean
@@ -21,6 +21,8 @@ Version History
 	1.4.0 - 2014-07-01 - Chris Jean
 		Added: get-comment-details, get-options, get-role-details, get-user-details, manage-commments, manage-roles, manage-users.
 		register() now returns true when a Verb has been successfully registered.
+	1.4.1 - 2014-11-10 - Chris Jean
+		Changed init hook priority to 11 in order to avoid issues with some plugin updates not appearing.
 */
 
 
@@ -28,38 +30,53 @@ class Ithemes_Sync_API {
 	private $verbs = array();
 	
 	private $default_verbs = array(
-		'deauthenticate-user'   => 'Ithemes_Sync_Verb_Deauthenticate_User',
-		'do-update'             => 'Ithemes_Sync_Verb_Do_Update',
-		'get-comment-details'   => 'Ithemes_Sync_Verb_Get_Comment_Details',
-		'get-options'           => 'Ithemes_Sync_Verb_Get_Options',
-		'get-php-details'       => 'Ithemes_Sync_Verb_Get_PHP_Details',
-		'get-plugin-details'    => 'Ithemes_Sync_Verb_Get_Plugin_Details',
-		'get-notices'           => 'Ithemes_Sync_Verb_Get_Notices',
-		'get-role-details'      => 'Ithemes_Sync_Verb_Get_Role_Details',
-		'get-server-details'    => 'Ithemes_Sync_Verb_Get_Server_Details',
-		'get-status'            => 'Ithemes_Sync_Verb_Get_Status',
-		'get-status-elements'   => 'Ithemes_Sync_Verb_Get_Status_Elements',
-		'get-supported-verbs'   => 'Ithemes_Sync_Verb_Get_Supported_Verbs',
-		'get-sync-settings'     => 'Ithemes_Sync_Verb_Get_Sync_Settings',
-		'get-theme-details'     => 'Ithemes_Sync_Verb_Get_Theme_Details',
-		'get-update-details'    => 'Ithemes_Sync_Verb_Get_Update_Details',
-		'get-updates'           => 'Ithemes_Sync_Verb_Get_Updates',
-		'get-user-details'      => 'Ithemes_Sync_Verb_Get_User_Details',
-		'get-wordpress-details' => 'Ithemes_Sync_Verb_Get_Wordpress_Details',
-		'get-wordpress-users'   => 'Ithemes_Sync_Verb_Get_Wordpress_Users',
-		'manage-comments'       => 'Ithemes_Sync_Verb_Manage_Comments',
-		'manage-plugins'        => 'Ithemes_Sync_Verb_Manage_Plugins',
-		'manage-roles'          => 'Ithemes_Sync_Verb_Manage_Roles',
-		'manage-themes'         => 'Ithemes_Sync_Verb_Manage_Themes',
-		'manage-users'          => 'Ithemes_Sync_Verb_Manage_Users',
-		'update-show-sync'      => 'Ithemes_Sync_Verb_Update_Show_Sync',
+		'db-optimization'              => 'Ithemes_Sync_Verb_DB_Optimization',
+		'deauthenticate-user'          => 'Ithemes_Sync_Verb_Deauthenticate_User',
+		'do-update'                    => 'Ithemes_Sync_Verb_Do_Update',
+		'get-admin-bar-item-whitelist' => 'Ithemes_Sync_Verb_Get_Admin_Bar_Item_Whitelist',
+		'get-admin-bar-items'          => 'Ithemes_Sync_Verb_Get_Admin_Bar_Items',
+		'get-admin-menu'               => 'Ithemes_Sync_Verb_Get_Admin_Menu',
+		'get-authentication-token'     => 'Ithemes_Sync_Verb_Get_Authentication_Token',
+		'get-comment-details'          => 'Ithemes_Sync_Verb_Get_Comment_Details',
+		'get-dashboard-widgets'        => 'Ithemes_Sync_Verb_Get_Dashboard_Widgets',
+		'get-options'                  => 'Ithemes_Sync_Verb_Get_Options',
+		'get-php-details'              => 'Ithemes_Sync_Verb_Get_PHP_Details',
+		'get-plugin-details'           => 'Ithemes_Sync_Verb_Get_Plugin_Details',
+		'get-posts'                    => 'Ithemes_Sync_Verb_Get_Posts',
+		'get-post-types'               => 'Ithemes_Sync_Verb_Get_Post_Types',
+		'get-notices'                  => 'Ithemes_Sync_Verb_Get_Notices',
+		'get-role-details'             => 'Ithemes_Sync_Verb_Get_Role_Details',
+		'get-server-details'           => 'Ithemes_Sync_Verb_Get_Server_Details',
+		'get-status'                   => 'Ithemes_Sync_Verb_Get_Status',
+		'get-status-elements'          => 'Ithemes_Sync_Verb_Get_Status_Elements',
+		'get-supported-verbs'          => 'Ithemes_Sync_Verb_Get_Supported_Verbs',
+		'get-sync-settings'            => 'Ithemes_Sync_Verb_Get_Sync_Settings',
+		'get-theme-details'            => 'Ithemes_Sync_Verb_Get_Theme_Details',
+		'get-update-details'           => 'Ithemes_Sync_Verb_Get_Update_Details',
+		'get-updates'                  => 'Ithemes_Sync_Verb_Get_Updates',
+		'get-user-details'             => 'Ithemes_Sync_Verb_Get_User_Details',
+		'get-wordpress-details'        => 'Ithemes_Sync_Verb_Get_Wordpress_Details',
+		'get-wordpress-settings'       => 'Ithemes_Sync_Verb_Get_Wordpress_Settings',
+		'get-wordpress-users'          => 'Ithemes_Sync_Verb_Get_Wordpress_Users',
+		'manage-posts'                 => 'Ithemes_Sync_Verb_Manage_Posts',
+		'manage-comments'              => 'Ithemes_Sync_Verb_Manage_Comments',
+		'manage-ithemes-licenses'      => 'Ithemes_Sync_Verb_Manage_Ithemes_Licenses',
+		'manage-options'               => 'Ithemes_Sync_Verb_Manage_Options',
+		'manage-plugins'               => 'Ithemes_Sync_Verb_Manage_Plugins',
+		'manage-reports'               => 'Ithemes_Sync_Verb_Manage_Reports',
+		'manage-roles'                 => 'Ithemes_Sync_Verb_Manage_Roles',
+		'manage-themes'                => 'Ithemes_Sync_Verb_Manage_Themes',
+		'manage-users'                 => 'Ithemes_Sync_Verb_Manage_Users',
+		'set-admin-bar-item-whitelist' => 'Ithemes_Sync_Verb_Set_Admin_Bar_Item_Whitelist',
+		'update-show-sync'             => 'Ithemes_Sync_Verb_Update_Show_Sync',
+		'update-google-site-verification-token' => 'Ithemes_Sync_Verb_Update_Google_Site_Verification_Token',
 	);
-	
 	
 	public function __construct() {
 		$GLOBALS['ithemes-sync-api'] = $this;
 		
-		require_once( dirname( __FILE__ ) . '/functions.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		
 		// Gravity Forms Verbs
 		if ( class_exists( 'GFForms' ) ) {
@@ -67,16 +84,19 @@ class Ithemes_Sync_API {
 			$this->default_verbs['get-gf-form-entries'] = 'Ithemes_Sync_Verb_Get_GF_Form_Entries';
 		}
 		
-		add_action( 'init', array( $this, 'init' ) );
+		// Yoast SEO Verbs
+		if ( is_plugin_active( 'wordpress-seo/wp-seo.php' ) ) {
+			$this->default_verbs['get-yoast-seo-summary'] = 'Ithemes_Sync_Verb_Get_Yoast_SEO_Summary';
+		}
+		
+		add_action( 'init', array( $this, 'init' ), 11 );
 	}
 	
 	public function init() {
-		$path = dirname( __FILE__ );
-		
-		require_once( "$path/verbs/verb.php" );
+		require_once( $GLOBALS['ithemes_sync_path'] . "/verbs/verb.php" );
 		
 		foreach ( $this->default_verbs as $name => $class ) {
-			$this->register( $name, $class, "$path/verbs/$name.php" );
+			$this->register( $name, $class, $GLOBALS['ithemes_sync_path'] . "/verbs/$name.php" );
 		}
 		
 		do_action( 'ithemes_sync_register_verbs', $this );

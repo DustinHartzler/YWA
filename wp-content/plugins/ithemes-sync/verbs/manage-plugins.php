@@ -59,7 +59,6 @@ class Ithemes_Sync_Verb_Manage_Plugins extends Ithemes_Sync_Verb {
 			}
 		}
 		
-		
 		return $this->response;
 	}
 	
@@ -119,7 +118,13 @@ class Ithemes_Sync_Verb_Manage_Plugins extends Ithemes_Sync_Verb {
 		
 		$this->handled_activation = true;
 		
-		return activate_plugin( $plugin );
+		$result = activate_plugin( $plugin );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		} else {
+			$result['data'] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin, true, false );
+			return $result;
+		}
 	}
 	
 	private function network_activate_plugin( $plugin ) {
@@ -133,11 +138,19 @@ class Ithemes_Sync_Verb_Manage_Plugins extends Ithemes_Sync_Verb {
 		
 		$this->handled_activation = true;
 		
-		return activate_plugin( $plugin, '', true );
+		$result = activate_plugin( $plugin, '', true );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		} else {
+			$result['data'] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin, true, false );
+			return $result;
+		}
 	}
 	
-	private function deactivate_plugins( $plugins ) {
-		return deactivate_plugins( (array) $plugins );
+	private function deactivate_plugins( $plugin ) { //We only send one at a time
+		$result['data'] = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin, true, false );
+		deactivate_plugins( (array) $plugin );
+		return $result;
 	}
 	
 	private function install_plugins( $plugins ) {
@@ -145,7 +158,7 @@ class Ithemes_Sync_Verb_Manage_Plugins extends Ithemes_Sync_Verb {
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
-		require_once( dirname( dirname( __FILE__ ) ) . '/upgrader-skin.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/upgrader-skin.php' );
 		
 		$upgrader = new Plugin_Upgrader( new Ithemes_Sync_Upgrader_Skin() );
 		
@@ -194,8 +207,9 @@ class Ithemes_Sync_Verb_Manage_Plugins extends Ithemes_Sync_Verb {
 		require_once( ABSPATH . '/wp-admin/includes/file.php' );
 		
 		// First ensure that the plugins are deactivated.
-		$this->deactivate_plugins( $plugins );
+		$result = $this->deactivate_plugins( $plugins );
+		delete_plugins( (array) $plugins );
 		
-		return delete_plugins( (array) $plugins );
+		return $result;
 	}
 }

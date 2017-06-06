@@ -3,7 +3,7 @@
 /*
 Provides a reliable way of retrieving which projects have updates.
 Written by Chris Jean for iThemes.com
-Version 1.0.1
+Version 1.0.2
 
 Version History
 	1.0.0 - 2013-04-11 - Chris Jean
@@ -11,6 +11,8 @@ Version History
 	1.0.1 - 2013-09-19 - Chris Jean
 		Added support for 'upgrade' data for a package.
 		Updated requires to no longer use dirname().
+	1.0.2 - 2014-10-23 - Chris Jean
+		Updated to meet WordPress coding standards.
 */
 
 
@@ -40,21 +42,20 @@ class Ithemes_Updater_Packages {
 					'message' => $response->get_error_message(),
 				);
 			}
-		}
-		else {
+		} else {
 			$expiration = time() + ( 12 * 3600 );
 			
 			foreach ( $packages as $path => $data ) {
-				if ( empty( $response['packages'][$data['package']] ) )
+				if ( empty( $response['packages'][$data['package']] ) ) {
 					continue;
+				}
 				
 				$package = $response['packages'][$data['package']];
 				
 				if ( ! empty( $package['error'] ) ) {
 					if ( in_array( $package['error']['type'], array( 'ITXAPI_License_Key_Unknown', 'ITXAPI_Updater_Missing_Legacy_Key' ) ) ) {
 						$packages[$path]['status'] = 'unlicensed';
-					}
-					else {
+					} else {
 						$packages[$path]['status'] = 'error';
 						$packages[$path]['error'] = $package['error'];
 					}
@@ -75,14 +76,16 @@ class Ithemes_Updater_Packages {
 				);
 				
 				foreach ( $key_map as $old => $new ) {
-					if ( isset( $package[$old] ) )
+					if ( isset( $package[$old] ) ) {
 						$packages[$path][$new] = $package[$old];
-					else
+					} else {
 						$packages[$path][$new] = null;
+					}
 				}
 				
-				if ( isset( $package['link_expire'] ) )
+				if ( isset( $package['link_expire'] ) ) {
 					$expiration = min( $expiration, $package['link_expire'] );
+				}
 			}
 		}
 		
@@ -101,11 +104,13 @@ class Ithemes_Updater_Packages {
 		
 		$packages = array();
 		
-		foreach ( $all_packages as $file => $slug )
+		foreach ( $all_packages as $file => $slug ) {
 			$packages[$slug][] = $file;
+		}
 		
-		foreach ( $packages as $slug => $paths )
+		foreach ( $packages as $slug => $paths ) {
 			$packages[$slug] = array_unique( $paths );
+		}
 		
 		
 		$details = array();
@@ -122,8 +127,7 @@ class Ithemes_Updater_Packages {
 					$plugin_data = get_plugin_data( $path, false, false );
 					$version = $plugin_data['Version'];
 					$info_url = $plugin_data['PluginURI'];
-				}
-				else {
+				} else {
 					$type = 'theme';
 					$dir = basename( dirname( $path ) );
 					$rel_path = "$dir/" . basename( $path );
@@ -133,8 +137,7 @@ class Ithemes_Updater_Packages {
 						
 						$version = $theme_data->get( 'Version' );
 						$info_url = $theme_data->get( 'ThemeURI' );
-					}
-					else {
+					} else {
 						$theme_data = get_theme( $dir );
 						
 						$version = $theme_data['Version'];
@@ -144,11 +147,11 @@ class Ithemes_Updater_Packages {
 				
 				
 				$details[$rel_path] = array(
-					'type'        => $type,
-					'package'     => $package,
-					'installed'   => $version,
-					'info-url'    => $info_url,
-					'key'         => isset( $keys[$package] ) ? $keys[$package] : '',
+					'type'      => $type,
+					'package'   => $package,
+					'installed' => $version,
+					'info-url'  => $info_url,
+					'key'       => isset( $keys[$package] ) ? $keys[$package] : '',
 				);
 			}
 		}
@@ -158,28 +161,32 @@ class Ithemes_Updater_Packages {
 	}
 	
 	public static function get_all() {
-		if ( isset( $GLOBALS['ithemes-updater-packages-all'] ) )
+		if ( isset( $GLOBALS['ithemes-updater-packages-all'] ) ) {
 			return $GLOBALS['ithemes-updater-packages-all'];
+		}
 		
 		
 		$packages = array();
 		
 		
 		// Compatibility fix for WP < 3.1 as the global var is empty by default
-		if ( empty( $GLOBALS['wp_theme_directories'] ) )
+		if ( empty( $GLOBALS['wp_theme_directories'] ) ) {
 			get_themes();
+		}
 		
 		$themes = search_theme_directories();
 		
 		if ( is_array( $themes ) ) {
 			foreach ( $themes as $slug => $data ) {
-				if ( ! file_exists( "{$data['theme_root']}/{$data['theme_file']}" ) )
+				if ( ! file_exists( "{$data['theme_root']}/{$data['theme_file']}" ) ) {
 					continue;
+				}
 				
 				$headers = get_file_data( "{$data['theme_root']}/{$data['theme_file']}", array( 'package' => 'iThemes Package' ), 'theme' );
 				
-				if ( empty( $headers['package'] ) )
+				if ( empty( $headers['package'] ) ) {
 					continue;
+				}
 				
 				$packages["{$data['theme_root']}/{$data['theme_file']}"] = $headers['package'];
 			}
@@ -190,20 +197,23 @@ class Ithemes_Updater_Packages {
 		$plugins = get_plugins();
 		
 		foreach ( $plugins as $file => $data ) {
-			if ( ! file_exists( WP_PLUGIN_DIR . "/$file" ) )
+			if ( ! file_exists( WP_PLUGIN_DIR . "/$file" ) ) {
 				continue;
+			}
 			
 			$headers = get_file_data( WP_PLUGIN_DIR . "/$file", array( 'package' => 'iThemes Package' ), 'plugin' );
 			
-			if ( empty( $headers['package'] ) )
+			if ( empty( $headers['package'] ) ) {
 				continue;
+			}
 			
 			$packages[WP_PLUGIN_DIR . "/$file"] = $headers['package'];
 		}
 		
 		
-		foreach ( $packages as $path => $package )
+		foreach ( $packages as $path => $package ) {
 			$packages[$path] = strtolower( $package );
+		}
 		
 		
 		$GLOBALS['ithemes-updater-packages-all'] = $packages;

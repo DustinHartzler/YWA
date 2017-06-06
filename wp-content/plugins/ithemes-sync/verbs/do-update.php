@@ -3,7 +3,7 @@
 /*
 Implementation of the do-update verb.
 Written by Chris Jean for iThemes.com
-Version 1.2.0
+Version 1.2.2
 
 Version History
 	1.0.0 - 2013-10-01 - Chris Jean
@@ -13,6 +13,10 @@ Version History
 	1.2.0 - 2014-03-28 - Chris Jean
 		Core updates now provide more information back to the server.
 		Multisite updates now properly apply the network upgrade.
+	1.2.1 - 2014-08-22 - Chris Jean
+		In order to avoid issues with stale data, update details are now forcibly refreshed before attempting to run updates.
+	1.2.2 - 2015-07-17 - Chris Jean
+		An error is no longer sent when a plugin or theme updates to a newer version than the one reported.
 */
 
 
@@ -26,7 +30,7 @@ class Ithemes_Sync_Verb_Do_Update extends Ithemes_Sync_Verb {
 	
 	public function run( $arguments ) {
 		require_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
-		require_once( dirname( dirname( __FILE__ ) ) . '/upgrader-skin.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/upgrader-skin.php' );
 		
 		$this->skin = new Ithemes_Sync_Upgrader_Skin();
 		
@@ -34,7 +38,7 @@ class Ithemes_Sync_Verb_Do_Update extends Ithemes_Sync_Verb {
 		$arguments = Ithemes_Sync_Functions::merge_defaults( $arguments, $this->default_arguments );
 		
 		
-		$this->original_update_details = Ithemes_Sync_Functions::get_update_details( array( 'verbose' => true ) );
+		$this->original_update_details = Ithemes_Sync_Functions::get_update_details( array( 'verbose' => true, 'force_refresh' => true ) );
 		
 		
 		$response = array();
@@ -206,6 +210,7 @@ class Ithemes_Sync_Verb_Do_Update extends Ithemes_Sync_Verb {
 		
 		require_once( ABSPATH . 'wp-admin/includes/file.php' );
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		require_once( ABSPATH . 'wp-admin/includes/misc.php' );
 		
 		
 		if ( 'plugin' === $type ) {
@@ -300,11 +305,11 @@ class Ithemes_Sync_Verb_Do_Update extends Ithemes_Sync_Verb {
 				
 				if ( ! isset( $response[$package]['original_update_version'] ) ) {
 					$response[$package]['errors']['no-update'] = 'No update was available.';
-				} else if ( version_compare( $response[$package]['current_version'], $response[$package]['original_update_version'], '==' ) ) {
+				} else if ( version_compare( $response[$package]['current_version'], $response[$package]['original_update_version'], '>=' ) ) {
 					$response[$package]['success'] = 1;
 					
 					if ( isset( $response[$package]['current_update_version'] ) ) {
-						if ( version_compare( $response[$package]['current_version'], $response[$package]['current_update_version'], '==' ) ) {
+						if ( version_compare( $response[$package]['current_version'], $response[$package]['current_update_version'], '>=' ) ) {
 							$response[$package]['errors']['old-update-remains-available'] = 'The original update is still listed despite the update working properly.';
 						} else {
 							$response[$package]['errors']['new-update-available'] = 'An update is available.';

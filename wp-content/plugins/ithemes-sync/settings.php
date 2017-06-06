@@ -165,7 +165,7 @@ class Ithemes_Sync_Settings {
 	}
 	
 	public function validate_authentication( $user_id ) {
-		require_once( dirname( __FILE__ ) . '/server.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/server.php' );
 		
 		
 		$authentication = $this->get_authentication_details( $user_id );
@@ -184,7 +184,7 @@ class Ithemes_Sync_Settings {
 	}
 	
 	public function do_ping_check( $user_id = false ) {
-		require_once( dirname( __FILE__ ) . '/server.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/server.php' );
 		
 		
 		if ( empty( $user_id ) ) {

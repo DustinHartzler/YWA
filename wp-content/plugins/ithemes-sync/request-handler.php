@@ -3,7 +3,7 @@
 /*
 Handle requests from Sync server.
 Written by Chris Jean for iThemes.com
-Version 1.3.1
+Version 1.3.5
 
 Version History
 	1.2.0 - 2014-01-20 - Chris Jean
@@ -21,6 +21,16 @@ Version History
 		Rearranged permission-escalation code to after the request is authenticated.
 		Sync requests will now be set to emulate an Administrator user to avoid checks by some security plugins.
 		Added set_full_user_capabilities(), unset_full_user_capabilities(), and filter_user_has_cap().
+	1.3.2 - 2014-08-22 - Chris Jean
+		In order to avoid stale data, external object caches are now disabled on all authenticated requests.
+	1.3.3 - 2014-08-25 - Chris Jean
+		Disable two-factor authentication checks from the Duo Two-Factor Authentication plugin when an authenticated request is being handled.
+	1.3.4 - 2014-10-13 - Chris Jean
+		Added stronger verification of the $_POST['request'] data.
+		Obfuscated the missing-var error responses.
+	1.3.5 - 2014-11-21 - Chris Jean
+		Added smarter use of stripslashes() to avoid issues in decoding utf8 characters.
+		Moved validation check of $_POST['request'] to the constructor in order to better handle both forms of requests (legacy and admin-ajax.php).
 */
 
 
@@ -37,6 +47,23 @@ class Ithemes_Sync_Request_Handler {
 		$this->show_errors();
 		
 		
+		if ( empty( $_POST['request'] ) ) {
+			return;
+		}
+		
+		$request = $_POST['request'];
+		
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || get_magic_quotes_gpc() ) {
+			$request = stripslashes( $request );
+		}
+		
+		$request = json_decode( $request, true );
+		
+		if ( ! is_array( $request ) ) {
+			return;
+		}
+		
+		
 		$GLOBALS['ithemes_sync_request_handler'] = $this;
 		
 		
@@ -45,19 +72,21 @@ class Ithemes_Sync_Request_Handler {
 		
 		add_action( 'ithemes_sync_verbs_registered', array( $this, 'handle_request' ) );
 		
-		require_once( dirname( __FILE__ ) . '/api.php' );
-		require_once( dirname( __FILE__ ) . '/functions.php' );
-		require_once( dirname( __FILE__ ) . '/settings.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/api.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/settings.php' );
 		
 		$this->options = $GLOBALS['ithemes-sync-settings']->get_options();
 		
-		$this->parse_request();
+		$this->parse_request( $request );
 		
 		Ithemes_Sync_Functions::set_time_limit( 60 );
 		
 		$this->set_is_admin_to_true();
 		$this->set_current_user_to_admin();
 		$this->set_full_user_capabilities();
+		$this->disable_ext_object_cache();
+		$this->disable_2fa_verification();
 	}
 	
 	private function show_errors() {
@@ -76,9 +105,26 @@ class Ithemes_Sync_Request_Handler {
 	}
 	
 	private function set_is_admin_to_true() {
+		if ( defined( 'ITHEMES_SYNC_SKIP_SET_IS_ADMIN_TO_TRUE' ) && ITHEMES_SYNC_SKIP_SET_IS_ADMIN_TO_TRUE ) {
+			return;
+		}
+		
 		if ( ! defined( 'WP_ADMIN' ) ) {
 			define( 'WP_ADMIN', true );
 		}
+	}
+	
+	private function disable_ext_object_cache() {
+		// This disables object caching that many caching plugins offer which prevents the cache from supplying stale data to Sync.
+		if ( is_callable( 'wp_using_ext_object_cache' ) ) {
+			wp_using_ext_object_cache( false );
+		}
+	}
+	
+	private function disable_2fa_verification() {
+		// Disable 2FA verification of the Duo Two-Factor Authentication plugin.
+		add_filter( 'pre_site_option_duo_ikey', array( $this, 'return_empty_string' ) );
+		add_filter( 'pre_option_duo_ikey', array( $this, 'return_empty_string' ) );
 	}
 	
 	private function set_current_user_to_admin() {
@@ -125,7 +171,6 @@ class Ithemes_Sync_Request_Handler {
 			}
 		}
 		
-		
 		if ( false === $power_role ) {
 			do_action( 'ithemes-sync-add-log', 'Unable to find a power user role. Unable to set current user to admin.', compact( 'wp_roles' ) );
 			return false;
@@ -144,8 +189,17 @@ class Ithemes_Sync_Request_Handler {
 			return false;
 		}
 		
+		$auth_details = $GLOBALS['ithemes-sync-settings']->get_authentication_details( $this->request['user_id'] );
 		
-		$user = current( $users );
+		foreach( $users as $u ) {
+			if ( $u->data->user_login === $auth_details['local_user'] ) {
+				//Prioritize the Sync user first, if it doesn't match for some reason, we'll fall back to any administrator user
+				$user = $u;
+				break;
+			} else {
+				$user = $u;
+			}
+		}
 		
 		if ( isset( $user->ID ) ) {
 			$GLOBALS['current_user'] = $user;
@@ -173,41 +227,34 @@ class Ithemes_Sync_Request_Handler {
 		return $capabilities;
 	}
 	
-	private function parse_request() {
+	private function parse_request( $request ) {
 		if ( empty( $this->options['authentications'] ) ) {
 			$this->send_response( new WP_Error( 'site-not-authenticated', 'The site does not have any authenticated users.' ) );
 		}
 		
-		
-		$request = stripslashes( $_POST['request'] );
-		$request = json_decode( $request, true );
-		
-		$this->request = $request;
-		
+		$this->request = $request;		
 		
 		$required_vars = array(
-			'action',
-			'arguments',
-			'user_id',
-			'hash',
-			'salt',
+			'1' => 'action',
+			'2' => 'arguments',
+			'3' => 'user_id',
+			'4' => 'hash',
+			'5' => 'salt',
 		);
 		
-		foreach ( $required_vars as $var ) {
+		foreach ( $required_vars as $index => $var ) {
 			if ( ! isset( $request[$var] ) ) {
-				$this->send_response( new WP_Error( "missing-$var", "Invalid request. The $var is missing." ) );
+				$this->send_response( new WP_Error( "missing-var-$index", 'Invalid request.' ) );
 			}
 		}
-		
 		
 		if ( ! isset( $this->options['authentications'][$request['user_id']] ) ) {
 			$this->send_response( new WP_Error( 'user-not-authenticated', 'The requested user is not authenticated.' ) );
 		}
 		
-		
 		$user_data = $this->options['authentications'][$request['user_id']];
 		
-		$hash = hash( 'sha256', $request['user_id'] . $request['action'] . json_encode( $request['arguments'] ) . $user_data['key'] . $request['salt'] );
+		$hash = hash( 'sha256', $request['user_id'] . $request['action'] . $this->json_encode( $request['arguments'] ) . $user_data['key'] . $request['salt'] );
 		
 		if ( $hash !== $request['hash'] ) {
 			$this->send_response( new WP_Error( 'hash-mismatch', 'The hash could not be validated as a correct hash.' ) );
@@ -242,9 +289,9 @@ class Ithemes_Sync_Request_Handler {
 		}
 		
 		$response['verb_time'] = $this->verb_time;
+		$json = $this->json_encode( $response );
 		
-		echo "\n\nv56CHRcOT+%K\$fk[*CrQ9B5<~9T=h?xx9C</`Sqv;M{Q0ms:FR0w\n\n";
-		echo json_encode( $response );
+		echo "\n\nv56CHRcOT+%K\$fk[*CrQ9B5<~9T=h?xx9C</`Sqv;M{Q0ms:FR0w\n\n$json";
 		
 		$this->hide_errors();
 		
@@ -390,6 +437,22 @@ class Ithemes_Sync_Request_Handler {
 	
 	public function handle_error() {
 		$this->send_response( new WP_Error( 'unhandled_request', 'This request was not handled by any registered verb. This was likely caused by a fatal error.' ) );
+	}
+	
+	public function return_empty_string() {
+		return '';
+	}
+	
+	private function json_encode( $data ) {
+		$json = json_encode( $data );
+		
+		if ( false !== $json ) {
+			return $json;
+		}
+		
+		require_once( $GLOBALS['ithemes_sync_path'] . '/class-ithemes-sync-json.php' );
+		
+		return Ithemes_Sync_JSON::encode( $data );
 	}
 }
 

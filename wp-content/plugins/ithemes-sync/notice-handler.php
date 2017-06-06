@@ -20,7 +20,6 @@ class Ithemes_Sync_Notice_Handler {
 	
 	private $notices = array();
 	
-	
 	public function __construct() {
 		$GLOBALS['ithemes_sync_notice_handler'] = $this;
 	}
@@ -55,8 +54,8 @@ class Ithemes_Sync_Notice_Handler {
 	}
 	
 	public function send_urgent_notice( $source, $id, $subject, $message, $data = array() ) {
-		require_once( dirname( __FILE__ ) . '/server.php' );
-		require_once( dirname( __FILE__ ) . '/settings.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/server.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/settings.php' );
 		
 		$timestamp = time();
 		
@@ -67,24 +66,29 @@ class Ithemes_Sync_Notice_Handler {
 		
 		$options = $GLOBALS['ithemes-sync-settings']->get_options();
 		
+		$errors = false;
 		foreach ( $options['authentications'] as $user_id => $user ) {
 			$result = Ithemes_Sync_Server::send_urgent_notices( $user_id, $user['username'], $user['key'], $notices );
 			
-			if ( ! is_wp_error( $result ) && is_array( $result ) && isset( $result['success'] ) && $result['success'] ) {
-				$this->clear_urgent_notices();
-				return true;
+			if ( ! is_wp_error( $result ) && is_array( $result ) && !empty( $result['success'] ) ) {
+				continue;
+			} else {
+				$errors = true;
+				$this->set_urgent_notices( $notices );
+				break;
 			}
 		}
 		
-		$this->set_urgent_notices( $notices );
-		
-		if ( is_wp_error( $result ) ) {
+		if ( !empty( $errors ) ) {
 			return $result;
+		} else {
+			$this->clear_urgent_notices();
+			return true;
 		}
 		
 		return new WP_Error( 'unknown-response', __( 'The Sync server returned an unknown response.', 'it-l10n-ithemes-sync' ) );
 	}
-	
+		
 	public function get_urgent_notices() {
 		return get_site_option( $this->urgent_notice_cache_option_name, array() );
 	}
@@ -96,6 +100,7 @@ class Ithemes_Sync_Notice_Handler {
 	public function clear_urgent_notices() {
 		delete_site_option( $this->urgent_notice_cache_option_name );
 	}
+	
 }
 
 new Ithemes_Sync_Notice_Handler();

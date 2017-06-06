@@ -20,15 +20,14 @@ class Ithemes_Sync_Verb_Get_Comment_Details extends Ithemes_Sync_Verb {
 	private $response = array();
 	
 	private $default_arguments = array(
-		'args'                   => array(
-			'count'  => true,
+		'args' => array(
 			'status' => 'hold',
 		),
 		'include-parent-details' => true,
 		'include-post-details'   => true,
 		'include-user-details'   => true,
+		'include-comment-counts' => true,
 	);
-	
 	
 	public function run( $arguments ) {
 		$arguments = Ithemes_Sync_Functions::merge_defaults( $arguments, $this->default_arguments );
@@ -41,6 +40,7 @@ class Ithemes_Sync_Verb_Get_Comment_Details extends Ithemes_Sync_Verb {
 		}
 		
 		$comments = get_comments( $arguments['args'] );
+		$comments_count = wp_count_comments();
 		
 		if ( is_array( $comments ) ) {
 			$this->response['comments'] = array();
@@ -49,16 +49,20 @@ class Ithemes_Sync_Verb_Get_Comment_Details extends Ithemes_Sync_Verb {
 				$this->response['comments'][$comment->comment_ID] = (array) $comment;
 			}
 			
-			if ( $arguments['include-parent-details'] ) {
+			if ( !empty( $arguments['include-parent-details'] ) ) {
 				$this->add_parent_details();
 			}
 			
-			if ( $arguments['include-post-details'] ) {
+			if ( !empty( $arguments['include-post-details'] ) ) {
 				$this->add_post_details();
 			}
 			
-			if ( $arguments['include-user-details'] ) {
+			if ( !empty( $arguments['include-user-details'] ) ) {
 				$this->add_user_details();
+			}
+			
+			if ( !empty( $arguments['include-comment-counts'] ) ) {
+				$this->response['comment_counts'] = $comments_count;
 			}
 		} else {
 			$this->response = $comments;

@@ -3,7 +3,7 @@
 /*
 Provides an easy to use interface for communicating with the iThemes updater server.
 Written by Chris Jean for iThemes.com
-Version 1.0.4
+Version 1.1.0
 
 Version History
 	1.0.0 - 2013-04-11 - Chris Jean
@@ -16,6 +16,10 @@ Version History
 		Updated the way that the site URL is generated to ensure consistency across multisite sites.
 	1.0.4 - 2014-01-31 - Chris Jean
 		Updated to normalize the site URL used for password hash generation and for sending to the server.
+	1.1.0 - 2014-10-23 - Chris Jean
+		Updated auth token generation to use new password hashing.
+		Added CA patch code.
+		Updated code to meet WordPress coding standards.
 */
 
 
@@ -68,28 +72,32 @@ class Ithemes_Updater_Server {
 			$time_remaining = 1800 - ( time() - $timeout_start );
 			$minutes_remaining = ceil( $time_remaining / 60 );
 			
-			if ( $time_remaining < 0 )
+			if ( $time_remaining < 0 ) {
 				delete_site_option( 'ithemes-updater-server-timed-out' );
-			else
+			} else {
 				return new WP_Error( 'ithemes-updater-timed-out-server', sprintf( _n( 'The server could not be contacted. Requests are delayed for %d minute to allow the server to recover.', 'The server could not be contacted. Requests are delayed for %d minutes to allow the server to recover.', $minutes_remaining, 'it-l10n-ithemes-sync' ), $minutes_remaining ) );
+			}
 		}
 		
 		
-		if ( isset( $data['auth_token'] ) )
+		if ( isset( $data['auth_token'] ) ) {
 			$data['iterations'] = self::$password_iterations;
+		}
 		
 		
 		$site_url = self::get_site_url();
 		
 		
 		$default_query = array(
-			'wp'        => $GLOBALS['wp_version'],
-			'site'      => $site_url,
-			'timestamp' => time(),
+			'wp'           => $GLOBALS['wp_version'],
+			'site'         => $site_url,
+			'timestamp'    => time(),
+			'auth_version' => '2',
 		);
 		
-		if ( is_multisite() )
+		if ( is_multisite() ) {
 			$default_query['ms'] = 1;
+		}
 		
 		$query = array_merge( $default_query, $query );
 		$request = "/$action/?" . http_build_query( $query, '', '&' );
@@ -111,18 +119,20 @@ class Ithemes_Updater_Server {
 		
 		$patch_enabled = $GLOBALS['ithemes-updater-settings']->get_option( 'use_ca_patch' );
 		
-		if ( $patch_enabled )
-			$GLOBALS['ithemes-updater-settings']->disable_ssl_ca_patch();
+		if ( $patch_enabled ) {
+			self::disable_ssl_ca_patch();
+		}
 		
 		
 		$response = wp_remote_post( self::$secure_server_url . $request, $remote_post_args );
 		
 		if ( is_wp_error( $response ) && ( 'connect() timed out!' != $response->get_error_message() ) ) {
-			$GLOBALS['ithemes-updater-settings']->enable_ssl_ca_patch();
+			self::enable_ssl_ca_patch();
 			$response = wp_remote_post( self::$secure_server_url . $request, $remote_post_args );
 			
-			if ( ! is_wp_error( $response ) )
+			if ( ! is_wp_error( $response ) ) {
 				$options['use_ca_patch'] = true;
+			}
 		}
 		
 		if ( is_wp_error( $response ) && ( 'connect() timed out!' != $response->get_error_message() ) ) {
@@ -131,9 +141,9 @@ class Ithemes_Updater_Server {
 			$options['use_ssl'] = false;
 		}
 		
-		
-		if ( ! $options['use_ca_patch'] )
-			$GLOBALS['ithemes-updater-settings']->disable_ssl_ca_patch();
+		if ( ! $options['use_ca_patch'] ) {
+			self::disable_ssl_ca_patch();
+		}
 		
 		$GLOBALS['ithemes-updater-settings']->update_options( $options );
 		
@@ -151,8 +161,9 @@ class Ithemes_Updater_Server {
 		
 		$body = json_decode( $response['body'], true );
 		
-		if ( ! empty( $body['error'] ) )
+		if ( ! empty( $body['error'] ) ) {
 			return new WP_Error( $body['error']['type'], sprintf( __( 'An error occurred when communicating with the iThemes update server: %s (%s)', 'it-l10n-ithemes-sync' ), $body['error']['message'], $body['error']['code'] ) );
+		}
 		
 		
 		return $body;
@@ -172,14 +183,35 @@ class Ithemes_Updater_Server {
 	}
 	
 	private static function get_password_hash( $username, $password ) {
-		require_once( ABSPATH . 'wp-includes/class-phpass.php');
+		require_once( ABSPATH . 'wp-includes/class-phpass.php' );
+		require_once( dirname( __FILE__ ) . '/class-ithemes-credentials.php' );
 		
+		$password = iThemes_Credentials::get_password_hash( $username, $password );
 		
 		$salted_password = $password . $username . self::get_site_url() . $GLOBALS['wp_version'];
-		$salted_password = substr( $salted_password, 0, max( strlen( $password ), 72 ) );
+		$salted_password = substr( $salted_password, 0, max( strlen( $password ), 512 ) );
 		
-		$wp_hasher = new PasswordHash( self::$password_iterations, true );
+		$hasher = new PasswordHash( self::$password_iterations, true );
+		$auth_token = $hasher->HashPassword( $salted_password );
 		
-		return $wp_hasher->HashPassword( $salted_password );
+		return $auth_token;
+	}
+	
+	public static function enable_ssl_ca_patch() {
+		add_action( 'http_api_curl', array( __CLASS__, 'add_ca_patch_to_curl_opts' ) );
+	}
+	
+	public static function disable_ssl_ca_patch() {
+		remove_action( 'http_api_curl', array( __CLASS__, 'add_ca_patch_to_curl_opts' ) );
+	}
+	
+	public static function add_ca_patch_to_curl_opts( $handle ) {
+		$url = curl_getinfo( $handle, CURLINFO_EFFECTIVE_URL );
+		
+		if ( ! preg_match( '{^https://(api|downloads)\.ithemes\.com}', $url ) ) {
+			return;
+		}
+		
+		curl_setopt( $handle, CURLOPT_CAINFO, $GLOBALS['ithemes_updater_path'] . '/ca/roots.crt' );
 	}
 }

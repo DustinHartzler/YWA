@@ -29,3 +29,10 @@
 	Bug Fix: Licensing will now be universal across all sites of a multisite network. This means that you will only need to license on one site to have the license apply across the entire network.
 1.3.4 - 2014-02-03 - Chris Jean
 	Bug Fix: Licensing on SSL-enabled sites now works properly.
+1.4.0 - 2014-11-14 - Chris Jean
+	Enhancement: Reduced caching to allow updates to appear more quickly.
+	Enhancement: Authenticating users now uses the new authentication system.
+1.4.1 - 2015-04-23 - Chris Jean
+	Compatibility Fix: Updated plugin and theme update data format to match changes in WordPress 4.2.
+1.4.2 - 2015-07-14 - Chris Jean
+	Enhancement: Updated link to iThemes support.

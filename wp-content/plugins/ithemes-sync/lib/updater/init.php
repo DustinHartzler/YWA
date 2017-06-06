@@ -3,7 +3,7 @@
 /*
 Load the updater and licensing system without loading unneeded parts.
 Written by Chris Jean for iThemes.com
-Version 1.2.0
+Version 1.2.1
 
 Version History
 	1.0.0 - 2013-04-11 - Chris Jean
@@ -14,6 +14,8 @@ Version History
 		Complete restructuring of this file as most of the code has been relocated to other files.
 	1.2.0 - 2013-12-13 - Chris Jean
 		Added the ability to force clear the server timeout hold by adding a query variable named ithemes-updater-force-clear-server-timeout-hold to the URL.
+	1.2.1 - 2014-10-23 - Chris Jean
+		Removed ithemes-updater-force-clear-server-timeout-hold code.
 */
 
 
@@ -50,9 +52,3 @@ function ithemes_updater_filter_update_themes( $update_themes ) {
 }
 add_filter( 'site_transient_update_themes', 'ithemes_updater_filter_update_themes' );
 add_filter( 'transient_update_themes', 'ithemes_updater_filter_update_themes' );
-
-
-// Allow a user to force-clear the server timeout hold.
-if ( isset( $_GET['ithemes-updater-force-clear-server-timeout-hold'] ) && current_user_can( 'manage_options' ) ) {
-	delete_site_option( 'ithemes-updater-server-timed-out' );
-}

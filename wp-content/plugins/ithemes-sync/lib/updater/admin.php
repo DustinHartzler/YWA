@@ -3,7 +3,7 @@
 /*
 Set up admin interface elements.
 Written by Chris Jean for iThemes.com
-Version 1.2.1
+Version 1.2.2
 
 Version History
 	1.0.0 - 2013-09-19 - Chris Jean
@@ -15,6 +15,8 @@ Version History
 		Removed the code that handled the setting to show or hide the licensing page on multisite sites.
 	1.2.1 - 2013-10-25 - Chris Jean
 		Added "License" links to Network Admin Plugins and Themes pages.
+	1.2.2 - 2014-10-23 - Chris Jean
+		Updated code formating to WordPress coding standards.
 */
 
 
@@ -30,8 +32,9 @@ class Ithemes_Updater_Admin {
 	public function __construct() {
 		require_once( $GLOBALS['ithemes_updater_path'] . '/settings.php' );
 		
-		if ( ! is_multisite() || is_super_admin() )
+		if ( ! is_multisite() || is_super_admin() ) {
 			add_action( 'admin_menu', array( $this, 'add_admin_pages' ) );
+		}
 		
 		add_action( 'network_admin_menu', array( $this, 'add_network_admin_pages' ) );
 		
@@ -55,8 +58,9 @@ class Ithemes_Updater_Admin {
 	public function filter_plugins_api( $value, $action, $args ) {
 		$options = $GLOBALS['ithemes-updater-settings']->get_options();
 		
-		if ( ! isset( $args->slug ) )
+		if ( ! isset( $args->slug ) ) {
 			return $value;
+		}
 		
 		foreach ( (array) $options['update_plugins'] as $path => $data ) {
 			if ( $data->slug == $args->slug ) {
@@ -94,13 +98,15 @@ class Ithemes_Updater_Admin {
 		$deactivated_path = WP_PLUGIN_DIR . "/$deactivated_path";
 		
 		foreach ( $packages as $package => $paths ) {
-			if ( ! in_array( $deactivated_path, $paths ) || ( count( $paths ) > 1 ) )
+			if ( ! in_array( $deactivated_path, $paths ) || ( count( $paths ) > 1 ) ) {
 				continue;
+			}
 			
 			$index = array_search( $package, $options['packages'] );
 			
-			if ( false === $index )
+			if ( false === $index ) {
 				return;
+			}
 			
 			unset( $options['packages'][$index] );
 			$GLOBALS['ithemes-updater-settings']->update_options( $options );
@@ -112,21 +118,24 @@ class Ithemes_Updater_Admin {
 	public function show_activation_message() {
 		$new_packages = $GLOBALS['ithemes-updater-settings']->get_new_packages();
 		
-		if ( empty( $new_packages ) )
+		if ( empty( $new_packages ) ) {
 			return;
+		}
 		
 		
 		natcasesort( $new_packages );
 		require_once( $GLOBALS['ithemes_updater_path'] . '/functions.php' );
 		$names = array();
 		
-		foreach ( $new_packages as $package )
+		foreach ( $new_packages as $package ) {
 			$names = Ithemes_Updater_Functions::get_package_name( $package );
+		}
 		
-		if ( is_multisite() && is_network_admin() )
+		if ( is_multisite() && is_network_admin() ) {
 			$url = network_admin_url( 'settings.php' ) . "?page={$this->page_name}";
-		else
+		} else {
 			$url = admin_url( 'options-general.php' ) . "?page={$this->page_name}";
+		}
 		
 		echo '<div class="updated fade"><p>' . wp_sprintf( __( 'To receive automatic updates for %l, use the <a href="%s">iThemes Licensing</a> page found in the Settings menu.', 'it-l10n-ithemes-sync' ), $names, $url ) . '</p></div>';
 		
@@ -155,16 +164,18 @@ class Ithemes_Updater_Admin {
 	}
 	
 	private function set_package_details() {
-		if ( false !== $this->package_details )
+		if ( false !== $this->package_details ) {
 			return;
+		}
 		
 		require_once( $GLOBALS['ithemes_updater_path'] . '/packages.php' );
 		$this->package_details = Ithemes_Updater_Packages::get_local_details();
 	}
 	
 	private function set_registration_link() {
-		if ( false !== $this->registration_link )
+		if ( false !== $this->registration_link ) {
 			return;
+		}
 		
 		$url = admin_url( 'options-general.php' ) . "?page={$this->page_name}";
 		$this->registration_link = sprintf( '<a href="%1$s" title="%2$s">%3$s</a>', $url, __( 'Manage iThemes product licenses to receive automatic upgrade support', 'it-l10n-ithemes-sync' ), __( 'License', 'it-l10n-ithemes-sync' ) );
@@ -174,8 +185,9 @@ class Ithemes_Updater_Admin {
 		$this->set_package_details();
 		$this->set_registration_link();
 		
-		if ( isset( $this->package_details[$plugin_file] ) )
+		if ( isset( $this->package_details[$plugin_file] ) ) {
 			$actions[] = $this->registration_link;
+		}
 		
 		return $actions;
 	}
@@ -184,15 +196,17 @@ class Ithemes_Updater_Admin {
 		$this->set_package_details();
 		$this->set_registration_link();
 		
-		if ( is_object( $theme ) )
+		if ( is_object( $theme ) ) {
 			$path = basename( $theme->get_stylesheet_directory() ) . '/style.css';
-		else if ( is_array( $theme ) && isset( $theme['Stylesheet Dir'] ) )
+		} else if ( is_array( $theme ) && isset( $theme['Stylesheet Dir'] ) ) {
 			$path = $theme['Stylesheet Dir'] . '/style.css';
-		else
+		} else {
 			$path = '';
+		}
 		
-		if ( isset( $this->package_details[$path] ) )
+		if ( isset( $this->package_details[$path] ) ) {
 			$actions[] = $this->registration_link;
+		}
 		
 		return $actions;
 	}

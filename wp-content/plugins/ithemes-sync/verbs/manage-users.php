@@ -6,6 +6,8 @@ Written by Chris Jean for iThemes.com
 Version 1.0.0
 
 Version History
+	1.0.1 - 2014-08-01 - Aaron D. Campbell
+		Add get-meta, set-meta, and delete-meta actions
 	1.0.0 - 2014-06-02 - Chris Jean
 		Initial version
 */
@@ -34,6 +36,9 @@ class Ithemes_Sync_Verb_Manage_Users extends Ithemes_Sync_Verb {
 			'remove-role' => array( 'user', 'remove_role' ),
 			'add-cap'     => array( 'user', 'add_cap' ),
 			'remove-cap'  => array( 'user', 'remove_cap' ),
+			'get-meta'    => 'get_user_meta',
+			'set-meta'    => 'update_user_meta',
+			'remove-meta' => 'delete_user_meta',
 			'delete'      => 'wp_delete_user',
 		);
 		

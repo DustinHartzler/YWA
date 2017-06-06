@@ -27,17 +27,38 @@ class Ithemes_Sync_Verb_Get_GF_Form_Entries extends Ithemes_Sync_Verb {
 			$form_meta = GFFormsModel::get_form_meta( absint( $arguments['id'] ) );
 			$return['field_labels'] = array();
 			foreach ( $form_meta['fields'] as $field ) {
-				if ( $field['inputs'] ) {
-					foreach ( $field['inputs'] as $input ) {
-						$return['field_labels'][ "{$input['id']}" ] = $input['label'];
-					}
-				} else {
-					$return['field_labels'][ "{$field['id']}" ] = $field['label'];
-				}
+				$return['field_labels'][ "{$field['id']}" ] = $this->_process_label( $field );
 			}
-			$return['entries'] = GFAPI::get_entries( absint( $arguments['id'] ) );
+
+			$return['current_page'] = empty( $arguments['page'] ) ? 1 : absint( $arguments['page'] );
+			if ( $return['current_page'] < 1 ) {
+				$return['current_page'] = 1;
+			}
+
+			$paging = array(
+				'page_size' => 20,
+			);
+			$paging['offset'] = ( $return['current_page'] - 1 ) * $paging['page_size'];
+
+			$return['total_count'] = 0;
+			$return['entries'] = GFAPI::get_entries( absint( $arguments['id'] ), null, null, $paging, $return['total_count'] );
+			$return['page_size'] = $paging['page_size'];
+			$return['total_pages'] = ceil( $return['total_count'] / $paging['page_size'] );
 			return $return;
 		}
 		return false;
+	}
+
+	private function _process_label( $field ) {
+		$return = array( 'label' => $field['label'] );
+
+		if ( ! empty( $field['inputs'] ) ) {
+			$return['children'] = array();
+			foreach ( $field['inputs'] as $input ) {
+				$return['children'][ "{$input['id']}" ] = $this->_process_label( $input );
+			}
+		}
+
+		return $return;
 	}
 }

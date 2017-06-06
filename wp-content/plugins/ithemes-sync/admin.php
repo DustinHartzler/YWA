@@ -33,13 +33,13 @@ class Ithemes_Sync_Admin {
 	}
 	
 	public function remove_sync_plugin( $plugins ) {
-		unset( $plugins[basename( dirname( __FILE__ ) ) . '/init.php'] );
+		unset( $plugins[basename( $GLOBALS['ithemes_sync_path'] ) . '/init.php'] );
 		
 		return $plugins;
 	}
 	
 	public function init() {
-		require_once( dirname( __FILE__ ) . '/settings.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/settings.php' );
 		
 		
 		$show_sync = $GLOBALS['ithemes-sync-settings']->get_option( 'show_sync' );
@@ -80,9 +80,9 @@ class Ithemes_Sync_Admin {
 			
 			if ( current_user_can( 'manage_options' ) ) {
 				if ( ! get_site_option( 'ithemes-sync-authenticated' ) && ( empty( $_GET['page'] ) || ( $this->page_name != $_GET['page'] ) ) && ! get_site_option( 'ithemes_sync_hide_authenticate_notice' ) ) {
-					require_once( dirname( __FILE__ ) . '/functions.php' );
+					require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
 					
-					$path_url = Ithemes_Sync_Functions::get_url( dirname( __FILE__ ) );
+					$path_url = Ithemes_Sync_Functions::get_url( $GLOBALS['ithemes_sync_path'] );
 					wp_enqueue_style( 'ithemes-updater-admin-notice-style', "$path_url/css/admin-notice.css" );
 					wp_enqueue_script( 'ithemes-updater-admin-notice-script', "$path_url/js/admin-notice.js", array( 'jquery' ) );
 					
@@ -91,9 +91,9 @@ class Ithemes_Sync_Admin {
 					delete_site_transient( 'ithemes-sync-activated' );
 				}
 				else if ( ! empty( $_GET['activate'] ) && get_site_transient( 'ithemes-sync-activated' ) ) {
-					require_once( dirname( __FILE__ ) . '/functions.php' );
+					require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
 					
-					$path_url = Ithemes_Sync_Functions::get_url( dirname( __FILE__ ) );
+					$path_url = Ithemes_Sync_Functions::get_url( $GLOBALS['ithemes_sync_path'] );
 					wp_enqueue_style( 'ithemes-updater-admin-notice-style', "$path_url/css/admin-notice.css" );
 					wp_enqueue_script( 'ithemes-updater-admin-notice-script', "$path_url/js/admin-notice.js", array( 'jquery' ) );
 					
@@ -177,9 +177,9 @@ class Ithemes_Sync_Admin {
 	}
 	
 	public function load_settings_page() {
-		require_once( dirname( __FILE__ ) . '/settings.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/settings.php' );
 		
-		require( dirname( __FILE__ ) . '/settings-page.php' );
+		require( $GLOBALS['ithemes_sync_path'] . '/settings-page.php' );
 	}
 	
 	public function settings_index() {

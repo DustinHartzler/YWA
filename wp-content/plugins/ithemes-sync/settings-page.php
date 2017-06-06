@@ -3,7 +3,7 @@
 /*
 Code to render and manage the settings page for Project Sync.
 Written by Chris Jean for iThemes.com
-Version 1.1.0
+Version 1.1.1
 
 Version History
 	1.0.0 - 2013-10-02 - Chris Jean
@@ -15,6 +15,8 @@ Version History
 		Added wrap class to main settings page wrapper to allow for proper positioning of notices.
 	1.1.0 - 2014-03-28 - Chris Jean
 		Users are now validated and shown in valid and invalid groups.
+	1.1.1 - 2014-10-13 - Chris Jean
+		Updated Sync dashboard URL.
 */
 
 
@@ -25,18 +27,16 @@ class Ithemes_Sync_Settings_Page {
 	private $self_url = '';
 	private $had_error = false;
 	private $messages = array();
-	private $sync_dashboard_url = 'http://ithemes.com/member/panel/sync.php';
+	private $sync_dashboard_url = 'https://sync.ithemes.com/';
 	
 	
 	public function __construct() {
-		require_once( dirname( __FILE__ ) . '/functions.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/functions.php' );
 		
-		
-		$this->path_url = Ithemes_Sync_Functions::get_url( dirname( __FILE__ ) );
+		$this->path_url = Ithemes_Sync_Functions::get_url( $GLOBALS['ithemes_sync_path'] );
 		
 		list( $this->self_url ) = explode( '?', $_SERVER['REQUEST_URI'] );
 		$this->self_url .= '?page=' . $this->page_name;
-		
 		
 		add_action( 'ithemes_sync_settings_page_index', array( $this, 'index' ) );
 		add_action( 'admin_print_styles', array( $this, 'add_styles' ) );
@@ -82,7 +82,7 @@ class Ithemes_Sync_Settings_Page {
 		check_admin_referer( 'authenticate-user' );
 		
 		
-		require_once( dirname( __FILE__ ) . '/server.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/server.php' );
 		
 		
 		$result = Ithemes_Sync_Server::authenticate( $data['username'], $data['password'] );
@@ -147,7 +147,7 @@ class Ithemes_Sync_Settings_Page {
 	}
 	
 	private function deauthenticate( $data ) {
-		require_once( dirname( __FILE__ ) . '/server.php' );
+		require_once( $GLOBALS['ithemes_sync_path'] . '/server.php' );
 		
 		
 		$options = $GLOBALS['ithemes-sync-settings']->get_options();

@@ -1,11 +1,11 @@
-# Copyright (C) 2014 iThemes Sync
+# Copyright (C) 2017 iThemes Sync
 # This file is distributed under the same license as the iThemes Sync package.
 msgid ""
 msgstr ""
-"Project-Id-Version: iThemes Sync 1.6.1\n"
-"Report-Msgid-Bugs-To: http://ithemes.com/forum/\n"
-"POT-Creation-Date: 2014-07-14 15:41:56+00:00\n"
-"PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
+"Project-Id-Version: iThemes Sync 2.0.0\n"
+"Report-Msgid-Bugs-To: http://ithemes.com/support/\n"
+"POT-Creation-Date: 2017-06-01 20:02:57+00:00\n"
+"PO-Revision-Date: 2017-MO-DA HO:MI+ZONE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -35,21 +35,34 @@ msgstr ""
 msgid "iThemes Sync is now hidden from your user again."
 msgstr ""
 
-#. #-#-#-#-#  ithemes-sync.pot (iThemes Sync 1.6.1)  #-#-#-#-#
+#. #-#-#-#-#  ithemes-sync.pot (iThemes Sync 2.0.0)  #-#-#-#-#
 #. Plugin Name of the plugin/theme
 #: admin.php:168 admin.php:174 settings-page.php:268
 msgid "iThemes Sync"
 msgstr ""
 
-#: admin.php:202 lib/updater/admin.php:170
+#: admin.php:202 lib/updater/admin.php:181
 msgid "Manage iThemes product licenses to receive automatic upgrade support"
 msgstr ""
 
-#: admin.php:202 lib/updater/admin.php:170
+#: admin.php:202 lib/updater/admin.php:181
 msgid "License"
 msgstr ""
 
-#: init.php:20
+#: client-dashboard.php:350
+msgctxt "Welcome panel"
+msgid "Welcome"
+msgstr ""
+
+#: duplicator.php:31
+msgid "Duplicate Post"
+msgstr ""
+
+#: duplicator.php:71
+msgid "copy"
+msgstr ""
+
+#: init.php:19
 msgid ""
 "Only one iThemes Sync plugin can be active at a time. The plugin at <code>"
 "%1$s</code> is running while the plugin at <code>%2$s</code> was skipped in "
@@ -57,42 +70,42 @@ msgid ""
 "to use."
 msgstr ""
 
-#: lib/updater/admin.php:131
+#: lib/updater/admin.php:140
 msgid ""
 "To receive automatic updates for %l, use the <a href=\"%s\">iThemes "
 "Licensing</a> page found in the Settings menu."
 msgstr ""
 
-#: lib/updater/admin.php:138 lib/updater/admin.php:144
+#: lib/updater/admin.php:147 lib/updater/admin.php:153
 #: lib/updater/settings-page.php:302
 msgid "iThemes Licensing"
 msgstr ""
 
-#: lib/updater/api.php:41 lib/updater/api.php:56
+#: lib/updater/api.php:41 lib/updater/api.php:59
 msgid ""
 "<p>Unable to get changelog data at this time.</p><p>Error <code>%1$s</code>: "
 "%2$s</p>"
 msgstr ""
 
-#: lib/updater/api.php:44
+#: lib/updater/api.php:45
 msgid ""
 "<p>Unable to get changelog data at this time.</p><p>Error: Unrecognized "
 "response from <code>wp_remote_get</code>.</p>"
 msgstr ""
 
-#: lib/updater/api.php:47
+#: lib/updater/api.php:49
 msgid ""
 "<p>Unable to get changelog data at this time.</p><p>Error code <code>%1$s</"
 "code>: %2$s</p>"
 msgstr ""
 
-#: lib/updater/api.php:58
+#: lib/updater/api.php:61
 msgid ""
 "<p>Unable to get changelog data at this time.</p><p>Error: Unrecognized "
 "response from iThemes API server.</p>"
 msgstr ""
 
-#: lib/updater/server.php:74
+#: lib/updater/server.php:78
 msgid ""
 "The server could not be contacted. Requests are delayed for %d minute to "
 "allow the server to recover."
@@ -102,11 +115,11 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/updater/server.php:145
+#: lib/updater/server.php:155
 msgid "The server was unable to be contacted."
 msgstr ""
 
-#: lib/updater/server.php:155
+#: lib/updater/server.php:165
 msgid ""
 "An error occurred when communicating with the iThemes update server: %s (%s)"
 msgstr ""
@@ -401,11 +414,11 @@ msgstr[1] ""
 msgid "%s ago"
 msgstr ""
 
-#: notice-handler.php:85
+#: notice-handler.php:89
 msgid "The Sync server returned an unknown response."
 msgstr ""
 
-#: server.php:182
+#: server.php:188
 msgid ""
 "An unrecognized server response format was received from the iThemes Sync "
 "server."
@@ -543,11 +556,55 @@ msgid ""
 "a successful ping."
 msgstr ""
 
-#. #-#-#-#-#  ithemes-sync.pot (iThemes Sync 1.6.1)  #-#-#-#-#
+#: social.php:86
+msgid "Social"
+msgstr ""
+
+#: social.php:102
+msgid "This post is already published."
+msgstr ""
+
+#: social.php:119
+msgid "Edit"
+msgstr ""
+
+#: social.php:123
+msgid "Template Tags"
+msgstr ""
+
+#: verbs/db-optimization.php:96
+msgid "Delete Trackback URLs"
+msgstr ""
+
+#: verbs/db-optimization.php:97
+msgid ""
+"Deletes URLs added to the \"pinged\" and \"to_ping\" columns in your posts "
+"table."
+msgstr ""
+
+#: verbs/db-optimization.php:382
+msgid "Never"
+msgstr ""
+
+#: verbs/get-wordpress-settings.php:141
+msgctxt "timezone date format"
+msgid "Y-m-d H:i:s"
+msgstr ""
+
+#: verbs/get-wordpress-settings.php:184
+msgid "F j, Y"
+msgstr ""
+
+#: verbs/get-wordpress-settings.php:198
+msgid "g:i a"
+msgstr ""
+
+#: verbs/get-wordpress-settings.php:239 verbs/get-wordpress-settings.php:246
+msgid "&mdash; Select &mdash;"
+msgstr ""
+
 #. Plugin URI of the plugin/theme
-#. #-#-#-#-#  ithemes-sync.pot (iThemes Sync 1.6.1)  #-#-#-#-#
-#. Author URI of the plugin/theme
-msgid "http://ithemes.com/"
+msgid "http://ithemes.com/sync"
 msgstr ""
 
 #. Description of the plugin/theme
@@ -556,4 +613,8 @@ msgstr ""
 
 #. Author of the plugin/theme
 msgid "iThemes"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://ithemes.com/"
 msgstr ""

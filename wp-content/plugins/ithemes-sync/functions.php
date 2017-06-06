@@ -3,7 +3,7 @@
 /*
 Misc functions to assist the Sync code.
 Written by Chris Jean for iThemes.com
-Version 1.8.5
+Version 1.9.0
 
 Version History
 	1.8.0 - 2014-03-28 - Chris Jean
@@ -22,6 +22,12 @@ Version History
 	1.8.5 - 2014-07-11 - Chris Jean
 		Added is_callable_function() which checks both is_callable() and the disable_functions ini setting to determine if a function is callable.
 		Replaced is_callable() calls for PHP functions with calls to self::is_callable_function() in order to avoid issues with servers that stop processing after a disabled function is run.
+	1.8.6 - 2014-10-23 - Chris Jean
+		Added a fix to check for functions blacklisted by Suhosin before attempting to execute.
+	1.8.7 - 2014-11-06 - Chris Jean
+		Fixed warnings that can happen when generating memory details on some systems.
+	1.9.0 - 2016-07-20 - Lew Ayotte
+		Added get_upload_reports_dir
 */
 
 
@@ -455,6 +461,11 @@ class Ithemes_Sync_Functions {
 		$details['display_errors'] = $GLOBALS['ithemes_sync_request_handler']->original_display_errors;
 		$details['error_reporting'] = $GLOBALS['ithemes_sync_request_handler']->original_error_reporting;
 		
+		if ( self::is_callable_function( 'ini_get' ) ) {
+			$details['disable_functions'] = ini_get( 'disable_functions' );
+			$details['suhosin.executor.func.blacklist'] = ini_get( 'suhosin.executor.func.blacklist' );
+		}
+		
 		
 		$functions = array(
 			'phpversion',
@@ -593,7 +604,7 @@ class Ithemes_Sync_Functions {
 		
 		$memory_data = self::run_shell_command( '/usr/bin/free|grep -i "^Mem:"' );
 		
-		if ( ! is_null( $memory_data ) ) {
+		if ( ! empty( $memory_data ) ) {
 			$memory_data = preg_split( '/\s+/', $memory_data );
 			
 			$memory = array(
@@ -610,7 +621,7 @@ class Ithemes_Sync_Functions {
 			
 			$swap_data = self::run_shell_command( '/usr/bin/free|grep -i "^Swap:"' );
 			
-			if ( ! is_null( $swap_data ) ) {
+			if ( ! empty( $swap_data ) ) {
 				$swap_data = preg_split( '/\s+/', $swap_data );
 				
 				$memory['swap'] = array(
@@ -619,6 +630,33 @@ class Ithemes_Sync_Functions {
 					'free'  => $swap_data[3],
 				);
 			}
+			
+			
+			$details['memory'] = $memory;
+		} else if ( file_exists( '/proc/meminfo' ) && ( false !== ( $meminfo = file_get_contents( '/proc/meminfo' ) ) ) && preg_match_all( '/^([^:]+):\s+(\d+)/m', $meminfo, $matches, PREG_SET_ORDER ) ) {
+			$memory_data = array();
+			
+			foreach ( $matches as $match ) {
+				$memory_data[$match[1]] = $match[2];
+			}
+			
+			$memory = array(
+				'total'   => $memory_data['MemTotal'],
+				'used'    => (string) ( $memory_data['MemTotal'] - $memory_data['MemFree'] ),
+				'free'    => $memory_data['MemFree'],
+				'buffers' => $memory_data['Buffers'],
+				'cache'   => $memory_data['Cached'],
+			);
+			
+			$memory['used-real'] = $memory['used'] - $memory['buffers'] - $memory['cache'];
+			$memory['free-real'] = $memory['total'] - $memory['used-real'];
+			
+			
+			$memory['swap'] = array(
+				'total' => $memory_data['SwapTotal'],
+				'used'  => (string) ( $memory_data['SwapTotal'] - $memory_data['SwapFree'] ),
+				'free'  => $memory_data['SwapFree'],
+			);
 			
 			
 			$details['memory'] = $memory;
@@ -943,6 +981,31 @@ class Ithemes_Sync_Functions {
 			return false;
 		}
 		
+		$disabled_functions = preg_split( '/\s*,\s*/', (string) ini_get( 'suhosin.executor.func.blacklist' ) );
+		
+		if ( in_array( $function, $disabled_functions ) ) {
+			return false;
+		}
+		
 		return true;
 	}
+	
+	public static function get_upload_reports_dir() {
+        $wp_upload_dir = wp_upload_dir();
+        $reports_path = apply_filters( 'get_upload_reports_dir', $wp_upload_dir['basedir'] . '/reports' );
+        
+        if ( ! file_exists( $reports_path  ) ) {
+        	wp_mkdir_p( $reports_path );
+        }
+        
+        return $reports_path;
+	}
+	
+	public static function get_upload_reports_url() {
+        $wp_upload_dir = wp_upload_dir();
+        $reports_url = apply_filters( 'get_upload_reports_url', $wp_upload_dir['baseurl'] . '/reports' );
+        
+        return $reports_url;
+	}
+
 }

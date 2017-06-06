@@ -76,3 +76,109 @@
 	Enhancement: Added ability to manage comments, roles, and users.
 1.6.1 - 2014-07-11 - Chris Jean
 	Bug Fix: Servers that have strict disable_functions settings that also stop PHP execution when a disabled function is called will no longer cause Sync requests to fail.
+1.6.2 - 2014-07-23 - Chris Jean
+	Enhancement: Additional user details, such as first name and last name can be requested from the site.
+1.6.3 - 2014-08-22 - Chris Jean
+	Bug Fix: Caching plugins no longer prevent Sync from reporting and installing available updates.
+1.6.4 - 2014-08-25 - Chris Jean
+	Bug Fix: Fixed compatibility issue with the Duo Two-Factor Authentication plugin.
+1.6.5 - 2014-10-08 - Chris Jean
+	Enhancement: Syncing users now uses the new authentication system.
+	Bug Fix: Fixed warning messages being generated when unauthenticated requests are received.
+1.6.6 - 2014-10-23 - Aaron D. Campbell
+	Enhancement: Add get-meta, set-meta, and delete-meta actions to manage-users verb
+	Enhancement: Client Dashboard
+1.6.7 - 2014-10-23 - Chris Jean
+	Bug Fix: Fixed compatibility issues with functions blacklisted by Suhosin's suhosin.executor.func.blacklist ini setting.
+1.6.8 - 2014-10-28 - Chris Jean
+	Bug Fix: Fixed infinite loop issue that caused pages for logged in users to fail to load on some sites.
+1.6.9 - 2014-10-31 - Aaron D. Campbell
+	Bug Fix: Actual fix for possible infinite loop caused by child nodes with no valid parent in admin bar
+1.6.10 - 2014-11-10 - Aaron D. Campbell
+	Enhancement: Updates to Gravity Forms's verb to allow pagination and proper labeling on Sync side
+1.6.11 - 2014-11-10 - Chris Jean
+	Enhancement: Added an alternate contaction method using admin-ajax.php in order to avoid communication issues on some systems.
+	Enhancement: Improved system memory statistics for some Linux systems.
+	Bug Fix: Corrected a timing issue that prevented updates for some plugins from appearing in the Sync dashboard.
+1.6.12 - 2014-11-14 - Packaging Bot (lib/updater)
+	Enhancement: Reduced caching to allow updates to appear more quickly.
+	Enhancement: Authenticating users now uses the new authentication system.
+1.7.0 - 2014-11-18 - Chris Jean
+	Enhancement: Added the ability to manage iThemes product licenses.
+1.7.1 - 2014-11-24 - Chris Jean
+	Bug Fix: Data containing non-ASCII characters is now properly parsed.
+1.7.4 - 2015-03-05 - Aaron D. Campbell
+	Enhancement: Add get-posts and manage-options verbs
+	Enhancement: Added ability to integrate social sharing
+1.7.5 - 2015-04-22 - Aaron D. Campbell
+	Bug Fix: Client Dashboard shouldn't hide the hamburger icon used for responsive admin
+1.7.6 - 2015-04-23 - Packaging Bot (lib/updater)
+	Compatibility Fix: Updated plugin and theme update data format to match changes in WordPress 4.2.
+1.7.7 - 2015-06-22 Chris Jean
+	Bug Fix: Resolved a fatal error situation that could happen when WordPress attempts to display an error message during plugin or theme upgrades.
+1.7.8 - 2015-07-14 - Packaging Bot (lib/updater)
+	Enhancement: Updated link to iThemes support.
+1.7.9 - 2015-07-21 - Chris Jean
+	Bug Fix: An error is no longer sent when a plugin or theme updates to a newer version than the one reported.
+1.8.0 - 2015-08-18 - Chris Jean
+	Enhancement: Added support for translations being located outside the plugin.
+	Compatibility Fix: Later priorities for Sync dashboard admin menu filtering to work with certain edge-case plugins.
+	Bug Fix: Changed path sent to load_plugin_textdomain() in order to properly load translations.
+1.8.1 - 2015-08-24 - Chris Jean
+	Compatibility Fix: Added support for a define to disable a feature of Sync that sets the WP_ADMIN define to true when handling an authenticated request from the Sync server. This feature exists to prevent compatibility issues with some security plugins yet can also cause a conflict with some plugins. To disable this feature, add the following to the site's wp-config.php file: define( 'ITHEMES_SYNC_SKIP_SET_IS_ADMIN_TO_TRUE', true );
+1.8.2 - 2015-09-25 - Chris Jean
+	Compatibility Fix: Updated method that the Client Dashboard uses to read admin menu details. This avoids conflicts with some plugins that modify the admin menu later than expected.
+1.8.3 - 2015-11-05 - Chris Jean
+	Bug Fix: Data from plugins, themes, and other sources that contain non-UTF-8 data are now properly parsed into UTF-8 encoding. This prevents problems communicating between the site and the Sync server when such data are present.
+1.9.0 - 2016-04-22 - Lew Ayotte, Ty Carlson
+	Enhancement: Adding Core, Plugin, and Theme notices
+	Enhacnement: Adding more information with Plugin and Theme verbs
+	Compatibility Fix: Automatically add Sync Server IPs to iThemes Security whitelist
+	Bug Fix: Handle reporting properly when site is synced to multiple profiles
+1.10.0 - 2016-06-21 - Lew Ayotte
+	Enhancement: Code efficiency updates
+	Bug Fix: Fixing invalid path reference
+1.11.0 - 2016-07-28 - Lew Ayotte
+	Enhancement: Pre-Release to new Whitelabelled Reporting Verbs
+	Bug Fix: Stop sending empty security notices
+1.12.0 - 2016-08-24 - Lew Ayotte
+	Enhancement: Federated Login
+1.12.1 - 2016-08-25 - Lew Ayotte
+	Bug Fix: Removing debug code not needed in live code
+1.13.0 - 2016-08-25 - Lew Ayotte
+	Enhancement: Extending Federated Login functionality to other User Accounts
+1.14.0 - 2016-08-29 - Lew Ayotte
+	Improvement: Reduce amount of BackupBuddy noise being sent through to Urgent Notices.
+1.14.1 - 2016-08-29 - Lew Ayotte
+	Bug Fix: Typo in last commit prevent some BuB notices that are needed
+1.15.0 - 2016-09-02 - Lew Ayotte
+	Improvement: Extending Federated Login functionality to include subpages to wp-admin
+1.16.0 - 2016-09-28 - Lew Ayotte
+	Improvement: Extending comment functionality
+1.16.1 - 2016-09-29 - Lew Ayotte
+	Committing missing code change, no affect on code but needs to be included
+1.17.0 - 2016-11-08 - Lew Ayotte
+	Improvement: Posts/Pages and Yoast SEO functionality
+1.17.1 - 2016-11-08 - Lew Ayotte
+	Bug Fix: Removing improper action priority.
+1.17.2 - 2016-11-09 - Lew Ayotte
+	Bug Fix: Try to set admin user as synced user for activity actions
+1.171.2 - 2016-11-09 - Lew Ayotte
+	Tagging Version Number Bug
+1.172.0 - 2016-11-14 - Lew Ayotte, Glenn Ansley
+	Enhancement: Duplicate Posts
+	Enhancement: Delete Post Revisions
+1.172.1 - 2016-11-28 - Glenn Ansley
+	Enhancement: Database Optimizations
+1.172.2 - 2016-12-01 - Glenn Ansley
+	Bug Fix: Workaround to download reports when fopen or openssl are disabled.
+1.173.0 - 2017-01-05 - Lew Ayotte
+	Enhancement: Google Search Console/Webmaster Tools functionality
+1.173.1 - 2017-01-05 - Lew Ayotte
+	Enhancement: Change how we store google verification option for Search Console/Webmaster Tools
+1.174.0 - 2017-02-15 - Lew Ayotte, Glenn Ansley
+	Bug Fix: Fix error when itsec sends data in WP_Error format
+1.175.0 - 2017-02-15 - Glenn Ansley
+	Enhancement: Add ability to read and set most options found Settings pages.
+2.0.0 - 2017-06-01 - Lew Ayotte
+	Initial release to WordPress.org
